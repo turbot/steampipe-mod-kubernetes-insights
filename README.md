@@ -1,6 +1,6 @@
 # Kubernetes Insights
 
-An Kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
+A kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
 
 <!-- TO DO-->
 
