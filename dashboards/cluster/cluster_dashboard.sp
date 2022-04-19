@@ -36,6 +36,7 @@ dashboard "kubernetes_cluster_dashboard" {
       type  = "info"
       query = query.kubernetes_cluster_pods_count
       width = 2
+      href  = dashboard.kubernetes_pod_dashboard.url_path
     }
 
     container {
@@ -79,63 +80,63 @@ dashboard "kubernetes_cluster_dashboard" {
     title = "Analysis"
 
     chart {
-      title = "Namespaces by Context"
+      title = "Namespaces by Cluster"
       query = query.kubernetes_namespace_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Services by Context"
+      title = "Services by Cluster"
       query = query.kubernetes_service_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "StatefulSets by Context"
+      title = "StatefulSets by Cluster"
       query = query.kubernetes_statefulset_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Pods by Context"
+      title = "Pods by Cluster"
       query = query.kubernetes_pod_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Nodes by Context"
+      title = "Nodes by Cluster"
       query = query.kubernetes_node_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "DaemonSets by Context"
+      title = "DaemonSets by Cluster"
       query = query.kubernetes_daemonset_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Deployments by Context"
+      title = "Deployments by Cluster"
       query = query.kubernetes_deployment_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Jobs by Context"
+      title = "Jobs by Cluster"
       query = query.kubernetes_job_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Containers by Context"
+      title = "Containers by Cluster"
       query = query.kubernetes_container_by_context
       type  = "column"
       width = 4

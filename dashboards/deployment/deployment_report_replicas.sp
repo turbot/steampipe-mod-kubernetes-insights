@@ -11,32 +11,12 @@ dashboard "kubernetes_deployment_replicas_report" {
   container {
 
     card {
-      query = query.kubernetes_deployment_replicas_count
+      query = query.kubernetes_deployment_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_deployment_available_replicas_count
-      width = 2
-    }
-
-    card {
-      query = query.kubernetes_deployment_updated_replicas_count
-      width = 2
-    }
-
-    card {
-      query = query.kubernetes_deployment_ready_replicas_count
-      width = 2
-    }
-
-    card {
-      query = query.kubernetes_deployment_status_replicas_count
-      width = 2
-    }
-
-    card {
-      query = query.kubernetes_deployment_unavailable_replicas_count
+      query = query.kubernetes_deployment_replica_count
       width = 2
     }
 
@@ -56,61 +36,6 @@ dashboard "kubernetes_deployment_replicas_report" {
 
 }
 
-query "kubernetes_deployment_replicas_count" {
-  sql = <<-EOQ
-    select
-      sum(replicas) as value,
-      'Replicas' as label
-    from
-      kubernetes_deployment;
-  EOQ
-}
-
-query "kubernetes_deployment_available_replicas_count" {
-  sql = <<-EOQ
-    select
-      sum(available_replicas) as value,
-      'Available Replicas' as label
-    from
-      kubernetes_deployment;
-  EOQ
-}
-query "kubernetes_deployment_updated_replicas_count" {
-  sql = <<-EOQ
-    select
-      sum(updated_replicas) as value,
-      'Updated Replicas' as label
-    from
-      kubernetes_deployment;
-  EOQ
-}
-query "kubernetes_deployment_ready_replicas_count" {
-  sql = <<-EOQ
-    select
-      sum(ready_replicas) as value,
-      'Ready Replicas' as label
-    from
-      kubernetes_deployment;
-  EOQ
-}
-query "kubernetes_deployment_status_replicas_count" {
-  sql = <<-EOQ
-    select
-      sum(status_replicas) as value,
-      'Status Replicas' as label
-    from
-      kubernetes_deployment;
-  EOQ
-}
-query "kubernetes_deployment_unavailable_replicas_count" {
-  sql = <<-EOQ
-    select
-      sum(unavailable_replicas) as value,
-      'Unavailable Replicas' as label
-    from
-      kubernetes_deployment;
-  EOQ
-}
 query "kubernetes_deployment_replicas_table" {
   sql = <<-EOQ
     select

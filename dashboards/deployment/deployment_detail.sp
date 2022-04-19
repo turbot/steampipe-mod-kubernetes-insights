@@ -87,8 +87,84 @@ dashboard "kubernetes_deployment_detail" {
 
       width = 6
 
+      chart {
+        title = "Replicas Details"
+        query = query.kubernetes_deployment_replicas_detail
+        type  = "donut"
+        args = {
+          uid = self.input.deployment_uid.value
+        }
+
+      }
+
+    }
+
+  }
+
+  container {
+
+    flow {
+      title = "Deployment Hierarchy"
+      query = query.kubernetes_deployment_tree
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+    }
+
+    table {
+      column "UID" {
+      display = "none"
+      }
+
+      title = "ReplicaSet Details"
+      width = 6
+      query = query.kubernetes_deployment_replicasets
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+
+      column "Name" {
+      //href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
+      }
+
+    }
+
+    table {
+      column "UID" {
+      display = "none"
+      }
+
+      title = "Pods Details"
+      width = 6
+      query = query.kubernetes_deployment_pods
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+
+      column "Name" {
+      href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+      }
+
+    }
+
+
+  }
+
+   container {
+
+      table {
+        title = "Strategy"
+        width = 6
+        query = query.kubernetes_deployment_strategy
+        args = {
+          uid = self.input.deployment_uid.value
+        }
+
+      }
+
       table {
         title = "Conditions"
+        width = 6
         query = query.kubernetes_deployment_conditions
         args = {
           uid = self.input.deployment_uid.value
@@ -96,69 +172,7 @@ dashboard "kubernetes_deployment_detail" {
 
       }
 
-      table {
-        title = "Template Spec"
-        query = query.kubernetes_deployment_template_spec
-        args = {
-          uid = self.input.deployment_uid.value
-        }
-
-      }
-
-      table {
-        title = "Strategy"
-        query = query.kubernetes_deployment_strategy
-        args = {
-          uid = self.input.deployment_uid.value
-        }
-
-      }
     }
-  }
-
-  container {
-
-    table {
-      title = "Replicas Details"
-      width = 6
-      query = query.kubernetes_deployment_replicas_detail
-      args = {
-        uid = self.input.deployment_uid.value
-      }
-
-    }
-
-    table {
-      title = "Containers Basic details"
-      width = 6
-      query = query.kubernetes_deployment_container_basic_detail
-      args = {
-        uid = self.input.deployment_uid.value
-      }
-
-    }
-
-    table {
-      title = "Containers Access details"
-      width = 6
-      query = query.kubernetes_deployment_container_access_detail
-      args = {
-        uid = self.input.deployment_uid.value
-      }
-
-    }
-
-    table {
-      title = "Containers CPU & Memory details"
-      width = 6
-      query = query.kubernetes_deployment_container_cpu_detail
-      args = {
-        uid = self.input.deployment_uid.value
-      }
-
-    }
-
-  }
 
 }
 
@@ -311,23 +325,6 @@ query "kubernetes_deployment_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_template_spec" {
-  sql = <<-EOQ
-    select
-      template -> 'spec' ->> 'dnsPolicy' as "DNS Policy",
-      template -> 'spec' ->> 'restartPolicy' as "Restart Policy",
-      template -> 'spec' ->> 'schedulerName' as "Scheduler Name",
-      template -> 'spec' ->> 'serviceAccountName' as "Service Account Name",
-      template -> 'spec' ->> 'terminationGracePeriodSeconds' as "Termination Grace Period Seconds"
-    from
-      kubernetes_deployment
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
 query "kubernetes_deployment_strategy" {
   sql = <<-EOQ
     select
@@ -346,70 +343,145 @@ query "kubernetes_deployment_strategy" {
 query "kubernetes_deployment_replicas_detail" {
   sql = <<-EOQ
     select
-      available_replicas as "Available Replicas",
-      updated_replicas as "Updated Replicas",
-      ready_replicas as "Ready Replicas",
-      status_replicas as "Status Replicas",
-      unavailable_replicas as "Unavailable Replicas"
+      'available replicas' as label,
+      count(available_replicas) as value
     from
       kubernetes_deployment
     where
-      uid = $1;
+      uid = $1
+    group by
+      label
+    union all
+    select
+      'updated replicas' as label,
+      count(updated_replicas) as value
+    from
+      kubernetes_deployment
+    where
+      uid = $1
+    group by
+      label
+    union all
+    select
+      'unavailable replicas' as label,
+      count(unavailable_replicas) as value
+    from
+      kubernetes_deployment
+    where
+      uid = $1
+    group by
+      label;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_deployment_container_basic_detail" {
+query "kubernetes_deployment_replicasets" {
   sql = <<-EOQ
     select
-      c ->> 'name' as "Name",
-      c ->> 'image' as "Image",
-      c -> 'securityContext' ->> 'readOnlyRootFilesystem' as "Read Only Root File System",
-      c -> 'securityContext' -> 'seccompProfile' ->> 'type' as "Seccomp Profile Type"
+      name as "Name",
+      uid as "UID",
+      min_ready_seconds as "Min Ready Seconds",
+      creation_timestamp as "Create Date"
     from
-      kubernetes_deployment,
-      jsonb_array_elements(template -> 'spec' -> 'containers') as c
+      kubernetes_replicaset,
+      jsonb_array_elements(owner_references) as owner
     where
-      uid = $1;
+      owner ->> 'uid' = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_deployment_container_access_detail" {
+query "kubernetes_deployment_pods" {
   sql = <<-EOQ
     select
-      c ->> 'name' as "Name",
-      c -> 'ports' ->> 'protocol' as "Protocol",
-      c -> 'ports' ->> 'containerPort' as "Container Port",
-      c -> 'securityContext' ->> 'allowPrivilegeEscalation' as "Allow Privilege Escalation",
-      c -> 'securityContext' ->> 'privileged' as "Privileged",
-      c -> 'securityContext' ->> 'runAsNonRoot' as "Run as Non Root"
+      pod.name as "Name",
+      pod.uid as "UID",
+      pod.restart_policy as "Restart Policy",
+      pod.node_name as "Node Name"
     from
-      kubernetes_deployment,
-      jsonb_array_elements(template -> 'spec' -> 'containers') as c
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      uid = $1;
+      rs_owner ->> 'uid' = $1
+      and pod_owner ->> 'uid' = rs.uid;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_deployment_container_cpu_detail" {
+query "kubernetes_deployment_tree" {
   sql = <<-EOQ
+
+    -- This deployment
     select
-      c ->> 'name' as "Name",
-      c -> 'resources' -> 'limits' ->> 'cpu' as "CPU Limit",
-      c -> 'resources' -> 'requests' ->> 'cpu' as "CPU Request",
-      c -> 'resources' -> 'limits' ->> 'memory' as "Memory Limit",
-      c -> 'resources' -> 'requests' ->> 'memory' as "Memory Request"
+      null as from_id,
+      uid as id,
+      name as title,
+      0 as depth,
+      'deployment' as category
     from
-      kubernetes_deployment,
-      jsonb_array_elements(template -> 'spec' -> 'containers') as c
+      kubernetes_deployment
     where
-      uid = $1;
+      uid = $1
+
+    -- replicasets owned by the deployment
+    union all
+    select
+      $1 as from_id,
+      uid as id,
+      name as title,
+      1 as depth,
+      'replicaset' as category
+    from
+      kubernetes_replicaset,
+      jsonb_array_elements(owner_references) as owner
+    where
+      owner ->> 'uid' = $1
+
+    -- Pods owned by the replicasets
+    union all
+    select
+      pod_owner ->> 'uid'  as from_id,
+      pod.uid as id,
+      pod.name as title,
+      2 as depth,
+      'pod' as category
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      rs_owner ->> 'uid' = $1
+      and pod_owner ->> 'uid' = rs.uid
+
+
+    -- containers in Pods owned by the replicasets
+    union all
+    select
+      pod.uid  as from_id,
+      concat(pod.uid, '_', container ->> 'name') as id,
+      container ->> 'name' as title,
+      3 as depth,
+      'container' as category
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
+    where
+      rs_owner ->> 'uid' = $1
+      and pod_owner ->> 'uid' = rs.uid
+
+
   EOQ
 
+
   param "uid" {}
+
 }

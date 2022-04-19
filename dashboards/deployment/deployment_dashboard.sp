@@ -117,7 +117,7 @@ dashboard "kubernetes_deployment_dashboard" {
     title = "Analysis"
 
     chart {
-      title = "Deployments by Context"
+      title = "Deployments by Cluster"
       query = query.kubernetes_deployment_by_context_name
       type  = "column"
       width = 4
