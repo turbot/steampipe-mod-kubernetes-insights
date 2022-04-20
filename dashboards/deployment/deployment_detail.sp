@@ -88,7 +88,7 @@ dashboard "kubernetes_deployment_detail" {
       width = 6
 
       chart {
-        title = "Replicas Details"
+        title = "Replicas"
         query = query.kubernetes_deployment_replicas_detail
         type  = "donut"
         args = {
@@ -123,22 +123,17 @@ dashboard "kubernetes_deployment_detail" {
         uid = self.input.deployment_uid.value
       }
 
-      column "Name" {
-      //href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
-      }
-
     }
 
     table {
-      column "UID" {
-      display = "none"
-      }
-
       title = "Pods Details"
       width = 6
       query = query.kubernetes_deployment_pods
       args = {
         uid = self.input.deployment_uid.value
+      }
+      column "UID" {
+      display = "none"
       }
 
       column "Name" {
@@ -344,33 +339,27 @@ query "kubernetes_deployment_replicas_detail" {
   sql = <<-EOQ
     select
       'available replicas' as label,
-      count(available_replicas) as value
+      available_replicas as value
     from
       kubernetes_deployment
     where
       uid = $1
-    group by
-      label
     union all
     select
       'updated replicas' as label,
-      count(updated_replicas) as value
+      updated_replicas as value
     from
       kubernetes_deployment
     where
       uid = $1
-    group by
-      label
     union all
     select
       'unavailable replicas' as label,
-      count(unavailable_replicas) as value
+      unavailable_replicas as value
     from
       kubernetes_deployment
     where
-      uid = $1
-    group by
-      label;
+      uid = $1;
   EOQ
 
   param "uid" {}

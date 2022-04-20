@@ -127,6 +127,13 @@ dashboard "kubernetes_pod_detail" {
         uid = self.input.pod_uid.value
       }
 
+      column "Container Value" {
+      display = "none"
+      }
+
+      column "Name" {
+      href = "${dashboard.kubernetes_container_detail.url_path}?input.container_name={{.'Container Value' | @uri}}"
+      }
     }
 
     table {
@@ -350,7 +357,8 @@ query "kubernetes_pod_container_basic_detail" {
     select
       c ->> 'name' as "Name",
       c ->> 'image' as "Image",
-      c -> 'securityContext' -> 'seccompProfile' ->> 'type' as "Seccomp Profile Type"
+      c -> 'securityContext' -> 'seccompProfile' ->> 'type' as "Seccomp Profile Type",
+      concat(c ->> 'name',name) as "Container Value"
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c

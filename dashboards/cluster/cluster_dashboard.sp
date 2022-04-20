@@ -70,6 +70,7 @@ dashboard "kubernetes_cluster_dashboard" {
         type  = "info"
         query = query.kubernetes_cluster_containers_count
         width = 2
+        href  = dashboard.kubernetes_container_dashboard.url_path
       }
 
     }
