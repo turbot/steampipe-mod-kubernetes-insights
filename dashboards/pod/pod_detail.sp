@@ -103,25 +103,9 @@ dashboard "kubernetes_pod_detail" {
         }
 
       }
-    }
-  }
 
-  container {
-
-    chart {
-      title = "Containers CPU & Memory Analysis"
-      width = 6
-      query = query.kubernetes_pod_container_cpu_detail
-      type  = "column"
-      args = {
-        uid = self.input.pod_uid.value
-      }
-
-    }
-
-    table {
+      table {
       title = "Containers Basic Details"
-      width = 6
       query = query.kubernetes_pod_container_basic_detail
       args = {
         uid = self.input.pod_uid.value
@@ -134,6 +118,32 @@ dashboard "kubernetes_pod_detail" {
       column "Name" {
       href = "${dashboard.kubernetes_container_detail.url_path}?input.container_name={{.'Container Value' | @uri}}"
       }
+    }
+    }
+  }
+
+  container {
+
+    chart {
+      title = "Containers CPU Analysis"
+      width = 6
+      query = query.kubernetes_pod_container_cpu_detail
+      type  = "column"
+      args = {
+        uid = self.input.pod_uid.value
+      }
+
+    }
+
+    chart {
+      title = "Containers Memory Analysis"
+      width = 6
+      query = query.kubernetes_pod_container_memory_detail
+      type  = "column"
+      args = {
+        uid = self.input.pod_uid.value
+      }
+
     }
 
     table {
@@ -374,7 +384,23 @@ query "kubernetes_pod_container_cpu_detail" {
     select
       c ->> 'name' as "Name",
       REPLACE(c -> 'resources' -> 'limits' ->> 'cpu','m','') as "CPU Limit (m)",
-      REPLACE(c -> 'resources' -> 'requests' ->> 'cpu','m','') as "CPU Request (m)",
+      REPLACE(c -> 'resources' -> 'requests' ->> 'cpu','m','') as "CPU Request (m)"
+    from
+      kubernetes_pod,
+      jsonb_array_elements(containers) as c
+    where
+      uid = $1
+    order by
+      c ->> 'name';
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_pod_container_memory_detail" {
+  sql = <<-EOQ
+    select
+      c ->> 'name' as "Name",
       REPLACE(c -> 'resources' -> 'limits' ->> 'memory','Mi','') as "Memory Limit (Mi)",
       REPLACE(c -> 'resources' -> 'requests' ->> 'memory','Mi','') as "Memory Request (Mi)"
     from

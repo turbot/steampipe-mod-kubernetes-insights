@@ -90,7 +90,7 @@ dashboard "kubernetes_container_detail" {
       chart {
       title = "Resources"
       query = query.kubernetes_container_resources
-      type  = "donut"
+      type  = "column"
       args = {
         name = self.input.container_name.value
       }
