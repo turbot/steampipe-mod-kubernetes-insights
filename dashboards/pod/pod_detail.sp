@@ -133,10 +133,11 @@ dashboard "kubernetes_pod_detail" {
   container {
 
     chart {
-      title = "Containers CPU Analysis"
-      width = 6
-      query = query.kubernetes_pod_container_cpu_detail
-      type  = "column"
+      title    = "Containers CPU Analysis"
+      width    = 6
+      query    = query.kubernetes_pod_container_cpu_detail
+      grouping = "compare"
+      type     = "column"
       args = {
         uid = self.input.pod_uid.value
       }
@@ -144,10 +145,11 @@ dashboard "kubernetes_pod_detail" {
     }
 
     chart {
-      title = "Containers Memory Analysis"
-      width = 6
-      query = query.kubernetes_pod_container_memory_detail
-      type  = "column"
+      title    = "Containers Memory Analysis"
+      width    = 6
+      query    = query.kubernetes_pod_container_memory_detail
+      grouping = "compare"
+      type     = "column"
       args = {
         uid = self.input.pod_uid.value
       }
