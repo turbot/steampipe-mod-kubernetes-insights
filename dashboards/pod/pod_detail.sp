@@ -102,23 +102,31 @@ dashboard "kubernetes_pod_detail" {
           uid = self.input.pod_uid.value
         }
 
+        column "UID" {
+          display = "none"
+        }
+
+        column "Node Name" {
+          href = "${dashboard.kubernetes_node_detail.url_path}?input.node_uid={{.UID | @uri}}"
+        }
+
       }
 
       table {
-      title = "Containers Basic Details"
-      query = query.kubernetes_pod_container_basic_detail
-      args = {
-        uid = self.input.pod_uid.value
-      }
+        title = "Containers Basic Details"
+        query = query.kubernetes_pod_container_basic_detail
+        args = {
+          uid = self.input.pod_uid.value
+        }
 
-      column "Container Value" {
-      display = "none"
-      }
+        column "Container Value" {
+          display = "none"
+        }
 
-      column "Name" {
-      href = "${dashboard.kubernetes_container_detail.url_path}?input.container_name={{.'Container Value' | @uri}}"
+        column "Name" {
+          href = "${dashboard.kubernetes_container_detail.url_path}?input.container_name={{.'Container Value' | @uri}}"
+        }
       }
-    }
     }
   }
 
@@ -318,16 +326,18 @@ query "kubernetes_pod_conditions" {
 query "kubernetes_pod_configuration" {
   sql = <<-EOQ
     select
-      node_name as "Node Name",
+      p.node_name as "Node Name",
+      n.uid as "UID",
       priority as "Priority",
       service_account_name as "Service Account Name",
       qos_class as "QoS",
       host_ip as "Host IP",
       pod_ip as "Pod IP"
     from
-      kubernetes_pod
+      kubernetes_pod as p
+      left join kubernetes_node as n on p.node_name = n.name
     where
-      uid = $1;
+      p.uid = $1;
   EOQ
 
   param "uid" {}
