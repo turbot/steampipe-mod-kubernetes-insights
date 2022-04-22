@@ -17,14 +17,6 @@ dashboard "kubernetes_deployment_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_deployment_container
-      args = {
-        uid = self.input.deployment_uid.value
-      }
-    }
-
-    card {
-      width = 2
       query = query.kubernetes_deployment_default_namespace
       args = {
         uid = self.input.deployment_uid.value
@@ -113,7 +105,7 @@ dashboard "kubernetes_deployment_detail" {
 
     table {
       column "UID" {
-      display = "none"
+        display = "none"
       }
 
       title = "ReplicaSet Details"
@@ -133,11 +125,11 @@ dashboard "kubernetes_deployment_detail" {
         uid = self.input.deployment_uid.value
       }
       column "UID" {
-      display = "none"
+        display = "none"
       }
 
       column "Name" {
-      href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+        href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
       }
 
     }
@@ -145,29 +137,29 @@ dashboard "kubernetes_deployment_detail" {
 
   }
 
-   container {
+  container {
 
-      table {
-        title = "Strategy"
-        width = 6
-        query = query.kubernetes_deployment_strategy
-        args = {
-          uid = self.input.deployment_uid.value
-        }
-
-      }
-
-      table {
-        title = "Conditions"
-        width = 6
-        query = query.kubernetes_deployment_conditions
-        args = {
-          uid = self.input.deployment_uid.value
-        }
-
+    table {
+      title = "Strategy"
+      width = 6
+      query = query.kubernetes_deployment_strategy
+      args = {
+        uid = self.input.deployment_uid.value
       }
 
     }
+
+    table {
+      title = "Conditions"
+      width = 6
+      query = query.kubernetes_deployment_conditions
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+
+    }
+
+  }
 
 }
 
@@ -185,21 +177,6 @@ query "kubernetes_deployment_input" {
     order by
       title;
   EOQ
-}
-
-query "kubernetes_deployment_container" {
-  sql = <<-EOQ
-    select
-      count(c) as value,
-      'Containers' as label
-    from
-      kubernetes_deployment,
-      jsonb_array_elements(template -> 'spec' -> 'containers') as c
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
 }
 
 query "kubernetes_deployment_default_namespace" {
@@ -348,6 +325,14 @@ query "kubernetes_deployment_replicas_detail" {
     select
       'updated replicas' as label,
       updated_replicas as value
+    from
+      kubernetes_deployment
+    where
+      uid = $1
+    union all
+    select
+      'ready replicas' as label,
+      ready_replicas as value
     from
       kubernetes_deployment
     where

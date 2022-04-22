@@ -88,12 +88,12 @@ dashboard "kubernetes_container_detail" {
       }
 
       chart {
-      title = "Resources"
-      query = query.kubernetes_container_resources
-      type  = "column"
-      args = {
-        name = self.input.container_name.value
-      }
+        title = "Resources"
+        query = query.kubernetes_container_resources
+        type  = "column"
+        args = {
+          name = self.input.container_name.value
+        }
 
       }
 
@@ -146,7 +146,7 @@ query "kubernetes_container_privileged" {
 query "kubernetes_container_allow_privilege_escalation" {
   sql = <<-EOQ
     select
-      case when c -> 'securityContext' ->> 'allowPrivilegeEscalation' = 'true' then 'Allowed' else 'Denied' end as value,
+      case when c -> 'securityContext' ->> 'allowPrivilegeEscalation' = 'true' then 'Enabled' else 'Disabled' end as value,
       'Privilege Escalation' as label,
       case when c -> 'securityContext' ->> 'allowPrivilegeEscalation' = 'true' then 'alert' else 'ok' end as type
     from

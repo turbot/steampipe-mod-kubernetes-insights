@@ -45,6 +45,7 @@ dashboard "kubernetes_cluster_dashboard" {
         type  = "info"
         query = query.kubernetes_cluster_nodes_count
         width = 2
+        href  = dashboard.kubernetes_node_detail.url_path
       }
 
       card {

@@ -44,7 +44,6 @@ query "kubernetes_deployment_replicas_table" {
       available_replicas as "Available Replicas",
       updated_replicas as "Updated Replicas",
       ready_replicas as "Ready Replicas",
-      status_replicas as "Status Replicas",
       unavailable_replicas as "Unavailable Replicas",
       context_name as "Context Name"
     from

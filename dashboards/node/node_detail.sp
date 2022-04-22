@@ -23,14 +23,6 @@ dashboard "kubernetes_node_detail" {
       }
     }
 
-    card {
-      width = 2
-      query = query.kubernetes_node_kubelet
-      args = {
-        uid = self.input.node_uid.value
-      }
-    }
-
   }
 
   container {
@@ -167,20 +159,6 @@ query "kubernetes_node_pods" {
   param "uid" {}
 }
 
-query "kubernetes_node_kubelet" {
-  sql = <<-EOQ
-    select
-      daemon_endpoints -> 'kubeletEndpoint' ->> 'Port' as value,
-      'Kubelet Endpoint Port' as label
-    from
-      kubernetes_node
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
 query "kubernetes_node_overview" {
   sql = <<-EOQ
     select
@@ -224,6 +202,7 @@ query "kubernetes_node_capacity" {
     select
       capacity ->> 'cpu' as "CPU",
       capacity ->> 'memory' as "Memory",
+      capacity ->> 'ephemeral-storage' as "Storage",
       capacity ->> 'pods' as "Pods"
     from
       kubernetes_node
@@ -239,6 +218,7 @@ query "kubernetes_node_allocatable" {
     select
       allocatable ->> 'cpu' as "CPU",
       allocatable ->> 'memory' as "Memory",
+      allocatable ->> 'ephemeral-storage' as "Storage",
       allocatable ->> 'pods' as "Pods"
     from
       kubernetes_node

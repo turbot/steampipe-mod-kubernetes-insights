@@ -47,10 +47,10 @@ dashboard "kubernetes_container_dashboard" {
       width = 3
 
       series "count" {
-        point "privileged" {
+        point "enabled" {
           color = "alert"
         }
-        point "underprivileged" {
+        point "disabled" {
           color = "ok"
         }
       }
@@ -63,10 +63,10 @@ dashboard "kubernetes_container_dashboard" {
       width = 3
 
       series "count" {
-        point "allowed" {
+        point "enabled" {
           color = "alert"
         }
-        point "denied" {
+        point "disabled" {
           color = "ok"
         }
       }
@@ -201,7 +201,7 @@ query "kubernetes_container_readiness_probe_count" {
 query "kubernetes_container_privileged_status" {
   sql = <<-EOQ
     select
-      case when c -> 'securityContext' ->> 'privileged' = 'true' then 'privileged' else 'underprivileged' end as status,
+      case when c -> 'securityContext' ->> 'privileged' = 'true' then 'enabled' else 'disabled' end as status,
       count(c)
     from
       kubernetes_pod,
@@ -214,7 +214,7 @@ query "kubernetes_container_privileged_status" {
 query "kubernetes_container_allow_privilege_escalation_status" {
   sql = <<-EOQ
     select
-      case when c -> 'securityContext' ->> 'allowPrivilegeEscalation' = 'true' then 'allowed' else 'denied' end as status,
+      case when c -> 'securityContext' ->> 'allowPrivilegeEscalation' = 'true' then 'enabled' else 'disabled' end as status,
       count(c)
     from
       kubernetes_pod,

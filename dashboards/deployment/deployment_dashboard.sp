@@ -15,11 +15,6 @@ dashboard "kubernetes_deployment_dashboard" {
     }
 
     card {
-      query = query.kubernetes_deployment_container_count
-      width = 2
-    }
-
-    card {
       query = query.kubernetes_deployment_default_namespace_count
       width = 2
     }
@@ -148,17 +143,6 @@ query "kubernetes_deployment_count" {
       count(*) as "Deployments"
     from
       kubernetes_deployment;
-  EOQ
-}
-
-query "kubernetes_deployment_container_count" {
-  sql = <<-EOQ
-    select
-      count(c) as value,
-      'Containers / Containers Definition' as label
-    from
-      kubernetes_deployment,
-      jsonb_array_elements(template -> 'spec' -> 'containers') as c;
   EOQ
 }
 
