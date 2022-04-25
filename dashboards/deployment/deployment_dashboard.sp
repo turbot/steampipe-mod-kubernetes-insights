@@ -163,7 +163,7 @@ query "kubernetes_deployment_replica_count" {
   sql = <<-EOQ
     select
       count(name) as value,
-      'Replicas < 3' as label,
+      'Replicas Without HA (<3)' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
       kubernetes_deployment
