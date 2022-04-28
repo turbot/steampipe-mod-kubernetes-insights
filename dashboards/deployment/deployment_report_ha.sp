@@ -1,7 +1,7 @@
-dashboard "kubernetes_deployment_replicas_report" {
+dashboard "kubernetes_deployment_ha_report" {
 
-  title         = "Kubernetes Deployment Replicas Report"
-  documentation = file("./dashboards/deployment/docs/deployment_report_replicas.md")
+  title         = "Kubernetes Deployment HA Report"
+  documentation = file("./dashboards/deployment/docs/deployment_report_ha.md")
 
   tags = merge(local.deployment_common_tags, {
     type     = "Report"
@@ -27,7 +27,7 @@ dashboard "kubernetes_deployment_replicas_report" {
       display = "none"
     }
 
-    column "Deployment Name" {
+    column "Name" {
       href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
     }
 
@@ -39,7 +39,7 @@ dashboard "kubernetes_deployment_replicas_report" {
 query "kubernetes_deployment_replicas_table" {
   sql = <<-EOQ
     select
-      name as "Deployment Name",
+      name as "Name",
       uid as "UID",
       available_replicas as "Available Replicas",
       updated_replicas as "Updated Replicas",

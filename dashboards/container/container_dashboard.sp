@@ -34,6 +34,11 @@ dashboard "kubernetes_container_dashboard" {
       width = 2
     }
 
+    card {
+      query = query.kubernetes_container_immutable_root_filesystem_count
+      width = 2
+    }
+
   }
 
   container {
@@ -44,7 +49,7 @@ dashboard "kubernetes_container_dashboard" {
       title = "Privileged Status"
       query = query.kubernetes_container_privileged_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -60,7 +65,7 @@ dashboard "kubernetes_container_dashboard" {
       title = "Privilege Escalation Status"
       query = query.kubernetes_container_allow_privilege_escalation_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "enabled" {
@@ -76,7 +81,7 @@ dashboard "kubernetes_container_dashboard" {
       title = "Liveness Probe Status"
       query = query.kubernetes_container_liveness_probe_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "unavailable" {
@@ -92,13 +97,29 @@ dashboard "kubernetes_container_dashboard" {
       title = "Readiness Probe Status"
       query = query.kubernetes_container_readiness_probe_status
       type  = "donut"
-      width = 3
+      width = 4
 
       series "count" {
         point "unavailable" {
           color = "alert"
         }
         point "available" {
+          color = "ok"
+        }
+      }
+    }
+
+    chart {
+      title = "Immutable Root Filesystem Status"
+      query = query.kubernetes_container_immutable_root_filesystem_status
+      type  = "donut"
+      width = 4
+
+      series "count" {
+        point "unused" {
+          color = "alert"
+        }
+        point "used" {
           color = "ok"
         }
       }
@@ -196,6 +217,20 @@ query "kubernetes_container_readiness_probe_count" {
   EOQ
 }
 
+query "kubernetes_container_immutable_root_filesystem_count" {
+  sql = <<-EOQ
+    select
+      count(c ->> 'name') as value,
+      'Immutable Root Filesystem Unused' as label,
+      case count(c ->> 'name') when 0 then 'ok' else 'alert' end as type
+    from
+      kubernetes_pod,
+      jsonb_array_elements(containers) as c
+    where
+      c -> 'securityContext' ->> 'readOnlyRootFilesystem' = 'false' or c -> 'securityContext' ->> 'readOnlyRootFilesystem' is null;
+  EOQ
+}
+
 # Assessment Queries
 
 query "kubernetes_container_privileged_status" {
@@ -241,6 +276,19 @@ query "kubernetes_container_readiness_probe_status" {
   sql = <<-EOQ
     select
       case when c -> 'readinessProbe' is null then 'unavailable' else 'available' end as status,
+      count(c)
+    from
+      kubernetes_pod,
+      jsonb_array_elements(containers) as c
+    group by
+      status;
+  EOQ
+}
+
+query "kubernetes_container_immutable_root_filesystem_status" {
+  sql = <<-EOQ
+    select
+      case when c -> 'securityContext' ->> 'readOnlyRootFilesystem' = 'true' then 'used' else 'unused' end as status,
       count(c)
     from
       kubernetes_pod,

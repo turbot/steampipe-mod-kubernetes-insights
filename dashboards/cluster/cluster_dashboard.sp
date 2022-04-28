@@ -18,6 +18,14 @@ dashboard "kubernetes_cluster_dashboard" {
       type  = "info"
       query = query.kubernetes_cluster_namespace_count
       width = 2
+      href  = dashboard.kubernetes_namespace_report.url_path
+    }
+
+    card {
+      type  = "info"
+      query = query.kubernetes_cluster_nodes_count
+      width = 2
+      href  = dashboard.kubernetes_node_report.url_path
     }
 
     card {
@@ -28,53 +36,60 @@ dashboard "kubernetes_cluster_dashboard" {
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_statefulsets_count
-      width = 2
-    }
-
-    card {
-      type  = "info"
       query = query.kubernetes_cluster_pods_count
       width = 2
       href  = dashboard.kubernetes_pod_dashboard.url_path
     }
 
-    container {
-
-      card {
-        type  = "info"
-        query = query.kubernetes_cluster_nodes_count
-        width = 2
-        href  = dashboard.kubernetes_node_detail.url_path
-      }
-
-      card {
-        type  = "info"
-        query = query.kubernetes_cluster_daemonsets_count
-        width = 2
-      }
-
-      card {
-        type  = "info"
-        query = query.kubernetes_cluster_deployments_count
-        width = 2
-        href  = dashboard.kubernetes_deployment_dashboard.url_path
-      }
-
-      card {
-        type  = "info"
-        query = query.kubernetes_cluster_jobs_count
-        width = 2
-      }
-
-      card {
-        type  = "info"
-        query = query.kubernetes_cluster_containers_count
-        width = 2
-        href  = dashboard.kubernetes_container_dashboard.url_path
-      }
-
+    card {
+      type  = "info"
+      query = query.kubernetes_cluster_containers_count
+      width = 2
+      href  = dashboard.kubernetes_container_dashboard.url_path
     }
+
+    card {
+      type  = "info"
+      query = query.kubernetes_cluster_deployments_count
+      width = 2
+      href  = dashboard.kubernetes_deployment_dashboard.url_path
+    }
+
+    card {
+      type  = "info"
+      query = query.kubernetes_cluster_repliasets_count
+      width = 2
+      href  = dashboard.kubernetes_replicaset_dashboard.url_path
+    }
+
+    card {
+      type  = "info"
+      query = query.kubernetes_cluster_daemonsets_count
+      width = 2
+      href  = dashboard.kubernetes_daemonset_dashboard.url_path
+    }
+
+    card {
+      type  = "info"
+      query = query.kubernetes_cluster_statefulsets_count
+      width = 2
+      href  = dashboard.kubernetes_statefulset_dashboard.url_path
+    }
+
+    card {
+      type  = "info"
+      query = query.kubernetes_cluster_cronjobs_count
+      width = 2
+      href  = dashboard.kubernetes_cronjob_dashboard.url_path
+    }
+
+    card {
+      type  = "info"
+      query = query.kubernetes_cluster_jobs_count
+      width = 2
+      href  = dashboard.kubernetes_job_dashboard.url_path
+    }
+
   }
 
   container {
@@ -89,15 +104,15 @@ dashboard "kubernetes_cluster_dashboard" {
     }
 
     chart {
-      title = "Services by Cluster"
-      query = query.kubernetes_service_by_context
+      title = "Nodes by Cluster"
+      query = query.kubernetes_node_by_context
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "StatefulSets by Cluster"
-      query = query.kubernetes_statefulset_by_context
+      title = "Services by Cluster"
+      query = query.kubernetes_service_by_context
       type  = "column"
       width = 4
     }
@@ -110,15 +125,8 @@ dashboard "kubernetes_cluster_dashboard" {
     }
 
     chart {
-      title = "Nodes by Cluster"
-      query = query.kubernetes_node_by_context
-      type  = "column"
-      width = 4
-    }
-
-    chart {
-      title = "DaemonSets by Cluster"
-      query = query.kubernetes_daemonset_by_context
+      title = "Containers by Cluster"
+      query = query.kubernetes_container_by_context
       type  = "column"
       width = 4
     }
@@ -131,21 +139,47 @@ dashboard "kubernetes_cluster_dashboard" {
     }
 
     chart {
+      title = "ReplicaSets by Cluster"
+      query = query.kubernetes_replicaset_by_context
+      type  = "column"
+      width = 4
+    }
+
+    chart {
+      title = "DaemonSets by Cluster"
+      query = query.kubernetes_daemonset_by_context
+      type  = "column"
+      width = 4
+    }
+
+
+    chart {
+      title = "StatefulSets by Cluster"
+      query = query.kubernetes_statefulset_by_context
+      type  = "column"
+      width = 4
+    }
+
+    chart {
+      title = "CronJobs by Cluster"
+      query = query.kubernetes_cronjob_by_context
+      type  = "column"
+      width = 4
+    }
+
+    chart {
       title = "Jobs by Cluster"
       query = query.kubernetes_job_by_context
       type  = "column"
       width = 4
     }
 
-    chart {
-      title = "Containers by Cluster"
-      query = query.kubernetes_container_by_context
-      type  = "column"
-      width = 4
-    }
+
   }
 
 }
+
+# Card Queries
 
 query "kubernetes_cluster_count" {
   sql = <<-EOQ
@@ -219,12 +253,30 @@ query "kubernetes_cluster_deployments_count" {
   EOQ
 }
 
+query "kubernetes_cluster_cronjobs_count" {
+  sql = <<-EOQ
+    select
+      count(*) as "CronJobs"
+    from
+      kubernetes_cronjob;
+  EOQ
+}
+
 query "kubernetes_cluster_jobs_count" {
   sql = <<-EOQ
     select
       count(*) as "Jobs"
     from
       kubernetes_job;
+  EOQ
+}
+
+query "kubernetes_cluster_repliasets_count" {
+  sql = <<-EOQ
+    select
+      count(*) as "ReplicaSets"
+    from
+      kubernetes_replicaset;
   EOQ
 }
 
@@ -331,6 +383,34 @@ query "kubernetes_deployment_by_context" {
       count(name) as "Deployments"
     from
       kubernetes_deployment
+    group by
+      context_name
+    order by
+      context_name;
+  EOQ
+}
+
+query "kubernetes_replicaset_by_context" {
+  sql = <<-EOQ
+    select
+      context_name,
+      count(name) as "RepicaSets"
+    from
+      kubernetes_replicaset
+    group by
+      context_name
+    order by
+      context_name;
+  EOQ
+}
+
+query "kubernetes_cronjob_by_context" {
+  sql = <<-EOQ
+    select
+      context_name,
+      count(name) as "CronJobs"
+    from
+      kubernetes_cronjob
     group by
       context_name
     order by

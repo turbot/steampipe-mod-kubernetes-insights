@@ -41,7 +41,15 @@ dashboard "kubernetes_deployment_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_deployment_container_host_process
+      query = query.kubernetes_deployment_container_host_pid
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+    }
+
+    card {
+      width = 2
+      query = query.kubernetes_deployment_container_host_ipc
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -114,7 +122,13 @@ dashboard "kubernetes_deployment_detail" {
       args = {
         uid = self.input.deployment_uid.value
       }
+      column "UID" {
+        display = "none"
+      }
 
+      column "Name" {
+        href = "${dashboard.kubernetes_replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
+      }
     }
 
     table {
@@ -224,14 +238,27 @@ query "kubernetes_deployment_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_container_host_process" {
+query "kubernetes_deployment_container_host_pid" {
   sql = <<-EOQ
     select
-      'Host Process Sharing' as label,
-      case when template -> 'spec' ->> 'hostPID' = 'true'
-        or template -> 'spec' ->> 'hostIPC' = 'true' then 'Enabled' else 'Disabled' end as value,
-      case when template -> 'spec' ->> 'hostPID' = 'true'
-        or template -> 'spec' ->> 'hostIPC' = 'true' then 'alert' else 'ok' end as type
+      'Host PID Sharing' as label,
+      case when template -> 'spec' ->> 'hostPID' = 'true' then 'Enabled' else 'Disabled' end as value,
+      case when template -> 'spec' ->> 'hostPID' = 'true' then 'alert' else 'ok' end as type
+    from
+      kubernetes_deployment
+    where
+      uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_deployment_container_host_ipc" {
+  sql = <<-EOQ
+    select
+      'Host IPC Sharing' as label,
+      case when template -> 'spec' ->> 'hostIPC' = 'true' then 'Enabled' else 'Disabled' end as value,
+      case when template -> 'spec' ->> 'hostIPC' = 'true' then 'alert' else 'ok' end as type
     from
       kubernetes_deployment
     where
@@ -291,7 +318,9 @@ query "kubernetes_deployment_conditions" {
       kubernetes_deployment,
       jsonb_array_elements(conditions) as c
     where
-      uid = $1;
+      uid = $1
+    order by
+      c ->> 'lastTransitionTime' desc;
   EOQ
 
   param "uid" {}
@@ -356,12 +385,14 @@ query "kubernetes_deployment_replicasets" {
       name as "Name",
       uid as "UID",
       min_ready_seconds as "Min Ready Seconds",
-      creation_timestamp as "Create Date"
+      creation_timestamp as "Create Time"
     from
       kubernetes_replicaset,
       jsonb_array_elements(owner_references) as owner
     where
-      owner ->> 'uid' = $1;
+      owner ->> 'uid' = $1
+    order by
+      name;
   EOQ
 
   param "uid" {}
@@ -381,7 +412,9 @@ query "kubernetes_deployment_pods" {
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
       rs_owner ->> 'uid' = $1
-      and pod_owner ->> 'uid' = rs.uid;
+      and pod_owner ->> 'uid' = rs.uid
+    order by
+      pod.name;
   EOQ
 
   param "uid" {}

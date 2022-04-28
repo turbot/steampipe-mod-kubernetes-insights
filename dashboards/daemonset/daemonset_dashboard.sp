@@ -1,41 +1,36 @@
-dashboard "kubernetes_pod_dashboard" {
+dashboard "kubernetes_daemonset_dashboard" {
 
-  title         = "Kubernetes Pod Dashboard"
-  documentation = file("./dashboards/pod/docs/pod_dashboard.md")
+  title         = "Kubernetes DaemonSet Dashboard"
+  documentation = file("./dashboards/daemonset/docs/daemonset_dashboard.md")
 
-  tags = merge(local.pod_common_tags, {
+  tags = merge(local.daemonset_common_tags, {
     type = "Dashboard"
   })
 
   container {
 
     card {
-      query = query.kubernetes_pod_count
+      query = query.kubernetes_daemonset_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_container_count
+      query = query.kubernetes_daemonset_default_namespace_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_default_namespace_count
+      query = query.kubernetes_daemonset_container_host_network_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_container_host_network_count
+      query = query.kubernetes_daemonset_container_host_pid_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_container_host_pid_count
-      width = 2
-    }
-
-    card {
-      query = query.kubernetes_pod_container_host_ipc_count
+      query = query.kubernetes_daemonset_container_host_ipc_count
       width = 2
     }
 
@@ -47,7 +42,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Default Namespace Status"
-      query = query.kubernetes_pod_default_namespace_status
+      query = query.kubernetes_daemonset_default_namespace_status
       type  = "donut"
       width = 3
 
@@ -63,7 +58,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host Network Access Status"
-      query = query.kubernetes_pod_container_host_network_status
+      query = query.kubernetes_daemonset_container_host_network_status
       type  = "donut"
       width = 3
 
@@ -79,7 +74,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host PID Sharing Status"
-      query = query.kubernetes_pod_container_host_pid_status
+      query = query.kubernetes_daemonset_container_host_pid_status
       type  = "donut"
       width = 3
 
@@ -95,7 +90,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host IPC Sharing Status"
-      query = query.kubernetes_pod_container_host_ipc_status
+      query = query.kubernetes_daemonset_container_host_ipc_status
       type  = "donut"
       width = 3
 
@@ -116,22 +111,22 @@ dashboard "kubernetes_pod_dashboard" {
     title = "Analysis"
 
     chart {
-      title = "Pods by Cluster"
-      query = query.kubernetes_pod_by_context_name
+      title = "DaemonSets by Cluster"
+      query = query.kubernetes_daemonset_by_context_name
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Pods by Namespace"
-      query = query.kubernetes_pod_by_namespace
+      title = "DaemonSets by Namespace"
+      query = query.kubernetes_daemonset_by_namespace
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Pods by Age"
-      query = query.kubernetes_pod_by_creation_month
+      title = "DaemonSets by Age"
+      query = query.kubernetes_daemonset_by_creation_month
       type  = "column"
       width = 4
     }
@@ -141,123 +136,112 @@ dashboard "kubernetes_pod_dashboard" {
 
 # Card Queries
 
-query "kubernetes_pod_count" {
+query "kubernetes_daemonset_count" {
   sql = <<-EOQ
     select
-      count(*) as "Pods"
+      count(*) as "DaemonSets"
     from
-      kubernetes_pod;
+      kubernetes_daemonset;
   EOQ
 }
 
-query "kubernetes_pod_container_count" {
-  sql = <<-EOQ
-    select
-      count(c) as value,
-      'Containers' as label
-    from
-      kubernetes_pod,
-      jsonb_array_elements(containers) as c;
-  EOQ
-}
-
-query "kubernetes_pod_default_namespace_count" {
+query "kubernetes_daemonset_default_namespace_count" {
   sql = <<-EOQ
     select
       count(name) as value,
       'Default Namespace Used' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
-      kubernetes_pod
+      kubernetes_daemonset
     where
       namespace = 'default';
   EOQ
 }
 
-query "kubernetes_pod_container_host_network_count" {
+query "kubernetes_daemonset_container_host_network_count" {
   sql = <<-EOQ
     select
       count(name) as value,
       'Host Network Access' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
-      kubernetes_pod
+      kubernetes_daemonset
     where
-      host_network;
+      template -> 'spec' ->> 'hostNetwork' = 'true';
   EOQ
 }
 
-query "kubernetes_pod_container_host_pid_count" {
+query "kubernetes_daemonset_container_host_pid_count" {
   sql = <<-EOQ
     select
       count(name) as value,
       'Host PID Sharing Enabled' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
-      kubernetes_pod
+      kubernetes_daemonset
     where
-      host_pid;
+      template -> 'spec' ->> 'hostPID' = 'true';
   EOQ
 }
 
-query "kubernetes_pod_container_host_ipc_count" {
+query "kubernetes_daemonset_container_host_ipc_count" {
   sql = <<-EOQ
     select
       count(name) as value,
       'Host IPC Sharing Enabled' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
-      kubernetes_pod
+      kubernetes_daemonset
     where
-      host_ipc;
+      template -> 'spec' ->> 'hostIPC' = 'true';
   EOQ
 }
 
 # Assessment Queries
 
-query "kubernetes_pod_default_namespace_status" {
+query "kubernetes_daemonset_default_namespace_status" {
   sql = <<-EOQ
     select
       case when namespace = 'default' then 'used' else 'unused' end as status,
       count(name)
     from
-      kubernetes_pod
+      kubernetes_daemonset
     group by
       status;
   EOQ
 }
 
-query "kubernetes_pod_container_host_network_status" {
+query "kubernetes_daemonset_container_host_network_status" {
   sql = <<-EOQ
     select
-      case when host_network then 'enabled' else 'disabled' end as status,
+      case when template -> 'spec' ->> 'hostNetwork' = 'true' then 'enabled' else 'disabled' end as status,
       count(*)
     from
-      kubernetes_pod
+      kubernetes_daemonset
     group by
       status;
   EOQ
 }
 
-query "kubernetes_pod_container_host_pid_status" {
+query "kubernetes_daemonset_container_host_pid_status" {
   sql = <<-EOQ
     select
-      case when host_pid then 'enabled' else 'disabled' end as status,
+      case when template -> 'spec' ->> 'hostPID' = 'true' then 'enabled' else 'disabled' end as status,
       count(*)
     from
-      kubernetes_pod
+      kubernetes_daemonset
     group by
       status;
   EOQ
 }
 
-query "kubernetes_pod_container_host_ipc_status" {
+query "kubernetes_daemonset_container_host_ipc_status" {
   sql = <<-EOQ
     select
-      case when host_ipc then 'enabled' else 'disabled' end as status,
+      case when template -> 'spec' ->> 'hostIPC' = 'true' then 'enabled' else 'disabled' end as status,
       count(*)
     from
-      kubernetes_pod
+      kubernetes_daemonset
     group by
       status;
   EOQ
@@ -265,13 +249,13 @@ query "kubernetes_pod_container_host_ipc_status" {
 
 # Analysis Queries
 
-query "kubernetes_pod_by_namespace" {
+query "kubernetes_daemonset_by_namespace" {
   sql = <<-EOQ
     select
       namespace,
-      count(name) as "pods"
+      count(name) as "daemonsets"
     from
-      kubernetes_pod
+      kubernetes_daemonset
     group by
       namespace
     order by
@@ -279,13 +263,13 @@ query "kubernetes_pod_by_namespace" {
   EOQ
 }
 
-query "kubernetes_pod_by_context_name" {
+query "kubernetes_daemonset_by_context_name" {
   sql = <<-EOQ
     select
       context_name,
-      count(name) as "pods"
+      count(name) as "daemonsets"
     from
-      kubernetes_pod
+      kubernetes_daemonset
     group by
       context_name
     order by
@@ -293,16 +277,16 @@ query "kubernetes_pod_by_context_name" {
   EOQ
 }
 
-query "kubernetes_pod_by_creation_month" {
+query "kubernetes_daemonset_by_creation_month" {
   sql = <<-EOQ
-    with pods as (
+    with daemonsets as (
       select
         title,
         creation_timestamp,
         to_char(creation_timestamp,
           'YYYY-MM') as creation_month
       from
-        kubernetes_pod
+        kubernetes_daemonset
     ),
     months as (
       select
@@ -313,26 +297,26 @@ query "kubernetes_pod_by_creation_month" {
             (
               select
                 min(creation_timestamp)
-                from pods)),
+                from daemonsets)),
             date_trunc('month',
               current_date),
             interval '1 month') as d
     ),
-    pods_by_month as (
+    daemonset_by_month as (
       select
         creation_month,
         count(*)
       from
-        pods
+        daemonsets
       group by
         creation_month
     )
     select
       months.month,
-      pods_by_month.count
+      daemonset_by_month.count
     from
       months
-      left join pods_by_month on months.month = pods_by_month.creation_month
+      left join daemonset_by_month on months.month = daemonset_by_month.creation_month
     order by
       months.month;
   EOQ

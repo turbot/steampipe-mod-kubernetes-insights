@@ -47,6 +47,14 @@ dashboard "kubernetes_container_detail" {
       }
     }
 
+    card {
+      width = 2
+      query = query.kubernetes_container_immutable_root_filesystem
+      args = {
+        name = self.input.container_name.value
+      }
+    }
+
   }
 
   container {
@@ -191,13 +199,28 @@ query "kubernetes_container_readiness_probe" {
   param "name" {}
 }
 
+query "kubernetes_container_immutable_root_filesystem" {
+  sql = <<-EOQ
+    select
+      case when c -> 'securityContext' ->> 'readOnlyRootFilesystem' = 'true' then 'Used' else 'Unused' end as value,
+      'Immutable Root Filesystem' as label,
+      case when c -> 'securityContext' ->> 'readOnlyRootFilesystem' = 'true' then 'ok' else 'alert' end as type
+    from
+      kubernetes_pod,
+      jsonb_array_elements(containers) as c
+    where
+      concat(c ->> 'name',name) = $1;
+  EOQ
+
+  param "name" {}
+}
+
 query "kubernetes_container_overview" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
       c ->> 'image' as "Image",
       name as "Pod Name",
-      case when c -> 'securityContext' ->> 'readOnlyRootFilesystem' = 'true' then 'In-Use' else 'Not In-Use' end as "Immutable Root Filesystem",
       context_name as "Context Name"
     from
       kubernetes_pod,

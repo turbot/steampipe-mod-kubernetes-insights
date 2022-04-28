@@ -74,6 +74,15 @@ dashboard "kubernetes_node_detail" {
 
       }
 
+      flow {
+        title = "Node Hierarchy"
+        query = query.kubernetes_node_hierarchy
+        args = {
+          uid = self.input.node_uid.value
+        }
+
+      }
+
       table {
         title = "Pods Details"
         query = query.kubernetes_node_pod_details
@@ -95,15 +104,6 @@ dashboard "kubernetes_node_detail" {
   }
 
   container {
-
-    flow {
-      title = "Node Hierarchy"
-      query = query.kubernetes_node_hierarchy
-      args = {
-        uid = self.input.node_uid.value
-      }
-
-    }
 
     table {
       title = "Addresses"
@@ -264,17 +264,19 @@ query "kubernetes_node_addresses" {
 query "kubernetes_node_conditions" {
   sql = <<-EOQ
     select
+      c ->> 'lastTransitionTime' as "Last Transition Time",
       c ->> 'type' as "Type",
       c ->> 'reason' as "Reason",
       c ->> 'status' as "Status",
       c ->> 'message' as "Message",
-      c ->> 'lastHeartbeatTime' as "Last Heartbeat Time",
-      c ->> 'lastTransitionTime' as "Last Transition Time"
+      c ->> 'lastHeartbeatTime' as "Last Heartbeat Time"
     from
       kubernetes_node,
       jsonb_array_elements(conditions) as c
     where
-      uid = $1;
+      uid = $1
+    order by
+       c ->> 'lastTransitionTime' desc;
   EOQ
 
   param "uid" {}

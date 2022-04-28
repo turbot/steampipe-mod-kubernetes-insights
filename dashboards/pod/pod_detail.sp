@@ -113,7 +113,7 @@ dashboard "kubernetes_pod_detail" {
       }
 
       table {
-        title = "Containers Basic Details"
+        title = "Containers"
         query = query.kubernetes_pod_container_basic_detail
         args = {
           uid = self.input.pod_uid.value
@@ -150,6 +150,16 @@ dashboard "kubernetes_pod_detail" {
       query    = query.kubernetes_pod_container_memory_detail
       grouping = "compare"
       type     = "column"
+      args = {
+        uid = self.input.pod_uid.value
+      }
+
+    }
+
+    table {
+      title = "Init containers"
+      width = 6
+      query = query.kubernetes_pod_init_containers
       args = {
         uid = self.input.pod_uid.value
       }
@@ -311,15 +321,17 @@ query "kubernetes_pod_labels" {
 query "kubernetes_pod_conditions" {
   sql = <<-EOQ
     select
-      c ->> 'lastProbeTime' as "Last Probe Time",
       c ->> 'lastTransitionTime' as "Last Transition Time",
+      c ->> 'lastProbeTime' as "Last Probe Time",
       c ->> 'status' as "Status",
       c ->> 'type' as "Type"
     from
       kubernetes_pod,
       jsonb_array_elements(conditions) as c
     where
-      uid = $1;
+      uid = $1
+    order by
+      c ->> 'lastTransitionTime';
   EOQ
 
   param "uid" {}
@@ -340,6 +352,24 @@ query "kubernetes_pod_configuration" {
       left join kubernetes_node as n on p.node_name = n.name
     where
       p.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_pod_init_containers" {
+  sql = <<-EOQ
+    select
+      c ->> 'name' as "Name",
+      c ->> 'image' as "Image",
+      c ->> 'imagePullPolicy' as "Image Pull Policy",
+      c ->> 'terminationMessagePath' as "Termination Message Path",
+      c ->> 'terminationMessagePolicy' as "Termination Message Policy"
+    from
+      kubernetes_pod,
+      jsonb_array_elements(init_containers) as c
+    where
+      uid = $1;
   EOQ
 
   param "uid" {}
@@ -368,7 +398,9 @@ query "kubernetes_pod_volumes" {
       kubernetes_pod,
       jsonb_array_elements(volumes) as v
     where
-      uid = $1;
+      uid = $1
+    order by
+      v ->> 'name';
   EOQ
 
   param "uid" {}

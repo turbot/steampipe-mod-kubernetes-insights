@@ -1,41 +1,36 @@
-dashboard "kubernetes_pod_dashboard" {
+dashboard "kubernetes_cronjob_dashboard" {
 
-  title         = "Kubernetes Pod Dashboard"
-  documentation = file("./dashboards/pod/docs/pod_dashboard.md")
+  title         = "Kubernetes CronJob Dashboard"
+  documentation = file("./dashboards/cronjob/docs/cronjob_dashboard.md")
 
-  tags = merge(local.pod_common_tags, {
+  tags = merge(local.cronjob_common_tags, {
     type = "Dashboard"
   })
 
   container {
 
     card {
-      query = query.kubernetes_pod_count
+      query = query.kubernetes_cronjob_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_container_count
+      query = query.kubernetes_cronjob_default_namespace_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_default_namespace_count
+      query = query.kubernetes_cronjob_container_host_network_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_container_host_network_count
+      query = query.kubernetes_cronjob_container_host_pid_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_container_host_pid_count
-      width = 2
-    }
-
-    card {
-      query = query.kubernetes_pod_container_host_ipc_count
+      query = query.kubernetes_cronjob_container_host_ipc_count
       width = 2
     }
 
@@ -47,7 +42,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Default Namespace Status"
-      query = query.kubernetes_pod_default_namespace_status
+      query = query.kubernetes_cronjob_default_namespace_status
       type  = "donut"
       width = 3
 
@@ -63,7 +58,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host Network Access Status"
-      query = query.kubernetes_pod_container_host_network_status
+      query = query.kubernetes_cronjob_container_host_network_status
       type  = "donut"
       width = 3
 
@@ -79,7 +74,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host PID Sharing Status"
-      query = query.kubernetes_pod_container_host_pid_status
+      query = query.kubernetes_cronjob_container_host_pid_status
       type  = "donut"
       width = 3
 
@@ -95,7 +90,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host IPC Sharing Status"
-      query = query.kubernetes_pod_container_host_ipc_status
+      query = query.kubernetes_cronjob_container_host_ipc_status
       type  = "donut"
       width = 3
 
@@ -116,22 +111,22 @@ dashboard "kubernetes_pod_dashboard" {
     title = "Analysis"
 
     chart {
-      title = "Pods by Cluster"
-      query = query.kubernetes_pod_by_context_name
+      title = "CronJobs by Cluster"
+      query = query.kubernetes_cronjob_by_context_name
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Pods by Namespace"
-      query = query.kubernetes_pod_by_namespace
+      title = "CronJobs by Namespace"
+      query = query.kubernetes_cronjob_by_namespace
       type  = "column"
       width = 4
     }
 
     chart {
-      title = "Pods by Age"
-      query = query.kubernetes_pod_by_creation_month
+      title = "CronJobs by Age"
+      query = query.kubernetes_cronjob_by_creation_month
       type  = "column"
       width = 4
     }
@@ -141,123 +136,112 @@ dashboard "kubernetes_pod_dashboard" {
 
 # Card Queries
 
-query "kubernetes_pod_count" {
+query "kubernetes_cronjob_count" {
   sql = <<-EOQ
     select
-      count(*) as "Pods"
+      count(*) as "CronJobs"
     from
-      kubernetes_pod;
+      kubernetes_cronjob;
   EOQ
 }
 
-query "kubernetes_pod_container_count" {
-  sql = <<-EOQ
-    select
-      count(c) as value,
-      'Containers' as label
-    from
-      kubernetes_pod,
-      jsonb_array_elements(containers) as c;
-  EOQ
-}
-
-query "kubernetes_pod_default_namespace_count" {
+query "kubernetes_cronjob_default_namespace_count" {
   sql = <<-EOQ
     select
       count(name) as value,
       'Default Namespace Used' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
-      kubernetes_pod
+      kubernetes_cronjob
     where
       namespace = 'default';
   EOQ
 }
 
-query "kubernetes_pod_container_host_network_count" {
+query "kubernetes_cronjob_container_host_network_count" {
   sql = <<-EOQ
     select
       count(name) as value,
       'Host Network Access' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
-      kubernetes_pod
+      kubernetes_cronjob
     where
-      host_network;
+      job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostNetwork' = 'true';
   EOQ
 }
 
-query "kubernetes_pod_container_host_pid_count" {
+query "kubernetes_cronjob_container_host_pid_count" {
   sql = <<-EOQ
     select
       count(name) as value,
       'Host PID Sharing Enabled' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
-      kubernetes_pod
+      kubernetes_cronjob
     where
-      host_pid;
+      job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostPID' = 'true';
   EOQ
 }
 
-query "kubernetes_pod_container_host_ipc_count" {
+query "kubernetes_cronjob_container_host_ipc_count" {
   sql = <<-EOQ
     select
       count(name) as value,
       'Host IPC Sharing Enabled' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
-      kubernetes_pod
+      kubernetes_cronjob
     where
-      host_ipc;
+      job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostIPC' = 'true';
   EOQ
 }
 
 # Assessment Queries
 
-query "kubernetes_pod_default_namespace_status" {
+query "kubernetes_cronjob_default_namespace_status" {
   sql = <<-EOQ
     select
       case when namespace = 'default' then 'used' else 'unused' end as status,
       count(name)
     from
-      kubernetes_pod
+      kubernetes_cronjob
     group by
       status;
   EOQ
 }
 
-query "kubernetes_pod_container_host_network_status" {
+query "kubernetes_cronjob_container_host_network_status" {
   sql = <<-EOQ
     select
-      case when host_network then 'enabled' else 'disabled' end as status,
+      case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostNetwork' = 'true' then 'enabled' else 'disabled' end as status,
       count(*)
     from
-      kubernetes_pod
+      kubernetes_cronjob
     group by
       status;
   EOQ
 }
 
-query "kubernetes_pod_container_host_pid_status" {
+query "kubernetes_cronjob_container_host_pid_status" {
   sql = <<-EOQ
     select
-      case when host_pid then 'enabled' else 'disabled' end as status,
+      case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostPID' = 'true' then 'enabled' else 'disabled' end as status,
       count(*)
     from
-      kubernetes_pod
+      kubernetes_cronjob
     group by
       status;
   EOQ
 }
 
-query "kubernetes_pod_container_host_ipc_status" {
+query "kubernetes_cronjob_container_host_ipc_status" {
   sql = <<-EOQ
     select
-      case when host_ipc then 'enabled' else 'disabled' end as status,
+      case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostIPC' = 'true' then 'enabled' else 'disabled' end as status,
       count(*)
     from
-      kubernetes_pod
+      kubernetes_cronjob
     group by
       status;
   EOQ
@@ -265,13 +249,13 @@ query "kubernetes_pod_container_host_ipc_status" {
 
 # Analysis Queries
 
-query "kubernetes_pod_by_namespace" {
+query "kubernetes_cronjob_by_namespace" {
   sql = <<-EOQ
     select
       namespace,
-      count(name) as "pods"
+      count(name) as "cronjobs"
     from
-      kubernetes_pod
+      kubernetes_cronjob
     group by
       namespace
     order by
@@ -279,13 +263,13 @@ query "kubernetes_pod_by_namespace" {
   EOQ
 }
 
-query "kubernetes_pod_by_context_name" {
+query "kubernetes_cronjob_by_context_name" {
   sql = <<-EOQ
     select
       context_name,
-      count(name) as "pods"
+      count(name) as "cronjobs"
     from
-      kubernetes_pod
+      kubernetes_cronjob
     group by
       context_name
     order by
@@ -293,16 +277,16 @@ query "kubernetes_pod_by_context_name" {
   EOQ
 }
 
-query "kubernetes_pod_by_creation_month" {
+query "kubernetes_cronjob_by_creation_month" {
   sql = <<-EOQ
-    with pods as (
+    with cronjobs as (
       select
         title,
         creation_timestamp,
         to_char(creation_timestamp,
           'YYYY-MM') as creation_month
       from
-        kubernetes_pod
+        kubernetes_cronjob
     ),
     months as (
       select
@@ -313,26 +297,26 @@ query "kubernetes_pod_by_creation_month" {
             (
               select
                 min(creation_timestamp)
-                from pods)),
+                from cronjobs)),
             date_trunc('month',
               current_date),
             interval '1 month') as d
     ),
-    pods_by_month as (
+    cronjobs_by_month as (
       select
         creation_month,
         count(*)
       from
-        pods
+        cronjobs
       group by
         creation_month
     )
     select
       months.month,
-      pods_by_month.count
+      cronjobs_by_month.count
     from
       months
-      left join pods_by_month on months.month = pods_by_month.creation_month
+      left join cronjobs_by_month on months.month = cronjobs_by_month.creation_month
     order by
       months.month;
   EOQ
