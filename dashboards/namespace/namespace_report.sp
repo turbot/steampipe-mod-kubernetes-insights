@@ -23,6 +23,10 @@ dashboard "kubernetes_namespace_report" {
         display = "none"
       }
 
+      column "Name" {
+        href = "${dashboard.kubernetes_namespace_detail.url_path}?input.namespace_uid={{.UID | @uri}}"
+      }
+
       query = query.kubernetes_namespace_table
     }
   }
@@ -41,7 +45,7 @@ query "kubernetes_namespace_count" {
 query "kubernetes_namespace_table" {
   sql = <<-EOQ
     select
-      name as "Namespace Name",
+      name as "Name",
       uid as "UID",
       phase as "Phase",
       creation_timestamp as "Create Time",
