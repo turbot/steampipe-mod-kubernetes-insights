@@ -45,18 +45,18 @@ dashboard "kubernetes_deployment_age_report" {
       query = query.kubernetes_deployment_1_year_count
     }
   }
-  # table {
+  table {
 
-  #   column "UID" {
-  #     display = "none"
-  #   }
+    column "UID" {
+      display = "none"
+    }
 
-  #   column "Name" {
-  #     href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
-  #   }
+    column "Name" {
+      href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
+    }
 
-  #   query = query.kubernetes_deployment_age_table
-  # }
+    query = query.kubernetes_deployment_age_table
+  }
 }
 
 query "kubernetes_deployment_24_hours_count" {

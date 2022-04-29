@@ -64,15 +64,6 @@ dashboard "kubernetes_service_detail" {
       width = 6
 
       table {
-        title = "Ports"
-        query = query.kubernetes_service_ports
-        args = {
-          uid = self.input.service_uid.value
-        }
-
-      }
-
-      table {
         title = "IP Details"
         query = query.kubernetes_service_ip_details
         args = {
@@ -90,6 +81,36 @@ dashboard "kubernetes_service_detail" {
         query = query.kubernetes_service_tree
         args = {
           uid = self.input.service_uid.value
+        }
+      }
+    }
+
+    container {
+
+      table {
+        title = "Ports"
+        width = 6
+        query = query.kubernetes_service_ports
+        args = {
+          uid = self.input.service_uid.value
+        }
+
+      }
+
+      table {
+        title = "Pods"
+        width = 6
+        query = query.kubernetes_service_pods
+        args = {
+          uid = self.input.service_uid.value
+        }
+
+        column "UID" {
+          display = "none"
+        }
+
+        column "Name" {
+          href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
         }
       }
     }
@@ -198,6 +219,22 @@ query "kubernetes_service_ports" {
   param "uid" {}
 }
 
+query "kubernetes_service_pods" {
+  sql = <<-EOQ
+    select
+      name as "Name",
+      uid as "UID",
+      restart_policy as "Restart Policy",
+      node_name as "Node Name"
+    from
+      kubernetes_pod
+    where
+      label_selector in (select selector_string_format from kubernetes_service where uid = $1);
+  EOQ
+
+  param "uid" {}
+}
+
 query "kubernetes_service_ip_details" {
   sql = <<-EOQ
     select
@@ -217,8 +254,8 @@ query "kubernetes_service_tree" {
   sql = <<-EOQ
   with pods as (
     select
-      pod_uid,
-      pod_title
+      uid as pod_uid,
+      title as pod_title
     from
       kubernetes_pod
     where
@@ -233,7 +270,7 @@ query "kubernetes_service_tree" {
       selector_string_format,
       p ->> 'protocol' as protocol_number,
       concat(p ->> 'port','/', p ->> 'protocol') as port,
-      concat(p ->> 'targetPort','/', p ->> 'protocol') as targetPort
+      concat(p ->> 'targetPort','/', p ->> 'protocol',' (targetPort)') as targetPort
     from
       pods,
       kubernetes_service,
@@ -244,26 +281,74 @@ query "kubernetes_service_tree" {
 
   -- Ports
     select
-      distinct port as id,
+      port as id,
       port as title,
       'port' as category,
       null as from_id,
       null as to_id
-    from services
+    from
+      services
 
-  -- Firewall Nodes
-    union select
+    -- service
+    union all
+    select
       distinct title as id,
       title as title,
-      'inbound' as category,
+      'service' as category,
       null as from_id,
       null as to_id
-    from rules
+    from
+      services
 
+    -- targetPorts
+    union all
+    select
+      targetPort as id,
+      targetPort as title,
+      'targetPort' as category,
+      null as from_id,
+      null as to_id
+    from
+      services
 
+    -- pods
+    union all
+    select
+      distinct pod_title as id,
+      pod_title as title,
+      'pod' as category,
+      null as from_id,
+      null as to_id
+    from
+      services
 
+    -- port -> service
+    union select
+      null as id,
+      null as title,
+      protocol_number as category,
+      port as from_id,
+      title as to_id
+    from services
+
+   -- service -> target
+    union select
+      null as id,
+      null as title,
+      protocol_number as category,
+      title as from_id,
+      targetPort as to_id
+    from services
+
+   -- target -> pod
+    union select
+      null as id,
+      null as title,
+      protocol_number as category,
+      targetPort as from_id,
+      pod_title as to_id
+    from services
   EOQ
-
 
   param "uid" {}
 

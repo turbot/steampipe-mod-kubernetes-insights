@@ -10,8 +10,10 @@ dashboard "kubernetes_cluster_dashboard" {
   container {
 
     card {
+      type  = "info"
       query = query.kubernetes_cluster_count
       width = 2
+      href  = dashboard.kubernetes_cluster_detail.url_path
     }
 
     card {

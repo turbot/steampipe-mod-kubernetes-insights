@@ -348,8 +348,8 @@ query "kubernetes_namespace_daemonset_table" {
     select
       d.name as "Name",
       d.UID as "UID",
-      d.number_ready as "Number Ready",
-      d.number_available as "Number Available",
+      d.number_ready as "Node Number Ready",
+      d.number_available as "Node Number Available",
       d.creation_timestamp as "Create Time"
     from
       kubernetes_daemonset as d,
