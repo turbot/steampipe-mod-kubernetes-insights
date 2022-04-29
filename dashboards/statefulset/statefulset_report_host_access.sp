@@ -56,7 +56,7 @@ query "kubernetes_statefulset_host_table" {
       template -> 'spec' ->> 'hostIPC' as "Host IPC",
       context_name as "Context Name"
     from
-      kubernetes_statefulset
+      kubernetes_stateful_set
     order by
       name;
   EOQ

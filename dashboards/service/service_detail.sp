@@ -83,6 +83,17 @@ dashboard "kubernetes_service_detail" {
 
     }
 
+    container {
+
+      flow {
+        title = "Service Hierarchy"
+        query = query.kubernetes_service_tree
+        args = {
+          uid = self.input.service_uid.value
+        }
+      }
+    }
+
   }
 
 }
@@ -202,3 +213,58 @@ query "kubernetes_service_ip_details" {
   param "uid" {}
 }
 
+query "kubernetes_service_tree" {
+  sql = <<-EOQ
+  with pods as (
+    select
+      pod_uid,
+      pod_title
+    from
+      kubernetes_pod
+    where
+      label_selector in (select selector_string_format from kubernetes_service where uid = $1)
+  ),
+  services as (
+    select
+      uid,
+      title,
+      pod_uid,
+      pod_title,
+      selector_string_format,
+      p ->> 'protocol' as protocol_number,
+      concat(p ->> 'port','/', p ->> 'protocol') as port,
+      concat(p ->> 'targetPort','/', p ->> 'protocol') as targetPort
+    from
+      pods,
+      kubernetes_service,
+      jsonb_array_elements(ports) as p
+    where
+      uid = $1
+    )
+
+  -- Ports
+    select
+      distinct port as id,
+      port as title,
+      'port' as category,
+      null as from_id,
+      null as to_id
+    from services
+
+  -- Firewall Nodes
+    union select
+      distinct title as id,
+      title as title,
+      'inbound' as category,
+      null as from_id,
+      null as to_id
+    from rules
+
+
+
+  EOQ
+
+
+  param "uid" {}
+
+}
