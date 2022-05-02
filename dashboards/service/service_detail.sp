@@ -77,7 +77,7 @@ dashboard "kubernetes_service_detail" {
     container {
 
       flow {
-        title = "Service Hierarchy"
+        title = "Service Traffic Hierarchy"
         query = query.kubernetes_service_tree
         args = {
           uid = self.input.service_uid.value

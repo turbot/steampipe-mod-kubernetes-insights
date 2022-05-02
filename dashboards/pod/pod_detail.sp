@@ -157,7 +157,7 @@ dashboard "kubernetes_pod_detail" {
     }
 
     table {
-      title = "Init containers"
+      title = "Init Containers"
       width = 6
       query = query.kubernetes_pod_init_containers
       args = {
