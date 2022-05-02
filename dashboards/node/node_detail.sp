@@ -23,6 +23,14 @@ dashboard "kubernetes_node_detail" {
       }
     }
 
+    card {
+      width = 2
+      query = query.kubernetes_node_containers
+      args = {
+        uid = self.input.node_uid.value
+      }
+    }
+
   }
 
   container {
@@ -154,6 +162,22 @@ query "kubernetes_node_pods" {
       left join kubernetes_node as n on p.node_name = n.name
     where
       n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_node_containers" {
+  sql = <<-EOQ
+    select
+      count(c) as value,
+      'Containers' as label
+    from
+      kubernetes_node as n,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.containers) as c
+    where
+      p.node_name = n.name and n.uid = $1;
   EOQ
 
   param "uid" {}

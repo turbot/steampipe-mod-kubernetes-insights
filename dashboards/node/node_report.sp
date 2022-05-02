@@ -23,7 +23,7 @@ dashboard "kubernetes_node_report" {
         display = "none"
       }
 
-      column "Node Name" {
+      column "Name" {
         href = "${dashboard.kubernetes_node_detail.url_path}?input.node_uid={{.UID | @uri}}"
       }
 
@@ -45,7 +45,7 @@ query "kubernetes_node_count" {
 query "kubernetes_node_table" {
   sql = <<-EOQ
     select
-      name as "Node Name",
+      name as "Name",
       uid as "UID",
       capacity ->> 'cpu' as "Capacity CPU",
       capacity ->> 'ephemeral-storage' as "Capacity Ephemeral Storage",

@@ -22,16 +22,19 @@ dashboard "kubernetes_statefulset_dashboard" {
     card {
       query = query.kubernetes_statefulset_container_host_network_count
       width = 2
+      href  = dashboard.kubernetes_statefulset_host_access_report.url_path
     }
 
     card {
       query = query.kubernetes_statefulset_container_host_pid_count
       width = 2
+      href  = dashboard.kubernetes_statefulset_host_access_report.url_path
     }
 
     card {
       query = query.kubernetes_statefulset_container_host_ipc_count
       width = 2
+      href  = dashboard.kubernetes_statefulset_host_access_report.url_path
     }
 
   }

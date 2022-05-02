@@ -1,6 +1,6 @@
 dashboard "kubernetes_job_age_report" {
 
-  title         = "Kubernetes job Age Report"
+  title         = "Kubernetes Job Age Report"
   documentation = file("./dashboards/job/docs/job_report_age.md")
 
   tags = merge(local.job_common_tags, {

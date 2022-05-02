@@ -27,16 +27,19 @@ dashboard "kubernetes_pod_dashboard" {
     card {
       query = query.kubernetes_pod_container_host_network_count
       width = 2
+      href  = dashboard.kubernetes_pod_host_access_report.url_path
     }
 
     card {
       query = query.kubernetes_pod_container_host_pid_count
       width = 2
+      href  = dashboard.kubernetes_pod_host_access_report.url_path
     }
 
     card {
       query = query.kubernetes_pod_container_host_ipc_count
       width = 2
+      href  = dashboard.kubernetes_pod_host_access_report.url_path
     }
 
   }

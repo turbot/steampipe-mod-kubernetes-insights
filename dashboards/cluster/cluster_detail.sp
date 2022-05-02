@@ -240,7 +240,7 @@ query "kubernetes_cluster_namespaces_table" {
     select
       name as "Name",
       phase as "Phase",
-      creation_timestamp as "Creation Time"
+      creation_timestamp as "Create Time"
     from
       kubernetes_namespace
     where
@@ -255,7 +255,7 @@ query "kubernetes_cluster_nodes_table" {
     select
       name as "Name",
       pod_cidr as "POD CIDR",
-      creation_timestamp as "Creation Time"
+      creation_timestamp as "Create Time"
     from
       kubernetes_node
     where
@@ -272,7 +272,7 @@ query "kubernetes_cluster_persistent_volumes_table" {
       storage_class as "Storage Class",
       volume_mode as "Volume Mode",
       phase as "Phase",
-      creation_timestamp as "Creation Time"
+      creation_timestamp as "Create Time"
     from
       kubernetes_persistent_volume
     where
@@ -291,7 +291,7 @@ query "kubernetes_cluster_pod_security_policy_table" {
       host_pid as "Host PID",
       host_ipc as "Host IPC",
       privileged as "Privileged",
-      creation_timestamp as "Creation Time"
+      creation_timestamp as "Create Time"
     from
       kubernetes_pod_security_policy
     where
@@ -308,7 +308,7 @@ query "kubernetes_cluster_role_binding_table" {
       namespace as "Namespace",
       role_name as "Role Name",
       role_kind as "Role Kind",
-      creation_timestamp as "Creation Time"
+      creation_timestamp as "Create Time"
     from
       kubernetes_role_binding
     where
@@ -323,7 +323,7 @@ query "kubernetes_cluster_role_table" {
     select
       name as "Name",
       namespace as "Namespace",
-      creation_timestamp as "Creation Time"
+      creation_timestamp as "Create Time"
     from
       kubernetes_role
     where
