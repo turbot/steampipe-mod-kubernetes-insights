@@ -45,18 +45,18 @@ dashboard "kubernetes_pod_age_report" {
       query = query.kubernetes_pod_1_year_count
     }
   }
-  # table {
+  table {
 
-  #   column "UID" {
-  #     display = "none"
-  #   }
+    column "UID" {
+      display = "none"
+    }
 
-  #   column "Name" {
-  #     href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
-  #   }
+    column "Name" {
+      href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+    }
 
-  #   query = query.kubernetes_pod_age_table
-  # }
+    query = query.kubernetes_pod_age_table
+  }
 }
 
 query "kubernetes_pod_24_hours_count" {
@@ -123,7 +123,7 @@ query "kubernetes_pod_1_year_count" {
 }
 
 query "kubernetes_pod_age_table" {
-  query = <<-EOQ
+  sql = <<-EOQ
     select
       name as "Name",
       uid as "UID",

@@ -45,18 +45,18 @@ dashboard "kubernetes_replicaset_age_report" {
       query = query.kubernetes_replicaset_1_year_count
     }
   }
-  # table {
+  table {
 
-  #   column "UID" {
-  #     display = "none"
-  #   }
+    column "UID" {
+      display = "none"
+    }
 
-  #   column "Name" {
-  #     href = "${dashboard.kubernetes_replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
-  #   }
+    column "Name" {
+      href = "${dashboard.kubernetes_replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
+    }
 
-  #   query = query.kubernetes_replicaset_age_table
-  # }
+    query = query.kubernetes_replicaset_age_table
+  }
 }
 
 query "kubernetes_replicaset_24_hours_count" {
@@ -123,7 +123,7 @@ query "kubernetes_replicaset_1_year_count" {
 }
 
 query "kubernetes_replicaset_age_table" {
-  query = <<-EOQ
+  sql = <<-EOQ
     select
       name as "Name",
       uid as "UID",

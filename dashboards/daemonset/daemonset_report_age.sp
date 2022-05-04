@@ -46,32 +46,17 @@ dashboard "kubernetes_daemonset_age_report" {
     }
   }
 
-  # table {
-  #   column "UID" {
-  #     display = "none"
-  #   }
+  table {
+    column "UID" {
+      display = "none"
+    }
 
-  #   column "Name" {
-  #     href = "${dashboard.kubernetes_daemonset_detail.url_path}?input.daemonset_uid={{.UID | @uri}}"
-  #   }
+    column "Name" {
+      href = "${dashboard.kubernetes_daemonset_detail.url_path}?input.daemonset_uid={{.UID | @uri}}"
+    }
 
-  #   query = query.kubernetes_daemonset_age_table
-  # }
-}
-
-query "kubernetes_daemonset_age_table" {
-  query = <<-EOQ
-    select
-      name as "Name",
-      uid as "UID",
-      now()::date - creation_timestamp::date as "Age in Days",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
-    from
-      kubernetes_daemonset
-    order by
-      name;
-  EOQ
+    query = query.kubernetes_daemonset_age_table
+  }
 }
 
 query "kubernetes_daemonset_24_hours_count" {
@@ -137,3 +122,17 @@ query "kubernetes_daemonset_1_year_count" {
   EOQ
 }
 
+query "kubernetes_daemonset_age_table" {
+  sql = <<-EOQ
+    select
+      name as "Name",
+      uid as "UID",
+      now()::date - creation_timestamp::date as "Age in Days",
+      creation_timestamp as "Create Time",
+      context_name as "Context Name"
+    from
+      kubernetes_daemonset
+    order by
+      name;
+  EOQ
+}

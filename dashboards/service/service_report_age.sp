@@ -123,7 +123,7 @@ query "kubernetes_service_1_year_count" {
 }
 
 query "kubernetes_service_age_table" {
-  query = <<-EOQ
+  sql = <<-EOQ
     select
       name as "Name",
       uid as "UID",
