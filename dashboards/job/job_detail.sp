@@ -51,57 +51,60 @@ dashboard "kubernetes_job_detail" {
 
   container {
 
-    container {
-
-      width = 6
-
-      table {
-        title = "Overview"
-        type  = "line"
-        width = 6
-        query = query.kubernetes_job_overview
-        args = {
-          uid = self.input.job_uid.value
-        }
-      }
-
-      table {
-        title = "Labels"
-        width = 6
-        query = query.kubernetes_job_labels
-        args = {
-          uid = self.input.job_uid.value
-        }
+    table {
+      title = "Overview"
+      type  = "line"
+      width = 3
+      query = query.kubernetes_job_overview
+      args = {
+        uid = self.input.job_uid.value
       }
     }
 
-    container {
-
-      width = 6
-
-      chart {
-        title = "Pods Status"
-        query = query.kubernetes_job_pods_detail
-        type  = "donut"
-        args = {
-          uid = self.input.job_uid.value
-        }
-
+    table {
+      title = "Labels"
+      width = 3
+      query = query.kubernetes_job_labels
+      args = {
+        uid = self.input.job_uid.value
       }
+    }
 
+    table {
+      title = "Annotations"
+      width = 6
+      query = query.kubernetes_job_annotations
+      args = {
+        uid = self.input.job_uid.value
+      }
     }
 
   }
 
   container {
 
+    chart {
+      title = "Pods Status"
+      width = 4
+      query = query.kubernetes_job_pods_detail
+      type  = "donut"
+      args = {
+        uid = self.input.job_uid.value
+      }
+
+    }
+
     flow {
       title = "Job Hierarchy"
+      width = 8
       query = query.kubernetes_job_tree
       args = {
         uid = self.input.job_uid.value
       }
     }
+  }
+
+  container {
 
     table {
       title = "Pods Details"
@@ -242,6 +245,27 @@ query "kubernetes_job_labels" {
    from
      jsondata,
      json_each_text(label);
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_job_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_job
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
   EOQ
 
   param "uid" {}

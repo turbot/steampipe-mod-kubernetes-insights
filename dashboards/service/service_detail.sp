@@ -64,6 +64,14 @@ dashboard "kubernetes_service_detail" {
       width = 6
 
       table {
+        title = "Annotations"
+        query = query.kubernetes_service_annotations
+        args = {
+          uid = self.input.service_uid.value
+        }
+      }
+
+      table {
         title = "IP Details"
         query = query.kubernetes_service_ip_details
         args = {
@@ -77,7 +85,7 @@ dashboard "kubernetes_service_detail" {
     container {
 
       flow {
-        title = "Service Traffic Hierarchy"
+        title = "Service Port Analysis"
         query = query.kubernetes_service_tree
         args = {
           uid = self.input.service_uid.value
@@ -201,6 +209,27 @@ query "kubernetes_service_labels" {
   param "uid" {}
 }
 
+query "kubernetes_service_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_service
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
+  EOQ
+
+  param "uid" {}
+}
+
 query "kubernetes_service_ports" {
   sql = <<-EOQ
     select
@@ -270,7 +299,7 @@ query "kubernetes_service_tree" {
       selector_string_format,
       p ->> 'protocol' as protocol_number,
       concat(p ->> 'port','/', p ->> 'protocol') as port,
-      concat(p ->> 'targetPort','/', p ->> 'protocol',' (targetPort)') as targetPort
+      concat(p ->> 'targetPort','/', p ->> 'protocol') as targetPort
     from
       pods,
       kubernetes_service,

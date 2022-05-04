@@ -69,12 +69,10 @@ dashboard "kubernetes_pod_detail" {
 
     container {
 
-      width = 6
-
       table {
         title = "Overview"
         type  = "line"
-        width = 6
+        width = 3
         query = query.kubernetes_pod_overview
         args = {
           uid = self.input.pod_uid.value
@@ -83,8 +81,17 @@ dashboard "kubernetes_pod_detail" {
 
       table {
         title = "Labels"
-        width = 6
+        width = 3
         query = query.kubernetes_pod_labels
+        args = {
+          uid = self.input.pod_uid.value
+        }
+      }
+
+      table {
+        title = "Annotations"
+        width = 6
+        query = query.kubernetes_pod_annotations
         args = {
           uid = self.input.pod_uid.value
         }
@@ -93,10 +100,9 @@ dashboard "kubernetes_pod_detail" {
 
     container {
 
-      width = 6
-
       table {
         title = "Configuration"
+        width = 6
         query = query.kubernetes_pod_configuration
         args = {
           uid = self.input.pod_uid.value
@@ -114,6 +120,7 @@ dashboard "kubernetes_pod_detail" {
 
       table {
         title = "Containers"
+        width = 6
         query = query.kubernetes_pod_container_basic_detail
         args = {
           uid = self.input.pod_uid.value
@@ -313,6 +320,27 @@ query "kubernetes_pod_labels" {
    from
      jsondata,
      json_each_text(label);
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_pod_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_pod
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
   EOQ
 
   param "uid" {}

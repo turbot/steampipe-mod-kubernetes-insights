@@ -181,7 +181,7 @@ query "kubernetes_pod_container_host_network_count" {
   sql = <<-EOQ
     select
       count(name) as value,
-      'Host Network Access' as label,
+      'Host Network Access Enabled' as label,
       case count(name) when 0 then 'ok' else 'alert' end as type
     from
       kubernetes_pod

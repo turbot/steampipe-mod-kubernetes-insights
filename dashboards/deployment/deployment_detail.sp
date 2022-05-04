@@ -59,58 +59,58 @@ dashboard "kubernetes_deployment_detail" {
 
   container {
 
-    container {
-
-      width = 6
-
-      table {
-        title = "Overview"
-        type  = "line"
-        width = 6
-        query = query.kubernetes_deployment_overview
-        args = {
-          uid = self.input.deployment_uid.value
-        }
-      }
-
-      table {
-        title = "Labels"
-        width = 6
-        query = query.kubernetes_deployment_labels
-        args = {
-          uid = self.input.deployment_uid.value
-        }
-      }
-    }
-
-    container {
-
-      width = 6
-
-      chart {
-        title = "Replicas"
-        query = query.kubernetes_deployment_replicas_detail
-        type  = "donut"
-        args = {
-          uid = self.input.deployment_uid.value
-        }
-
-      }
-
-    }
-
-  }
-
-  container {
-
-    flow {
-      title = "Deployment Hierarchy"
-      query = query.kubernetes_deployment_tree
+    table {
+      title = "Overview"
+      type  = "line"
+      width = 3
+      query = query.kubernetes_deployment_overview
       args = {
         uid = self.input.deployment_uid.value
       }
     }
 
+    table {
+      title = "Labels"
+      width = 3
+      query = query.kubernetes_deployment_labels
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+    }
+
+    table {
+      title = "Annotations"
+      width = 6
+      query = query.kubernetes_deployment_annotations
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+    }
+  }
+
+  container {
+
+    chart {
+      title = "Replicas"
+      width = 4
+      query = query.kubernetes_deployment_replicas_detail
+      type  = "donut"
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+
+    }
+
+    flow {
+      title = "Deployment Hierarchy"
+      width = 8
+      query = query.kubernetes_deployment_tree
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+    }
+  }
+  container {
     table {
       column "UID" {
         display = "none"
@@ -300,6 +300,27 @@ query "kubernetes_deployment_labels" {
    from
      jsondata,
      json_each_text(label);
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_deployment_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_deployment
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
   EOQ
 
   param "uid" {}

@@ -51,9 +51,9 @@ query "kubernetes_deployment_host_table" {
     select
       name as "Name",
       uid as "UID",
-      template -> 'spec' ->> 'hostNetwork' as "Host Network",
-      template -> 'spec' ->> 'hostPID' as "Host PID",
-      template -> 'spec' ->> 'hostIPC' as "Host IPC",
+      case when template -> 'spec' ->> 'hostNetwork' = 'true' then 'Enabled' else 'Disabled' end as "Host Network",
+      case when template -> 'spec' ->> 'hostPID' = 'true' then 'Enabled' else 'Disabled' end as "Host PID",
+      case when template -> 'spec' ->> 'hostIPC' = 'true' then 'Enabled' else 'Disabled' end as "Host IPC",
       context_name as "Context Name"
     from
       kubernetes_deployment

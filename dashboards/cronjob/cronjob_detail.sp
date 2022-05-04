@@ -80,6 +80,14 @@ dashboard "kubernetes_cronjob_detail" {
       width = 6
 
       table {
+        title = "Annotations"
+        query = query.kubernetes_cronjob_annotations
+        args = {
+          uid = self.input.cronjob_uid.value
+        }
+      }
+
+      table {
         title = "Configuration"
         query = query.kubernetes_cronjob_configuration_detail
         args = {
@@ -252,6 +260,27 @@ query "kubernetes_cronjob_labels" {
    from
      jsondata,
      json_each_text(label);
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_cronjob_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_cronjob
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
   EOQ
 
   param "uid" {}

@@ -67,52 +67,51 @@ dashboard "kubernetes_statefulset_detail" {
 
   container {
 
-    container {
-
-      width = 6
-
-      table {
-        title = "Overview"
-        type  = "line"
-        width = 6
-        query = query.kubernetes_statefulset_overview
-        args = {
-          uid = self.input.statefulset_uid.value
-        }
-      }
-
-      table {
-        title = "Labels"
-        width = 6
-        query = query.kubernetes_statefulset_labels
-        args = {
-          uid = self.input.statefulset_uid.value
-        }
+    table {
+      title = "Overview"
+      type  = "line"
+      width = 3
+      query = query.kubernetes_statefulset_overview
+      args = {
+        uid = self.input.statefulset_uid.value
       }
     }
 
-    container {
-
-      width = 6
-
-      chart {
-        title = "Replicas"
-        query = query.kubernetes_statefulset_replicas_detail
-        type  = "donut"
-        args = {
-          uid = self.input.statefulset_uid.value
-        }
-
+    table {
+      title = "Labels"
+      width = 3
+      query = query.kubernetes_statefulset_labels
+      args = {
+        uid = self.input.statefulset_uid.value
       }
-
     }
 
+    table {
+      title = "Annotations"
+      width = 6
+      query = query.kubernetes_statefulset_annotations
+      args = {
+        uid = self.input.statefulset_uid.value
+      }
+    }
   }
 
   container {
 
+    chart {
+      title = "Replicas"
+      width = 4
+      query = query.kubernetes_statefulset_replicas_detail
+      type  = "donut"
+      args = {
+        uid = self.input.statefulset_uid.value
+      }
+
+    }
+
     flow {
       title = "StatefulSet Hierarchy"
+      width = 8
       query = query.kubernetes_statefulset_tree
       args = {
         uid = self.input.statefulset_uid.value
@@ -296,6 +295,27 @@ query "kubernetes_statefulset_labels" {
    from
      jsondata,
      json_each_text(label);
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_statefulset_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_stateful_set
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
   EOQ
 
   param "uid" {}

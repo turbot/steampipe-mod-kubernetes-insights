@@ -51,9 +51,9 @@ query "kubernetes_pod_host_table" {
     select
       name as "Name",
       uid as "UID",
-      host_network as "Host Network",
-      host_pid as "Host PID",
-      host_ipc as "Host IPC",
+      case when host_network then 'Enabled' else 'Disabled' end as "Host Network",
+      case when host_pid then 'Enabled' else 'Disabled' end as "Host PID",
+      case when host_ipc then 'Enabled' else 'Disabled' end as "Host IPC",
       context_name as "Context Name"
     from
       kubernetes_pod

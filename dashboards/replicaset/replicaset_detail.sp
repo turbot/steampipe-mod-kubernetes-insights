@@ -51,57 +51,58 @@ dashboard "kubernetes_replicaset_detail" {
 
   container {
 
-    container {
-
-      width = 6
-
-      table {
-        title = "Overview"
-        type  = "line"
-        width = 6
-        query = query.kubernetes_replicaset_overview
-        args = {
-          uid = self.input.replicaset_uid.value
-        }
-      }
-
-      table {
-        title = "Labels"
-        width = 6
-        query = query.kubernetes_replicaset_labels
-        args = {
-          uid = self.input.replicaset_uid.value
-        }
+    table {
+      title = "Overview"
+      type  = "line"
+      width = 3
+      query = query.kubernetes_replicaset_overview
+      args = {
+        uid = self.input.replicaset_uid.value
       }
     }
 
-    container {
-
-      width = 6
-
-      chart {
-        title = "Replicas"
-        query = query.kubernetes_replicaset_replicas_detail
-        type  = "donut"
-        args = {
-          uid = self.input.replicaset_uid.value
-        }
-
+    table {
+      title = "Labels"
+      width = 3
+      query = query.kubernetes_replicaset_labels
+      args = {
+        uid = self.input.replicaset_uid.value
       }
-
     }
 
+    table {
+      title = "Annotations"
+      width = 6
+      query = query.kubernetes_replicaset_annotations
+      args = {
+        uid = self.input.replicaset_uid.value
+      }
+    }
   }
 
   container {
 
+    chart {
+      title = "Replicas"
+      width = 4
+      query = query.kubernetes_replicaset_replicas_detail
+      type  = "donut"
+      args = {
+        uid = self.input.replicaset_uid.value
+      }
+
+    }
+
     flow {
       title = "ReplicaSet Hierarchy"
+      width = 8
       query = query.kubernetes_replicaset_tree
       args = {
         uid = self.input.replicaset_uid.value
       }
     }
+  }
+  container {
 
     table {
       title = "Pods Details"
@@ -242,6 +243,27 @@ query "kubernetes_replicaset_labels" {
    from
      jsondata,
      json_each_text(label);
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_replicaset_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_replicaset
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
   EOQ
 
   param "uid" {}

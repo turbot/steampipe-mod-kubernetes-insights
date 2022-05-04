@@ -51,9 +51,12 @@ query "kubernetes_cronjob_host_table" {
     select
       name as "Name",
       uid as "UID",
-      job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostNetwork' as "Host Network",
-      job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostPID' as "Host PID",
-      job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostIPC' as "Host IPC",
+      case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostNetwork' = 'true'
+      then 'Enabled' else 'Disabled' end as "Host Network",
+      case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostPID' = 'true'
+      then 'Enabled' else 'Disabled' end as "Host PID",
+      case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostIPC' = 'true'
+      then 'Enabled' else 'Disabled' end as "Host IPC",
       context_name as "Context Name"
     from
       kubernetes_cronjob

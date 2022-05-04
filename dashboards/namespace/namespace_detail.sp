@@ -61,12 +61,10 @@ dashboard "kubernetes_namespace_detail" {
 
     container {
 
-      width = 6
-
       table {
         title = "Overview"
         type  = "line"
-        width = 6
+        width = 3
         query = query.kubernetes_namespace_overview
         args = {
           uid = self.input.namespace_uid.value
@@ -75,20 +73,29 @@ dashboard "kubernetes_namespace_detail" {
 
       table {
         title = "Labels"
-        width = 6
+        width = 3
         query = query.kubernetes_namespace_labels
         args = {
           uid = self.input.namespace_uid.value
         }
       }
+
+      table {
+        title = "Annotations"
+        width = 6
+        query = query.kubernetes_namespace_annotations
+        args = {
+          uid = self.input.namespace_uid.value
+        }
+      }
+
     }
 
     container {
 
-      width = 6
-
       table {
         title = "Services"
+        width = 6
         query = query.kubernetes_namespace_service_table
         args = {
           uid = self.input.namespace_uid.value
@@ -102,10 +109,6 @@ dashboard "kubernetes_namespace_detail" {
           href = "${dashboard.kubernetes_service_detail.url_path}?input.service_uid={{.UID | @uri}}"
         }
       }
-
-    }
-
-    container {
 
       table {
         title = "DaemonSets"
@@ -302,6 +305,27 @@ query "kubernetes_namespace_labels" {
    from
      jsondata,
      json_each_text(label);
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_namespace_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_namespace
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
   EOQ
 
   param "uid" {}

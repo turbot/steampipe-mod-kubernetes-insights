@@ -37,12 +37,10 @@ dashboard "kubernetes_node_detail" {
 
     container {
 
-      width = 6
-
       table {
         title = "Overview"
         type  = "line"
-        width = 6
+        width = 3
         query = query.kubernetes_node_overview
         args = {
           uid = self.input.node_uid.value
@@ -51,8 +49,17 @@ dashboard "kubernetes_node_detail" {
 
       table {
         title = "Labels"
-        width = 6
+        width = 3
         query = query.kubernetes_node_labels
+        args = {
+          uid = self.input.node_uid.value
+        }
+      }
+
+      table {
+        title = "Annotations"
+        width = 6
+        query = query.kubernetes_node_annotations
         args = {
           uid = self.input.node_uid.value
         }
@@ -216,6 +223,27 @@ query "kubernetes_node_labels" {
    from
      jsondata,
      json_each_text(label);
+  EOQ
+
+  param "uid" {}
+}
+
+query "kubernetes_node_annotations" {
+  sql = <<-EOQ
+    with jsondata as (
+   select
+     annotations::json as annotation
+   from
+     kubernetes_node
+   where
+     uid = $1
+   )
+   select
+     key as "Key",
+     value as "Value"
+   from
+     jsondata,
+     json_each_text(annotation);
   EOQ
 
   param "uid" {}
