@@ -258,7 +258,7 @@ query "kubernetes_service_pods" {
     from
       kubernetes_pod
     where
-      label_selector in (select selector_string_format from kubernetes_service where uid = $1);
+      selector_search in (select selector_query from kubernetes_service where uid = $1);
   EOQ
 
   param "uid" {}
@@ -288,7 +288,7 @@ query "kubernetes_service_tree" {
     from
       kubernetes_pod
     where
-      label_selector in (select selector_string_format from kubernetes_service where uid = $1)
+      selector_search in (select selector_query from kubernetes_service where uid = $1)
   ),
   services as (
     select
@@ -296,7 +296,7 @@ query "kubernetes_service_tree" {
       title,
       pod_uid,
       pod_title,
-      selector_string_format,
+      selector_query,
       p ->> 'protocol' as protocol_number,
       concat(p ->> 'port','/', p ->> 'protocol') as port,
       concat(p ->> 'targetPort','/', p ->> 'protocol') as targetPort
@@ -332,7 +332,7 @@ query "kubernetes_service_tree" {
     -- targetPorts
     union all
     select
-      targetPort as id,
+      concat(targetPort,' (Target Port)') as id,
       targetPort as title,
       'targetPort' as category,
       null as from_id,
@@ -366,7 +366,7 @@ query "kubernetes_service_tree" {
       null as title,
       protocol_number as category,
       title as from_id,
-      targetPort as to_id
+      concat(targetPort,' (Target Port)') as to_id
     from services
 
    -- target -> pod
@@ -374,7 +374,7 @@ query "kubernetes_service_tree" {
       null as id,
       null as title,
       protocol_number as category,
-      targetPort as from_id,
+      concat(targetPort,' (Target Port)') as from_id,
       pod_title as to_id
     from services
   EOQ
