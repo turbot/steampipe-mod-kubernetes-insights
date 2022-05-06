@@ -145,6 +145,13 @@ dashboard "kubernetes_container_dashboard" {
       width = 4
     }
 
+    chart {
+      title = "Containers by Pod"
+      query = query.kubernetes_container_by_pod
+      type  = "column"
+      width = 4
+    }
+
   }
 
 }
@@ -330,3 +337,17 @@ query "kubernetes_container_by_context_name" {
   EOQ
 }
 
+query "kubernetes_container_by_pod" {
+  sql = <<-EOQ
+    select
+      name,
+      count(c) as "containers"
+    from
+      kubernetes_pod,
+      jsonb_array_elements(containers) as c
+    group by
+      name
+    order by
+      name;
+  EOQ
+}

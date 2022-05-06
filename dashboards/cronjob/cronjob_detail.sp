@@ -115,7 +115,7 @@ dashboard "kubernetes_cronjob_detail" {
         display = "none"
       }
 
-      title = "Jobs Details"
+      title = "Jobs"
       width = 6
       query = query.kubernetes_cronjob_jobs
       args = {
@@ -131,7 +131,7 @@ dashboard "kubernetes_cronjob_detail" {
     }
 
     table {
-      title = "Pods Details"
+      title = "Pods"
       width = 6
       query = query.kubernetes_cronjob_pods
       args = {

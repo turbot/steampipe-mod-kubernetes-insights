@@ -107,7 +107,7 @@ dashboard "kubernetes_job_detail" {
   container {
 
     table {
-      title = "Pods Details"
+      title = "Pods"
       width = 6
       query = query.kubernetes_job_pods
       args = {

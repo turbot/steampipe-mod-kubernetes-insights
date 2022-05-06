@@ -94,7 +94,7 @@ dashboard "kubernetes_namespace_detail" {
     container {
 
       chart {
-        title = "Service Types Analysis"
+        title = "Service Type Analysis"
         query = query.kubernetes_service_by_type
         type  = "column"
         width = 6
@@ -118,7 +118,7 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       chart {
-        title = "DaemonSets Node Status"
+        title = "DaemonSet Node Status"
         query = query.kubernetes_daemonset_node_status
         type  = "donut"
         width = 6
@@ -142,7 +142,7 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       chart {
-        title = "Deployments HA Analysis"
+        title = "Deployment HA Analysis"
         query = query.kubernetes_deployment_ha
         type  = "column"
         width = 6
@@ -166,7 +166,7 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       chart {
-        title = "ReplicaSets HA Analysis"
+        title = "ReplicaSet HA Analysis"
         query = query.kubernetes_replicaset_ha
         type  = "column"
         width = 6
@@ -190,7 +190,7 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       chart {
-        title = "Pod Phases Analysis"
+        title = "Pod Phase Analysis"
         query = query.kubernetes_pod_by_phase
         type  = "column"
         width = 6

@@ -37,10 +37,12 @@ dashboard "kubernetes_node_detail" {
 
     container {
 
+      width = 6
+
       table {
         title = "Overview"
+        width = 6
         type  = "line"
-        width = 3
         query = query.kubernetes_node_overview
         args = {
           uid = self.input.node_uid.value
@@ -49,17 +51,8 @@ dashboard "kubernetes_node_detail" {
 
       table {
         title = "Labels"
-        width = 3
-        query = query.kubernetes_node_labels
-        args = {
-          uid = self.input.node_uid.value
-        }
-      }
-
-      table {
-        title = "Annotations"
         width = 6
-        query = query.kubernetes_node_annotations
+        query = query.kubernetes_node_labels
         args = {
           uid = self.input.node_uid.value
         }
@@ -70,6 +63,14 @@ dashboard "kubernetes_node_detail" {
     container {
 
       width = 6
+
+      table {
+        title = "Annotations"
+        query = query.kubernetes_node_annotations
+        args = {
+          uid = self.input.node_uid.value
+        }
+      }
 
       table {
         title = "Capacity"
@@ -97,9 +98,13 @@ dashboard "kubernetes_node_detail" {
         }
 
       }
+    }
 
+    container {
+
+      width = 6
       table {
-        title = "Pods Details"
+        title = "Pods"
         query = query.kubernetes_node_pod_details
         args = {
           uid = self.input.node_uid.value
@@ -114,32 +119,30 @@ dashboard "kubernetes_node_detail" {
         }
 
       }
-
     }
-  }
 
-  container {
+    container {
 
-    table {
-      title = "Addresses"
       width = 6
-      query = query.kubernetes_node_addresses
-      args = {
-        uid = self.input.node_uid.value
+
+      table {
+        title = "Addresses"
+        query = query.kubernetes_node_addresses
+        args = {
+          uid = self.input.node_uid.value
+        }
+
       }
 
-    }
+      table {
+        title = "Conditions"
+        query = query.kubernetes_node_conditions
+        args = {
+          uid = self.input.node_uid.value
+        }
 
-    table {
-      title = "Conditions"
-      width = 6
-      query = query.kubernetes_node_conditions
-      args = {
-        uid = self.input.node_uid.value
       }
-
     }
-
   }
 
 }

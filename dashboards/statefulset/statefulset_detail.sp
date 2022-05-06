@@ -119,7 +119,7 @@ dashboard "kubernetes_statefulset_detail" {
     }
 
     table {
-      title = "Pods Details"
+      title = "Pods"
       width = 6
       query = query.kubernetes_statefulset_pods
       args = {

@@ -106,7 +106,7 @@ dashboard "kubernetes_daemonset_detail" {
   container {
 
     table {
-      title = "Pods Details"
+      title = "Pods"
       width = 6
       query = query.kubernetes_daemonset_pods
       args = {

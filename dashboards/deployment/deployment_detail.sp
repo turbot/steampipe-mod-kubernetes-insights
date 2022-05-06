@@ -116,7 +116,7 @@ dashboard "kubernetes_deployment_detail" {
         display = "none"
       }
 
-      title = "ReplicaSet Details"
+      title = "ReplicaSet"
       width = 6
       query = query.kubernetes_deployment_replicasets
       args = {
@@ -132,7 +132,7 @@ dashboard "kubernetes_deployment_detail" {
     }
 
     table {
-      title = "Pods Details"
+      title = "Pods"
       width = 6
       query = query.kubernetes_deployment_pods
       args = {
