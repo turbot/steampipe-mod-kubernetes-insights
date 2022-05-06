@@ -213,6 +213,19 @@ query "kubernetes_pod_input" {
   EOQ
 }
 
+query "kubernetes_pod_status" {
+  sql = <<-EOQ
+    select
+      phase as "Phase"
+    from
+      kubernetes_pod
+    where
+      uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
 query "kubernetes_pod_container" {
   sql = <<-EOQ
     select
@@ -298,7 +311,7 @@ query "kubernetes_pod_overview" {
     from
       kubernetes_pod
     where
-      uid = $1
+      uid = $1;
   EOQ
 
   param "uid" {}
@@ -319,7 +332,9 @@ query "kubernetes_pod_labels" {
      value as "Value"
    from
      jsondata,
-     json_each_text(label);
+     json_each_text(label)
+   order by
+     key;
   EOQ
 
   param "uid" {}
@@ -340,7 +355,9 @@ query "kubernetes_pod_annotations" {
      value as "Value"
    from
      jsondata,
-     json_each_text(annotation);
+     json_each_text(annotation)
+   order by
+     key;
   EOQ
 
   param "uid" {}
@@ -359,7 +376,7 @@ query "kubernetes_pod_conditions" {
     where
       uid = $1
     order by
-      c ->> 'lastTransitionTime';
+      c ->> 'lastTransitionTime' desc;
   EOQ
 
   param "uid" {}
@@ -397,20 +414,9 @@ query "kubernetes_pod_init_containers" {
       kubernetes_pod,
       jsonb_array_elements(init_containers) as c
     where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-query "kubernetes_pod_status" {
-  sql = <<-EOQ
-    select
-      phase as "Phase"
-    from
-      kubernetes_pod
-    where
-      uid = $1;
+      uid = $1
+    order by
+      c ->> 'name';
   EOQ
 
   param "uid" {}
@@ -445,7 +451,9 @@ query "kubernetes_pod_container_basic_detail" {
       kubernetes_pod,
       jsonb_array_elements(containers) as c
     where
-      uid = $1;
+      uid = $1
+    order by
+      c ->> 'name';
   EOQ
 
   param "uid" {}

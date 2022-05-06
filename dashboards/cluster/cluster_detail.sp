@@ -142,8 +142,8 @@ dashboard "kubernetes_cluster_detail" {
 query "kubernetes_cluster_input" {
   sql = <<-EOQ
     select
-      context_name as label,
-      context_name as value
+     distinct context_name as label,
+     context_name as value
     from
       kubernetes_namespace
     order by
@@ -244,7 +244,9 @@ query "kubernetes_cluster_namespaces_table" {
     from
       kubernetes_namespace
     where
-      context_name = $1;
+      context_name = $1
+    order by
+      name;
   EOQ
 
   param "context" {}
@@ -254,12 +256,14 @@ query "kubernetes_cluster_nodes_table" {
   sql = <<-EOQ
     select
       name as "Name",
-      pod_cidr as "POD CIDR",
+      pod_cidr as "Pod CIDR",
       creation_timestamp as "Create Time"
     from
       kubernetes_node
     where
-      context_name = $1;
+      context_name = $1
+    order by
+      name;
   EOQ
 
   param "context" {}
@@ -276,7 +280,9 @@ query "kubernetes_cluster_persistent_volumes_table" {
     from
       kubernetes_persistent_volume
     where
-      context_name = $1;
+      context_name = $1
+    order by
+      name;
   EOQ
 
   param "context" {}
@@ -295,7 +301,9 @@ query "kubernetes_cluster_pod_security_policy_table" {
     from
       kubernetes_pod_security_policy
     where
-      context_name = $1;
+      context_name = $1
+    order by
+      name;
   EOQ
 
   param "context" {}
@@ -312,7 +320,9 @@ query "kubernetes_cluster_role_binding_table" {
     from
       kubernetes_role_binding
     where
-      context_name = $1;
+      context_name = $1
+    order by
+      name;
   EOQ
 
   param "context" {}
@@ -327,7 +337,9 @@ query "kubernetes_cluster_role_table" {
     from
       kubernetes_role
     where
-      context_name = $1;
+      context_name = $1
+    order by
+      name;
   EOQ
 
   param "context" {}

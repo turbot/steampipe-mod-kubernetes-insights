@@ -179,7 +179,7 @@ query "kubernetes_container_allow_privilege_escalation_count" {
   sql = <<-EOQ
     select
       count(c ->> 'name') as value,
-      'Allow Privilege Escalation' as label,
+      'Privilege Escalation Enabled' as label,
       case count(c ->> 'name') when 0 then 'ok' else 'alert' end as type
     from
       kubernetes_pod,

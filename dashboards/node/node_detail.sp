@@ -222,7 +222,9 @@ query "kubernetes_node_labels" {
      value as "Value"
    from
      jsondata,
-     json_each_text(label);
+     json_each_text(label)
+   order by
+     key;
   EOQ
 
   param "uid" {}
@@ -243,7 +245,9 @@ query "kubernetes_node_annotations" {
      value as "Value"
    from
      jsondata,
-     json_each_text(annotation);
+     json_each_text(annotation)
+   order by
+     key;
   EOQ
 
   param "uid" {}
@@ -292,7 +296,9 @@ query "kubernetes_node_pod_details" {
       kubernetes_pod as p
       left join kubernetes_node as n on p.node_name = n.name
     where
-      n.uid = $1;
+      n.uid = $1
+    order by
+      p.name;
   EOQ
 
   param "uid" {}

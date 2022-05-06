@@ -221,7 +221,7 @@ query "kubernetes_replicaset_overview" {
     from
       kubernetes_replicaset
     where
-      uid = $1
+      uid = $1;
   EOQ
 
   param "uid" {}
@@ -242,7 +242,9 @@ query "kubernetes_replicaset_labels" {
      value as "Value"
    from
      jsondata,
-     json_each_text(label);
+     json_each_text(label)
+   order by
+     key;
   EOQ
 
   param "uid" {}
@@ -263,7 +265,9 @@ query "kubernetes_replicaset_annotations" {
      value as "Value"
    from
      jsondata,
-     json_each_text(annotation);
+     json_each_text(annotation)
+   order by
+     key;
   EOQ
 
   param "uid" {}

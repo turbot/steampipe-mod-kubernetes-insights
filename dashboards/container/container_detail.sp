@@ -74,7 +74,7 @@ dashboard "kubernetes_container_detail" {
       }
 
       table {
-        title = "Volume Mount"
+        title = "Volume Mounts"
         width = 6
         query = query.kubernetes_container_volume_mount
         args = {
@@ -242,7 +242,9 @@ query "kubernetes_container_volume_mount" {
       jsonb_array_elements(containers) as c,
       jsonb_array_elements(c -> 'volumeMounts') as v
     where
-      concat(c ->> 'name',name) = $1;
+      concat(c ->> 'name',name) = $1
+    order by
+      v ->> 'name';
   EOQ
 
   param "name" {}
@@ -259,7 +261,9 @@ query "kubernetes_container_ports" {
       jsonb_array_elements(containers) as c,
       jsonb_array_elements(c -> 'ports') as p
     where
-      concat(c ->> 'name',name) = $1;
+      concat(c ->> 'name',name) = $1
+    order by
+      p ->> 'name';
   EOQ
 
   param "name" {}

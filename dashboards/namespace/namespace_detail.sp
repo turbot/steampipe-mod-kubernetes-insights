@@ -93,6 +93,13 @@ dashboard "kubernetes_namespace_detail" {
 
     container {
 
+      chart {
+        title = "Service Types Analysis"
+        query = query.kubernetes_service_by_type
+        type  = "column"
+        width = 6
+      }
+
       table {
         title = "Services"
         width = 6
@@ -108,6 +115,13 @@ dashboard "kubernetes_namespace_detail" {
         column "Name" {
           href = "${dashboard.kubernetes_service_detail.url_path}?input.service_uid={{.UID | @uri}}"
         }
+      }
+
+      chart {
+        title = "DaemonSets Node Status"
+        query = query.kubernetes_daemonset_node_status
+        type  = "donut"
+        width = 6
       }
 
       table {
@@ -127,6 +141,13 @@ dashboard "kubernetes_namespace_detail" {
         }
       }
 
+      chart {
+        title = "Deployments HA Analysis"
+        query = query.kubernetes_deployment_ha
+        type  = "column"
+        width = 6
+      }
+
       table {
         title = "Deployments"
         width = 6
@@ -144,6 +165,13 @@ dashboard "kubernetes_namespace_detail" {
         }
       }
 
+      chart {
+        title = "ReplicaSets HA Analysis"
+        query = query.kubernetes_replicaset_ha
+        type  = "column"
+        width = 6
+      }
+
       table {
         title = "ReplicaSets"
         width = 6
@@ -159,6 +187,13 @@ dashboard "kubernetes_namespace_detail" {
         column "Name" {
           href = "${dashboard.kubernetes_replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
         }
+      }
+
+      chart {
+        title = "Pod Phases Analysis"
+        query = query.kubernetes_pod_by_phase
+        type  = "column"
+        width = 6
       }
 
       table {
@@ -283,7 +318,7 @@ query "kubernetes_namespace_overview" {
     from
       kubernetes_namespace
     where
-      uid = $1
+      uid = $1;
   EOQ
 
   param "uid" {}
@@ -304,7 +339,9 @@ query "kubernetes_namespace_labels" {
      value as "Value"
    from
      jsondata,
-     json_each_text(label);
+     json_each_text(label)
+   order by
+     key;
   EOQ
 
   param "uid" {}
@@ -325,7 +362,9 @@ query "kubernetes_namespace_annotations" {
      value as "Value"
    from
      jsondata,
-     json_each_text(annotation);
+     json_each_text(annotation)
+   order by
+     key;
   EOQ
 
   param "uid" {}
@@ -336,14 +375,15 @@ query "kubernetes_namespace_pod_table" {
     select
       p.name as "Name",
       p.UID as "UID",
-      p.restart_policy as "Restart Policy",
       p.phase as "Phase",
       p.creation_timestamp as "Create Time"
     from
       kubernetes_pod as p,
       kubernetes_namespace as n
     where
-      p.namespace = n.name and n.uid = $1;
+      p.namespace = n.name and n.uid = $1
+    order by
+      p.name;
   EOQ
 
   param "uid" {}
@@ -355,13 +395,14 @@ query "kubernetes_namespace_service_table" {
       s.name as "Name",
       s.UID as "UID",
       s.type as "Type",
-      s.cluster_ip as "Cluster IP",
       s.creation_timestamp as "Create Time"
     from
       kubernetes_service as s,
       kubernetes_namespace as n
     where
-      s.namespace = n.name and n.uid = $1;
+      s.namespace = n.name and n.uid = $1
+    order by
+      s.name;
   EOQ
 
   param "uid" {}
@@ -379,7 +420,9 @@ query "kubernetes_namespace_daemonset_table" {
       kubernetes_daemonset as d,
       kubernetes_namespace as n
     where
-      d.namespace = n.name and n.uid = $1;
+      d.namespace = n.name and n.uid = $1
+    order by
+      d.name;
   EOQ
 
   param "uid" {}
@@ -390,14 +433,15 @@ query "kubernetes_namespace_deployment_table" {
     select
       d.name as "Name",
       d.UID as "UID",
-      d.ready_replicas as "Ready Replicas",
-      d.available_replicas as "Available Replicas",
+      d.replicas as "Replicas",
       d.creation_timestamp as "Create Time"
     from
       kubernetes_deployment as d,
       kubernetes_namespace as n
     where
-      d.namespace = n.name and n.uid = $1;
+      d.namespace = n.name and n.uid = $1
+    order by
+      d.name;
   EOQ
 
   param "uid" {}
@@ -408,17 +452,77 @@ query "kubernetes_namespace_replicaset_table" {
     select
       r.name as "Name",
       r.UID as "UID",
-      r.ready_replicas as "Ready Replicas",
-      r.available_replicas as "Available Replicas",
+      r.replicas as "Replicas",
       r.creation_timestamp as "Create Time"
     from
       kubernetes_replicaset as r,
       kubernetes_namespace as n
     where
-      r.namespace = n.name and n.uid = $1;
+      r.namespace = n.name and n.uid = $1
+    order by
+      r.name;
   EOQ
 
   param "uid" {}
 }
 
+query "kubernetes_service_by_type" {
+  sql = <<-EOQ
+    select
+      type,
+      count(name) as "services"
+    from
+      kubernetes_service
+    group by
+      type
+    order by
+      type;
+  EOQ
+}
 
+query "kubernetes_pod_by_phase" {
+  sql = <<-EOQ
+    select
+      phase,
+      count(name) as "pods"
+    from
+      kubernetes_pod
+    group by
+      phase
+    order by
+      phase;
+  EOQ
+}
+
+query "kubernetes_deployment_ha" {
+  sql = <<-EOQ
+    select
+      case when replicas < 3 then 'non-HA' else 'HA' end as status,
+      count(name)
+    from
+      kubernetes_deployment
+    group by
+      status
+    order by
+      status;
+  EOQ
+}
+
+query "kubernetes_replicaset_ha" {
+  sql = <<-EOQ
+    select
+      case when replicas < 3 then 'non-HA' else 'HA' end as status,
+      count(name)
+    from
+      kubernetes_replicaset
+    group by
+      status
+    order by
+      status;
+  EOQ
+}
+
+query "kubernetes_daemonset_node_status" {
+  sql = <<-EOQ
+  EOQ
+}

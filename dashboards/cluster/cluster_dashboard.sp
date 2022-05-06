@@ -102,56 +102,56 @@ dashboard "kubernetes_cluster_dashboard" {
       title = "Namespaces by Cluster"
       query = query.kubernetes_namespace_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "Nodes by Cluster"
       query = query.kubernetes_node_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "Services by Cluster"
       query = query.kubernetes_service_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "Pods by Cluster"
       query = query.kubernetes_pod_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "Containers by Cluster"
       query = query.kubernetes_container_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "Deployments by Cluster"
       query = query.kubernetes_deployment_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "ReplicaSets by Cluster"
       query = query.kubernetes_replicaset_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "DaemonSets by Cluster"
       query = query.kubernetes_daemonset_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
 
@@ -159,21 +159,21 @@ dashboard "kubernetes_cluster_dashboard" {
       title = "StatefulSets by Cluster"
       query = query.kubernetes_statefulset_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "CronJobs by Cluster"
       query = query.kubernetes_cronjob_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
     chart {
       title = "Jobs by Cluster"
       query = query.kubernetes_job_by_context
       type  = "column"
-      width = 4
+      width = 3
     }
 
 

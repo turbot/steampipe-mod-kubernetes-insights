@@ -278,7 +278,7 @@ query "kubernetes_deployment_overview" {
     from
       kubernetes_deployment
     where
-      uid = $1
+      uid = $1;
   EOQ
 
   param "uid" {}
@@ -299,7 +299,9 @@ query "kubernetes_deployment_labels" {
      value as "Value"
    from
      jsondata,
-     json_each_text(label);
+     json_each_text(label)
+   order by
+     key;
   EOQ
 
   param "uid" {}
@@ -320,7 +322,9 @@ query "kubernetes_deployment_annotations" {
      value as "Value"
    from
      jsondata,
-     json_each_text(annotation);
+     json_each_text(annotation)
+   order by
+     key;
   EOQ
 
   param "uid" {}
