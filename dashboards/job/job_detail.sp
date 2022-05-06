@@ -8,7 +8,7 @@ dashboard "kubernetes_job_detail" {
   })
 
   input "job_uid" {
-    title = "Select a job:"
+    title = "Select a Job:"
     query = query.kubernetes_job_input
     width = 4
   }

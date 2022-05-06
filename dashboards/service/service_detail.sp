@@ -8,7 +8,7 @@ dashboard "kubernetes_service_detail" {
   })
 
   input "service_uid" {
-    title = "Select a service:"
+    title = "Select a Service:"
     query = query.kubernetes_service_input
     width = 4
   }

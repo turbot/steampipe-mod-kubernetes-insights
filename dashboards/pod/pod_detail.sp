@@ -8,7 +8,7 @@ dashboard "kubernetes_pod_detail" {
   })
 
   input "pod_uid" {
-    title = "Select a pod:"
+    title = "Select a Pod:"
     query = query.kubernetes_pod_input
     width = 4
   }

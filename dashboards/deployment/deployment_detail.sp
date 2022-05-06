@@ -8,7 +8,7 @@ dashboard "kubernetes_deployment_detail" {
   })
 
   input "deployment_uid" {
-    title = "Select a deployment:"
+    title = "Select a Deployment:"
     query = query.kubernetes_deployment_input
     width = 4
   }

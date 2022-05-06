@@ -8,7 +8,7 @@ dashboard "kubernetes_statefulset_detail" {
   })
 
   input "statefulset_uid" {
-    title = "Select a statefulSet:"
+    title = "Select a StatefulSet:"
     query = query.kubernetes_statefulset_input
     width = 4
   }

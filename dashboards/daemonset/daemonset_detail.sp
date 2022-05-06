@@ -8,7 +8,7 @@ dashboard "kubernetes_daemonset_detail" {
   })
 
   input "daemonset_uid" {
-    title = "Select a daemonSet:"
+    title = "Select a DaemonSet:"
     query = query.kubernetes_daemonset_input
     width = 4
   }

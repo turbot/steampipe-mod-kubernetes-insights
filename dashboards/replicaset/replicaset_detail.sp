@@ -8,7 +8,7 @@ dashboard "kubernetes_replicaset_detail" {
   })
 
   input "replicaset_uid" {
-    title = "Select a replicaSet:"
+    title = "Select a ReplicaSet:"
     query = query.kubernetes_replicaset_input
     width = 4
   }

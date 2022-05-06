@@ -8,7 +8,7 @@ dashboard "kubernetes_cronjob_detail" {
   })
 
   input "cronjob_uid" {
-    title = "Select a cronJob:"
+    title = "Select a CronJob:"
     query = query.kubernetes_cronjob_input
     width = 4
   }
