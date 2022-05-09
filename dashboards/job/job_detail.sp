@@ -84,7 +84,7 @@ dashboard "kubernetes_job_detail" {
   container {
 
     chart {
-      title = "Pods Status"
+      title = "Job Status"
       width = 4
       query = query.kubernetes_job_pods_detail
       type  = "donut"
@@ -92,6 +92,14 @@ dashboard "kubernetes_job_detail" {
         uid = self.input.job_uid.value
       }
 
+      series "value" {
+        point "failed" {
+          color = "alert"
+        }
+        point "succeeded" {
+          color = "ok"
+        }
+      }
     }
 
     flow {
@@ -299,24 +307,16 @@ query "kubernetes_job_conditions" {
 query "kubernetes_job_pods_detail" {
   sql = <<-EOQ
     select
-      'active' as label,
-      active as value
+      case when succeeded <> 0 then 'succeeded' end as label,
+      case when succeeded <> 0 then succeeded end as value
     from
       kubernetes_job
     where
       uid = $1
     union all
     select
-      'succeeded' as label,
-      succeeded as value
-    from
-      kubernetes_job
-    where
-      uid = $1
-    union all
-    select
-      'failed' as label,
-      failed as value
+      case when failed <> 0 then 'failed' end as label,
+      case when failed <> 0 then failed end as value
     from
       kubernetes_job
     where

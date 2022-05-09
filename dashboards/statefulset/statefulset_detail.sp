@@ -362,32 +362,32 @@ query "kubernetes_statefulset_conditions" {
 query "kubernetes_statefulset_replicas_detail" {
   sql = <<-EOQ
     select
-      'current replicas' as label,
-      current_replicas as value
+      case when current_replicas <> 0 then 'current replicas' end as label,
+      case when current_replicas <> 0 then current_replicas end as value
     from
       kubernetes_stateful_set
     where
       uid = $1
     union all
     select
-      'updated replicas' as label,
-      updated_replicas as value
+      case when updated_replicas <> 0 then 'updated replicas' end as label,
+      case when updated_replicas <> 0 then updated_replicas end as value
     from
       kubernetes_stateful_set
     where
       uid = $1
     union all
     select
-      'ready replicas' as label,
-      ready_replicas as value
+      case when ready_replicas <> 0 then 'ready replicas' end as label,
+      case when ready_replicas <> 0 then ready_replicas end as value
     from
       kubernetes_stateful_set
     where
       uid = $1
     union all
     select
-      'available replicas' as label,
-      available_replicas as value
+      case when available_replicas <> 0 then 'available replicas' end as label,
+      case when available_replicas <> 0 then available_replicas end as value
     from
       kubernetes_stateful_set
     where

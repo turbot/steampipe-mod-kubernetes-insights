@@ -83,12 +83,21 @@ dashboard "kubernetes_daemonset_detail" {
   container {
 
     chart {
-      title = "Nodes Status"
+      title = "DaemonSet Status"
       width = 4
       query = query.kubernetes_daemonset_node_detail
       type  = "donut"
       args = {
         uid = self.input.daemonset_uid.value
+      }
+
+      series "value" {
+        point "not ready" {
+          color = "alert"
+        }
+        point "ready" {
+          color = "ok"
+        }
       }
 
     }
@@ -323,24 +332,16 @@ query "kubernetes_daemonset_conditions" {
 query "kubernetes_daemonset_node_detail" {
   sql = <<-EOQ
     select
-      'ready' as label,
-      number_ready as value
+      case when number_ready <> 0 then 'ready' end as label,
+      case when number_ready <> 0 then number_ready end as value
     from
       kubernetes_daemonset
     where
       uid = $1
     union all
     select
-      'available' as label,
-      number_available as value
-    from
-      kubernetes_daemonset
-    where
-      uid = $1
-    union all
-    select
-      'unavailable' as label,
-      number_unavailable as value
+      case when desired_number_scheduled <> number_ready then 'not ready' end as label,
+      case when desired_number_scheduled <> number_ready then desired_number_scheduled - number_ready end as value
     from
       kubernetes_daemonset
     where

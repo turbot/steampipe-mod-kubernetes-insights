@@ -94,10 +94,13 @@ dashboard "kubernetes_namespace_detail" {
     container {
 
       chart {
-        title = "Service Type Analysis"
+        title = "Services Type Analysis"
+        width = 6
         query = query.kubernetes_service_by_type
         type  = "column"
-        width = 6
+        args = {
+          uid = self.input.namespace_uid.value
+        }
       }
 
       table {
@@ -118,10 +121,13 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       chart {
-        title = "DaemonSet Node Status"
-        query = query.kubernetes_daemonset_node_status
-        type  = "donut"
+        title = "DaemonSets Status Analysis"
         width = 6
+        query = query.kubernetes_daemonset_node_status
+        type  = "column"
+        args = {
+          uid = self.input.namespace_uid.value
+        }
       }
 
       table {
@@ -142,10 +148,14 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       chart {
-        title = "Deployment HA Analysis"
+        title = "Deployments HA Analysis"
+        width = 6
         query = query.kubernetes_deployment_ha
         type  = "column"
-        width = 6
+        args = {
+          uid = self.input.namespace_uid.value
+        }
+
       }
 
       table {
@@ -166,10 +176,13 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       chart {
-        title = "ReplicaSet HA Analysis"
+        title = "ReplicaSets HA Analysis"
+        width = 6
         query = query.kubernetes_replicaset_ha
         type  = "column"
-        width = 6
+        args = {
+          uid = self.input.namespace_uid.value
+        }
       }
 
       table {
@@ -190,10 +203,13 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       chart {
-        title = "Pod Phase Analysis"
+        title = "Pods Phase Analysis"
+        width = 6
         query = query.kubernetes_pod_by_phase
         type  = "column"
-        width = 6
+        args = {
+          uid = self.input.namespace_uid.value
+        }
       }
 
       table {
@@ -413,8 +429,8 @@ query "kubernetes_namespace_daemonset_table" {
     select
       d.name as "Name",
       d.UID as "UID",
-      d.number_ready as "Node Number Ready",
-      d.number_available as "Node Number Available",
+      d.desired_number_scheduled as "Desired Number Scheduled",
+      d.number_ready as "Number Ready",
       d.creation_timestamp as "Create Time"
     from
       kubernetes_daemonset as d,
@@ -470,59 +486,92 @@ query "kubernetes_service_by_type" {
   sql = <<-EOQ
     select
       type,
-      count(name) as "services"
+      count(s.name) as "services"
     from
-      kubernetes_service
+      kubernetes_service as s,
+      kubernetes_namespace as n
+    where
+      s.namespace = n.name and n.uid = $1
     group by
       type
     order by
       type;
   EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_pod_by_phase" {
   sql = <<-EOQ
     select
-      phase,
-      count(name) as "pods"
+      p.phase,
+      count(p.name) as "pods"
     from
-      kubernetes_pod
+      kubernetes_pod as p,
+      kubernetes_namespace as n
+    where
+      p.namespace = n.name and n.uid = $1
     group by
-      phase
+      p.phase
     order by
-      phase;
+      p.phase;
   EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_deployment_ha" {
   sql = <<-EOQ
     select
       case when replicas < 3 then 'non-HA' else 'HA' end as status,
-      count(name)
+      count(d.name)
     from
-      kubernetes_deployment
+      kubernetes_deployment as d,
+      kubernetes_namespace as n
+    where
+      d.namespace = n.name and n.uid = $1
     group by
       status
     order by
       status;
   EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_replicaset_ha" {
   sql = <<-EOQ
     select
       case when replicas < 3 then 'non-HA' else 'HA' end as status,
-      count(name)
+      count(r.name)
     from
-      kubernetes_replicaset
+      kubernetes_replicaset as r,
+       kubernetes_namespace as n
+    where
+      r.namespace = n.name and n.uid = $1
     group by
       status
     order by
       status;
   EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_daemonset_node_status" {
   sql = <<-EOQ
+    select
+      d.name as "Name",
+      d.number_ready as "Ready",
+      d.desired_number_scheduled - d.number_ready as "Not Ready"
+    from
+      kubernetes_daemonset as d,
+      kubernetes_namespace as n
+    where
+      d.namespace = n.name and n.uid = $1
+    order by
+      d.name;
   EOQ
+
+  param "uid" {}
 }
