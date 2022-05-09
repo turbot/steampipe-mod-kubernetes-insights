@@ -297,32 +297,32 @@ query "kubernetes_replicaset_conditions" {
 query "kubernetes_replicaset_replicas_detail" {
   sql = <<-EOQ
     select
-      'status replicas' as label,
-      status_replicas as value
+      case when status_replicas <> 0 then 'status replicas' end as label,
+      case when status_replicas <> 0 then status_replicas end as value
     from
       kubernetes_replicaset
     where
       uid = $1
     union all
     select
-      'fully labeled replicas' as label,
-      fully_labeled_replicas as value
+      case when fully_labeled_replicas <> 0 then 'fully labeled replicas' end as label,
+      case when fully_labeled_replicas <> 0 then fully_labeled_replicas end as value
     from
       kubernetes_replicaset
     where
       uid = $1
     union all
     select
-      'ready replicas' as label,
-      ready_replicas as value
+      case when ready_replicas <> 0 then 'ready replicas' end as label,
+      case when ready_replicas <> 0 then ready_replicas end as value
     from
       kubernetes_replicaset
     where
       uid = $1
     union all
     select
-      'available replicas' as label,
-      available_replicas as value
+      case when available_replicas <> 0 then 'available replicas' end as label,
+      case when available_replicas <> 0 then available_replicas end as value
     from
       kubernetes_replicaset
     where
