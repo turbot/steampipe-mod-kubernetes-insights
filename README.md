@@ -20,7 +20,7 @@ Dashboards are available for 10+ resources, including Deployment, DaemonSet, Job
 
 Download and install Steampipe (https://steampipe.io/downloads). Or use Brew:
 
-```she
+```sh
 brew tap turbot/tap
 brew install steampipe
 ```
