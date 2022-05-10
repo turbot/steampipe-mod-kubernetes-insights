@@ -1,4 +1,4 @@
 This report answers the following questions:
 
-- Are my DaemonSets host access enabled?
+- Are my DaemonSets host network access enabled?
 - What is the status of host PID and IPC sharing?

@@ -1,5 +1,6 @@
 This dashboard answers the following questions for each CronJob:
 
 - How is my CronJob configured?
-- Is the default namespace used for the CronJob?
+- Is the host network access enabled?
+- Is the host PID & IPC sharing enabled?
 - What labels and annotations are applied?
