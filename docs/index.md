@@ -6,7 +6,12 @@ repository: "https://github.com/turbot/steampipe-mod-kubernetes-insights"
 
 Create dashboards and reports for your Kubernetes resources using Steampipe.
 
-<!-- TO DO -->
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_cluster_dashboard.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_container_dashboard.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_daemonset_age_report.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_deployment_detail.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_deployment_ha_report.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_pod_host_access_report.png" width="50%" type="thumbnail"/>
 
 ## Overview
 
@@ -16,9 +21,7 @@ Dashboards can help answer questions like:
 - How old are my resources?
 - What are the various configurations of my resources?
 
-Dashboards are available for 10+ resources, including Deployment, DaemonSet, Job, Pod, Service, Node, and more!
-
-<!-- TO DO -->
+Dashboards are available for 10+ resources, including DaemonSet, Deployment, Job, Node, Pod, Service, and more!
 
 ## References
 
@@ -45,11 +48,11 @@ brew install steampipe
 
 Install the Kubernetes plugin with [Steampipe](https://steampipe.io):
 
-```shell
+```sh
 steampipe plugin install kubernetes
 ```
 
-2. Clone this repo:
+Clone:
 
 ```sh
 git clone https://github.com/turbot/steampipe-mod-kubernetes-insights.git

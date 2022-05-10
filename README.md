@@ -1,8 +1,8 @@
 # Kubernetes Insights
 
-A kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
+A Kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
 
-<!-- TO DO-->
+![image](https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_container_dashboard.png)
 
 ## Overview
 
@@ -20,7 +20,7 @@ Dashboards are available for 10+ resources, including Deployment, DaemonSet, Job
 
 Download and install Steampipe (https://steampipe.io/downloads). Or use Brew:
 
-```shell
+```she
 brew tap turbot/tap
 brew install steampipe
 ```
@@ -42,7 +42,7 @@ cd steampipe-mod-kubernetes-insights
 
 Start your dashboard server to get started:
 
-```shell
+```sh
 steampipe dashboard
 ```
 
