@@ -1,8 +1,8 @@
 # Kubernetes Insights
 
-A kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
+A Kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
 
-<!-- TO DO-->
+![image](https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_container_dashboard.png)
 
 ## Overview
 
@@ -10,33 +10,28 @@ Dashboards can help answer questions like:
 
 - How many resources do I have?
 - How old are my resources?
-- Are there any publicly accessible resources?
-<!-- - Is encryption enabled and what keys are used for encryption? -->
-<!-- - Is versioning enabled? -->
+- What are the various configurations of my resources?
 
-<!-- TO DO -->
+Dashboards are available for 10+ resources, including Deployment, DaemonSet, Job, Pod, Service, Node, and more!
 
 ## Getting started
 
 ### Installation
 
-1) Download and install Steampipe (https://steampipe.io/downloads). Or use Brew:
+Download and install Steampipe (https://steampipe.io/downloads). Or use Brew:
 
-```shell
+```sh
 brew tap turbot/tap
 brew install steampipe
-
-steampipe -v
-steampipe version 0.13.0
 ```
 
-2) Install the Kubernetes plugin:
+Install the Kubernetes plugin with [Steampipe](https://steampipe.io):
 
-```shell
+```sh
 steampipe plugin install kubernetes
 ```
 
-3) Clone this repo:
+Clone this repo:
 
 ```sh
 git clone https://github.com/turbot/steampipe-mod-kubernetes-insights.git
@@ -47,13 +42,21 @@ cd steampipe-mod-kubernetes-insights
 
 Start your dashboard server to get started:
 
-```shell
+```sh
 steampipe dashboard
 ```
 
 By default, the dashboard interface will then be launched in a new browser window at https://localhost:9194.
 
-From here, you can view all of your dashboards and reports.
+From here, you can run dashboards by selecting one or searching for a specific one.
+
+### Credentials
+
+This mod uses the credentials configured in the [Steampipe Kubernetes plugin](https://hub.steampipe.io/plugins/turbot/kubernetes).
+
+### Configuration
+
+No extra configuration is required.
 
 ## Contributing
 
