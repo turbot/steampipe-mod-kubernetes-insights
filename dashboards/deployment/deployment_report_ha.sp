@@ -41,6 +41,7 @@ query "kubernetes_deployment_replicas_table" {
     select
       name as "Name",
       uid as "UID",
+      replicas as "Replicas",
       available_replicas as "Available Replicas",
       updated_replicas as "Updated Replicas",
       ready_replicas as "Ready Replicas",
