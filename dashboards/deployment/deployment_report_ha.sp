@@ -40,13 +40,13 @@ query "kubernetes_deployment_replicas_table" {
   sql = <<-EOQ
     select
       name as "Name",
-      uid as "UID",
       replicas as "Replicas",
       available_replicas as "Available Replicas",
       updated_replicas as "Updated Replicas",
       ready_replicas as "Ready Replicas",
       unavailable_replicas as "Unavailable Replicas",
-      context_name as "Context Name"
+      context_name as "Context Name",
+      uid as "UID"
     from
       kubernetes_deployment
     order by

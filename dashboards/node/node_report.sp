@@ -46,12 +46,12 @@ query "kubernetes_node_table" {
   sql = <<-EOQ
     select
       name as "Name",
-      uid as "UID",
       capacity ->> 'cpu' as "Capacity CPU",
       capacity ->> 'ephemeral-storage' as "Capacity Ephemeral Storage",
       capacity ->> 'memory' as "Capacity Memory",
       capacity ->> 'pods' as "Capacity Pods",
-      context_name as "Context Name"
+      context_name as "Context Name",
+      uid as "UID"
     from
       kubernetes_node
     order by
