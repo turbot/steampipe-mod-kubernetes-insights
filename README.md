@@ -12,7 +12,7 @@ Dashboards can help answer questions like:
 - How old are my resources?
 - What are the various configurations of my resources?
 
-Dashboards are available for 10+ resources, including Deployment, DaemonSet, Job, Pod, Service, Node, and more!
+Dashboards are available for 10+ resources, including Clusters, DaemonSets, Deployments, Nodes, Pods, Services, and more!
 
 ## Getting started
 
@@ -46,9 +46,7 @@ Start your dashboard server to get started:
 steampipe dashboard
 ```
 
-By default, the dashboard interface will then be launched in a new browser window at https://localhost:9194.
-
-From here, you can run dashboards by selecting one or searching for a specific one.
+By default, the dashboard interface will then be launched in a new browser window at https://localhost:9194. From here, you can view dashboards and reports.
 
 ### Credentials
 

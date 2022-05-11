@@ -5,7 +5,7 @@ dashboard "kubernetes_deployment_ha_report" {
 
   tags = merge(local.deployment_common_tags, {
     type     = "Report"
-    category = "Replicas"
+    category = "High Availability"
   })
 
   container {
