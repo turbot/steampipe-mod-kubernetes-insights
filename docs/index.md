@@ -21,7 +21,7 @@ Dashboards can help answer questions like:
 - How old are my resources?
 - What are the various configurations of my resources?
 
-Dashboards are available for 10+ resources, including DaemonSet, Deployment, Job, Node, Pod, Service, and more!
+Dashboards are available for 10+ resources, including Clusters, DaemonSets, Deployments, Nodes, Pods, Services, and more!
 
 ## References
 
@@ -67,13 +67,15 @@ Start your dashboard server to get started:
 steampipe dashboard
 ```
 
-By default, the dashboard interface will then be launched in a new browser window at https://localhost:9194.
-
-From here, you can run dashboards by selecting one or searching for a specific one.
+By default, the dashboard interface will then be launched in a new browser window at https://localhost:9194. From here, you can view dashboards and reports.
 
 ### Credentials
 
 This mod uses the credentials configured in the [Steampipe Kubernetes plugin](https://hub.steampipe.io/plugins/turbot/kubernetes).
+
+### Configuration
+
+No extra configuration is required.
 
 ## Contributing
 

@@ -5,7 +5,7 @@ dashboard "kubernetes_deployment_ha_report" {
 
   tags = merge(local.deployment_common_tags, {
     type     = "Report"
-    category = "Replicas"
+    category = "High Availability"
   })
 
   container {
@@ -41,6 +41,7 @@ query "kubernetes_deployment_replicas_table" {
     select
       name as "Name",
       uid as "UID",
+      replicas as "Replicas",
       available_replicas as "Available Replicas",
       updated_replicas as "Updated Replicas",
       ready_replicas as "Ready Replicas",
