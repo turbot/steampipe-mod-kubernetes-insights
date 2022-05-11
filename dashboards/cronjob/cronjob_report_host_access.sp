@@ -50,14 +50,14 @@ query "kubernetes_cronjob_host_table" {
   sql = <<-EOQ
     select
       name as "Name",
-      uid as "UID",
       case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostNetwork' = 'true'
       then 'Enabled' else 'Disabled' end as "Host Network",
       case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostPID' = 'true'
       then 'Enabled' else 'Disabled' end as "Host PID",
       case when job_template -> 'spec' -> 'template' -> 'spec' ->> 'hostIPC' = 'true'
       then 'Enabled' else 'Disabled' end as "Host IPC",
-      context_name as "Context Name"
+      context_name as "Context Name",
+      uid as "UID"
     from
       kubernetes_cronjob
     order by

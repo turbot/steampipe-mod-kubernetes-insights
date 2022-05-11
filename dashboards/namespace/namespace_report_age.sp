@@ -126,10 +126,10 @@ query "kubernetes_namespace_age_table" {
   sql = <<-EOQ
     select
       name as "Name",
-      uid as "UID",
       now()::date - creation_timestamp::date as "Age in Days",
       creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      context_name as "Context Name",
+      uid as "UID"
     from
       kubernetes_namespace
     order by

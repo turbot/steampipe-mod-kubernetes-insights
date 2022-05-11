@@ -50,11 +50,11 @@ query "kubernetes_pod_host_table" {
   sql = <<-EOQ
     select
       name as "Name",
-      uid as "UID",
       case when host_network then 'Enabled' else 'Disabled' end as "Host Network",
       case when host_pid then 'Enabled' else 'Disabled' end as "Host PID",
       case when host_ipc then 'Enabled' else 'Disabled' end as "Host IPC",
-      context_name as "Context Name"
+      context_name as "Context Name",
+      uid as "UID"
     from
       kubernetes_pod
     order by
