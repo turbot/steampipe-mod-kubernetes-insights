@@ -1,4 +1,4 @@
 This report answers the following questions:
 
-- Are my Deployments have high availability?
-- What are the various replicas status?
+- Do my Deployments have high availability?
+- What is the status of various replicas?
