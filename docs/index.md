@@ -1,8 +1,17 @@
-# Kubernetes Insights
+---
+repository: "https://github.com/turbot/steampipe-mod-kubernetes-insights"
+---
 
-A Kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
+# Kubernetes Insights Mod
 
-![image](https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_container_dashboard.png)
+Create dashboards and reports for your Kubernetes resources using Steampipe.
+
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_cluster_dashboard.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_container_dashboard.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_daemonset_age_report.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_deployment_detail.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_deployment_ha_report.png" width="50%" type="thumbnail"/>
+<img src="https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_pod_host_access_report.png" width="50%" type="thumbnail"/>
 
 ## Overview
 
@@ -13,6 +22,18 @@ Dashboards can help answer questions like:
 - What are the various configurations of my resources?
 
 Dashboards are available for 10+ resources, including Clusters, DaemonSets, Deployments, Nodes, Pods, Services, and more!
+
+## References
+
+[Kubernetes](https://kubernetes.io/) also known as K8s, is an open-source system for automating deployment, scaling, and management of containerized applications.
+
+[Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
+
+[Steampipe Mods](https://steampipe.io/docs/reference/mod-resources#mod) are collections of `named queries`, codified `controls` that can be used to test the current configuration of your cloud resources against the desired configuration, and `dashboards` that organize and display key pieces of information.
+
+## Documentation
+
+- **[Dashboards →](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards)**
 
 ## Getting started
 
@@ -31,7 +52,7 @@ Install the Kubernetes plugin with [Steampipe](https://steampipe.io):
 steampipe plugin install kubernetes
 ```
 
-Clone this repo:
+Clone:
 
 ```sh
 git clone https://github.com/turbot/steampipe-mod-kubernetes-insights.git
@@ -42,7 +63,7 @@ cd steampipe-mod-kubernetes-insights
 
 Start your dashboard server to get started:
 
-```sh
+```shell
 steampipe dashboard
 ```
 
