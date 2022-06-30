@@ -1,4 +1,4 @@
-# Kubernetes Insights
+# Kubernetes Insights Mod for Steampipe
 
 A Kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
 
