@@ -50,6 +50,33 @@ dashboard "kubernetes_daemonset_detail" {
   }
 
   container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "LR"
+
+      nodes = [
+        node.kubernetes_daemonset_node,
+        node.kubernetes_daemonset_from_namespace_node,
+        node.kubernetes_daemonset_to_pod_node,
+        node.kubernetes_daemonset_to_pod_to_container_node,
+        node.kubernetes_daemonset_to_pod_to_node_node
+      ]
+
+      edges = [
+        edge.kubernetes_daemonset_to_pod_edge,
+        edge.kubernetes_daemonset_from_namespace_edge,
+        edge.kubernetes_daemonset_to_pod_to_container_edge,
+        edge.kubernetes_daemonset_to_pod_to_node_edge
+      ]
+
+      args = {
+        uid = self.input.daemonset_uid.value
+      }
+    }
+  }
+
+  container {
 
     table {
       title = "Overview"
@@ -153,6 +180,195 @@ dashboard "kubernetes_daemonset_detail" {
 
   }
 
+}
+
+category "kubernetes_daemonset_no_link" {
+  icon = local.kubernetes_daemonset_icon
+}
+
+node "kubernetes_daemonset_node" {
+  category = category.kubernetes_daemonset_no_link
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Namespace', namespace,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_daemonset
+    where
+      uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_daemonset_from_namespace_node" {
+  category = category.kubernetes_namespace
+
+  sql = <<-EOQ
+    select
+      n.uid as id,
+      n.title as title,
+      jsonb_build_object(
+        'UID', n.uid,
+        'Phase', n.phase,
+        'Context Name', n.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_daemonset as d
+    where
+      n.name = d.namespace
+      and d.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_daemonset_from_namespace_edge" {
+  title = "daemonset"
+
+  sql = <<-EOQ
+     select
+      n.uid as from_id,
+      d.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_daemonset as d
+    where
+      n.name = d.namespace
+      and d.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_daemonset_to_pod_node" {
+  category = category.kubernetes_pod
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Namespace', namespace,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_daemonset_to_pod_edge" {
+  title = "pod"
+
+  sql = <<-EOQ
+     select
+      pod_owner ->> 'uid' as from_id,
+      uid as to_id
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_daemonset_to_pod_to_container_node" {
+  category = category.kubernetes_container
+
+  sql = <<-EOQ
+    select
+      container ->> 'name' || pod.name as id,
+      container ->> 'name' as title,
+      jsonb_build_object(
+        'Name', container ->> 'name',
+        'Image', container ->> 'image',
+        'POD Name', pod.name
+      ) as properties
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_daemonset_to_pod_to_container_edge" {
+  title = "container"
+
+  sql = <<-EOQ
+     select
+      pod.uid as from_id,
+      container ->> 'name' || pod.name as to_id
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_daemonset_to_pod_to_node_node" {
+  category = category.kubernetes_node
+
+  sql = <<-EOQ
+    select
+      n.uid as id,
+      n.name as title,
+      jsonb_build_object(
+        'UID', n.uid,
+        'POD CIDR', n.pod_cidr,
+        'Context Name', n.context_name
+      ) as properties
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_daemonset_to_pod_to_node_edge" {
+  title = "node"
+
+  sql = <<-EOQ
+    select
+      n.uid as to_id,
+      pod.uid as from_id
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_daemonset_input" {
@@ -373,7 +589,7 @@ query "kubernetes_daemonset_pods" {
 query "kubernetes_daemonset_tree" {
   sql = <<-EOQ
 
-    -- This job
+    -- This daemonset
     select
       null as from_id,
       uid as id,
@@ -385,7 +601,7 @@ query "kubernetes_daemonset_tree" {
     where
       uid = $1
 
-    -- Pods owned by the jobs
+    -- Pods owned by the daemonset
     union all
     select
       pod_owner ->> 'uid'  as from_id,
@@ -400,7 +616,7 @@ query "kubernetes_daemonset_tree" {
       pod_owner ->> 'uid' = $1
 
 
-    -- containers in Pods owned by the jobs
+    -- containers in Pods owned by the daemonset
     union all
     select
       pod.uid  as from_id,

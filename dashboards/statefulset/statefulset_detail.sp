@@ -66,6 +66,35 @@ dashboard "kubernetes_statefulset_detail" {
   }
 
   container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "LR"
+
+      nodes = [
+        node.kubernetes_statefulset_node,
+        node.kubernetes_statefulset_from_namespace_node,
+        node.kubernetes_statefulset_to_pod_node,
+        node.kubernetes_statefulset_to_pod_to_container_node,
+        node.kubernetes_statefulset_to_pod_to_node_node,
+        node.kubernetes_statefulset_to_service_node
+      ]
+
+      edges = [
+        edge.kubernetes_statefulset_to_pod_edge,
+        edge.kubernetes_statefulset_from_namespace_edge,
+        edge.kubernetes_statefulset_to_pod_to_container_edge,
+        edge.kubernetes_statefulset_to_pod_to_node_edge,
+        edge.kubernetes_statefulset_to_service_edge
+      ]
+
+      args = {
+        uid = self.input.statefulset_uid.value
+      }
+    }
+  }
+
+  container {
 
     table {
       title = "Overview"
@@ -157,6 +186,236 @@ dashboard "kubernetes_statefulset_detail" {
 
   }
 
+}
+
+category "kubernetes_statefulset_no_link" {
+  icon = local.kubernetes_statefulset_icon
+}
+
+node "kubernetes_statefulset_node" {
+  category = category.kubernetes_statefulset_no_link
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Namespace', namespace,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_stateful_set
+    where
+      uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_statefulset_from_namespace_node" {
+  category = category.kubernetes_namespace
+
+  sql = <<-EOQ
+    select
+      n.uid as id,
+      n.title as title,
+      jsonb_build_object(
+        'UID', n.uid,
+        'Phase', n.phase,
+        'Context Name', n.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_stateful_set as d
+    where
+      n.name = d.namespace
+      and d.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_statefulset_from_namespace_edge" {
+  title = "statefulset"
+
+  sql = <<-EOQ
+     select
+      n.uid as from_id,
+      d.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_stateful_set as d
+    where
+      n.name = d.namespace
+      and d.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_statefulset_to_pod_node" {
+  category = category.kubernetes_pod
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Namespace', namespace,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_statefulset_to_pod_edge" {
+  title = "pod"
+
+  sql = <<-EOQ
+     select
+      pod_owner ->> 'uid' as from_id,
+      uid as to_id
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_statefulset_to_service_node" {
+  category = category.kubernetes_service
+
+  sql = <<-EOQ
+    select
+      s.uid as id,
+      s.title as title,
+      jsonb_build_object(
+        'UID', s.uid,
+        'Namespace', s.namespace,
+        'Context Name', s.context_name
+      ) as properties
+    from
+      kubernetes_service as s,
+      kubernetes_stateful_set as set
+    where
+      s.name = set.service_name
+      and set.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_statefulset_to_service_edge" {
+  title = "service"
+
+  sql = <<-EOQ
+     select
+      set.uid as from_id,
+      s.uid as to_id
+    from
+      kubernetes_service as s,
+      kubernetes_stateful_set as set
+    where
+      s.name = set.service_name
+      and set.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_statefulset_to_pod_to_container_node" {
+  category = category.kubernetes_container
+
+  sql = <<-EOQ
+    select
+      container ->> 'name' || pod.name as id,
+      container ->> 'name' as title,
+      jsonb_build_object(
+        'Name', container ->> 'name',
+        'Image', container ->> 'image',
+        'POD Name', pod.name
+      ) as properties
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_statefulset_to_pod_to_container_edge" {
+  title = "container"
+
+  sql = <<-EOQ
+     select
+      pod.uid as from_id,
+      container ->> 'name' || pod.name as to_id
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_statefulset_to_pod_to_node_node" {
+  category = category.kubernetes_node
+
+  sql = <<-EOQ
+    select
+      n.uid as id,
+      n.name as title,
+      jsonb_build_object(
+        'UID', n.uid,
+        'POD CIDR', n.pod_cidr,
+        'Context Name', n.context_name
+      ) as properties
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_statefulset_to_pod_to_node_edge" {
+  title = "node"
+
+  sql = <<-EOQ
+    select
+      n.uid as to_id,
+      pod.uid as from_id
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and pod_owner ->> 'uid' = $1;
+  EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_statefulset_input" {
@@ -419,7 +678,7 @@ query "kubernetes_statefulset_pods" {
 query "kubernetes_statefulset_tree" {
   sql = <<-EOQ
 
-    -- This job
+    -- This statefulset
     select
       null as from_id,
       uid as id,
