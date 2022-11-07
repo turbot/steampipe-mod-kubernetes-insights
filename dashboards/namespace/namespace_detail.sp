@@ -58,6 +58,51 @@ dashboard "kubernetes_namespace_detail" {
   }
 
   container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      nodes = [
+        node.kubernetes_namespace_node,
+        node.kubernetes_namespace_to_deployment_node,
+        node.kubernetes_namespace_to_daemonset_node,
+        node.kubernetes_namespace_to_pod_node,
+        node.kubernetes_namespace_to_job_node,
+        node.kubernetes_namespace_to_configmap_node,
+        node.kubernetes_namespace_to_cronjob_node,
+        node.kubernetes_namespace_to_networkpolicy_node,
+        node.kubernetes_namespace_to_endpoint_node,
+        node.kubernetes_namespace_to_ingress_node,
+        node.kubernetes_namespace_to_role_node,
+        node.kubernetes_namespace_to_secret_node,
+        node.kubernetes_namespace_to_service_node,
+        node.kubernetes_namespace_to_statefulset_node
+      ]
+
+      edges = [
+        edge.kubernetes_namespace_to_deployment_edge,
+        edge.kubernetes_namespace_to_daemonset_edge,
+        edge.kubernetes_namespace_to_pod_edge,
+        edge.kubernetes_namespace_to_job_edge,
+        edge.kubernetes_namespace_to_configmap_edge,
+        edge.kubernetes_namespace_to_cronjob_edge,
+        edge.kubernetes_namespace_to_networkpolicy_edge,
+        edge.kubernetes_namespace_to_endpoint_edge,
+        edge.kubernetes_namespace_to_ingress_edge,
+        edge.kubernetes_namespace_to_role_edge,
+        edge.kubernetes_namespace_to_secret_edge,
+        edge.kubernetes_namespace_to_service_edge,
+        edge.kubernetes_namespace_to_statefulset_edge
+      ]
+
+      args = {
+        uid = self.input.namespace_uid.value
+      }
+    }
+  }
+
+  container {
 
     container {
 
@@ -232,6 +277,551 @@ dashboard "kubernetes_namespace_detail" {
 
     }
   }
+}
+
+category "kubernetes_namespace_no_link" {
+  icon = local.kubernetes_namespace_icon
+}
+
+node "kubernetes_namespace_node" {
+  category = category.kubernetes_namespace_no_link
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Phase', phase,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_namespace
+    where
+      uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_deployment_node" {
+  category = category.kubernetes_deployment
+
+  sql = <<-EOQ
+    select
+      d.uid as id,
+      d.title as title,
+      jsonb_build_object(
+        'UID', d.uid,
+        'Context Name', d.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_deployment as d
+    where
+      n.name = d.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_deployment_edge" {
+  title = "deployment"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      d.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_deployment as d
+    where
+      n.name = d.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_daemonset_node" {
+  category = category.kubernetes_daemonset
+
+  sql = <<-EOQ
+    select
+      d.uid as id,
+      d.title as title,
+      jsonb_build_object(
+        'UID', d.uid,
+        'Context Name', d.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_daemonset as d
+    where
+      n.name = d.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_daemonset_edge" {
+  title = "daemonset"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      d.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_daemonset as d
+    where
+      n.name = d.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_pod_node" {
+  category = category.kubernetes_pod
+
+  sql = <<-EOQ
+    select
+      p.uid as id,
+      p.title as title,
+      jsonb_build_object(
+        'UID', p.uid,
+        'Context Name', p.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_pod as p
+    where
+      n.name = p.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_pod_edge" {
+  title = "pod"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      p.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_pod as p
+    where
+      n.name = p.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_job_node" {
+  category = category.kubernetes_job
+
+  sql = <<-EOQ
+    select
+      j.uid as id,
+      j.title as title,
+      jsonb_build_object(
+        'UID', j.uid,
+        'Context Name', j.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_job as j
+    where
+      n.name = j.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_job_edge" {
+  title = "job"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      j.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_job as j
+    where
+      n.name = j.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_configmap_node" {
+  category = category.kubernetes_configmap
+
+  sql = <<-EOQ
+    select
+      m.uid as id,
+      m.name as title,
+      jsonb_build_object(
+        'UID', m.uid,
+        'Context Name', m.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_config_map as m
+    where
+      n.name = m.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_configmap_edge" {
+  title = "configmap"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      m.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_config_map as m
+    where
+      n.name = m.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_cronjob_node" {
+  category = category.kubernetes_cronjob
+
+  sql = <<-EOQ
+    select
+      j.uid as id,
+      j.title as title,
+      jsonb_build_object(
+        'UID', j.uid,
+        'Context Name', j.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_cronjob as j
+    where
+      n.name = j.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_cronjob_edge" {
+  title = "cronjob"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      j.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_cronjob as j
+    where
+      n.name = j.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_networkpolicy_node" {
+  category = category.kubernetes_networkpolicy
+
+  sql = <<-EOQ
+    select
+      p.uid as id,
+      p.title as title,
+      jsonb_build_object(
+        'UID', p.uid,
+        'Context Name', p.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_network_policy as p
+    where
+      n.name = p.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_networkpolicy_edge" {
+  title = "networkpolicy"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      p.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_network_policy as p
+    where
+      n.name = p.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_endpoint_node" {
+  category = category.kubernetes_endpoint
+
+  sql = <<-EOQ
+    select
+      e.uid as id,
+      e.title as title,
+      jsonb_build_object(
+        'UID', e.uid,
+        'Context Name', e.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_endpoint as e
+    where
+      n.name = e.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_endpoint_edge" {
+  title = "endpoint"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      e.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_endpoint as e
+    where
+      n.name = e.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_ingress_node" {
+  category = category.kubernetes_ingress
+
+  sql = <<-EOQ
+    select
+      i.uid as id,
+      i.title as title,
+      jsonb_build_object(
+        'UID', i.uid,
+        'Context Name', i.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_ingress as i
+    where
+      n.name = i.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_ingress_edge" {
+  title = "ingress"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      i.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_ingress as i
+    where
+      n.name = i.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_role_node" {
+  category = category.kubernetes_role
+
+  sql = <<-EOQ
+    select
+      r.uid as id,
+      r.title as title,
+      jsonb_build_object(
+        'UID', r.uid,
+        'Context Name', r.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_role as r
+    where
+      n.name = r.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_role_edge" {
+  title = "role"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      r.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_role as r
+    where
+      n.name = r.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_secret_node" {
+  category = category.kubernetes_secret
+
+  sql = <<-EOQ
+    select
+      s.uid as id,
+      s.title as title,
+      jsonb_build_object(
+        'UID', s.uid,
+        'Context Name', s.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_secret as s
+    where
+      n.name = s.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_secret_edge" {
+  title = "secret"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      s.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_secret as s
+    where
+      n.name = s.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_service_node" {
+  category = category.kubernetes_service
+
+  sql = <<-EOQ
+    select
+      s.uid as id,
+      s.title as title,
+      jsonb_build_object(
+        'UID', s.uid,
+        'Context Name', s.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_service as s
+    where
+      n.name = s.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_service_edge" {
+  title = "service"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      s.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_service as s
+    where
+      n.name = s.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_namespace_to_statefulset_node" {
+  category = category.kubernetes_statefulset
+
+  sql = <<-EOQ
+    select
+      s.uid as id,
+      s.title as title,
+      jsonb_build_object(
+        'UID', s.uid,
+        'Context Name', s.context_name
+      ) as properties
+    from
+      kubernetes_namespace as n,
+      kubernetes_stateful_set as s
+    where
+      n.name = s.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_namespace_to_statefulset_edge" {
+  title = "statefulset"
+
+  sql = <<-EOQ
+    select
+      n.uid as from_id,
+      s.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_stateful_set as s
+    where
+      n.name = s.namespace
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_namespace_input" {

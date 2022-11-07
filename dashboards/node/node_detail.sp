@@ -34,6 +34,29 @@ dashboard "kubernetes_node_detail" {
   }
 
   container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      nodes = [
+        node.kubernetes_node_node,
+        node.kubernetes_node_to_pod_node,
+        node.kubernetes_node_to_pod_to_container_node
+      ]
+
+      edges = [
+        edge.kubernetes_node_to_pod_edge,
+        edge.kubernetes_node_to_pod_to_container_edge
+      ]
+
+      args = {
+        uid = self.input.node_uid.value
+      }
+    }
+  }
+
+  container {
 
     container {
 
@@ -145,6 +168,114 @@ dashboard "kubernetes_node_detail" {
     }
   }
 
+}
+
+category "kubernetes_node_no_link" {
+  icon = local.kubernetes_node_icon
+}
+
+node "kubernetes_node_node" {
+  category = category.kubernetes_node_no_link
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      name as title,
+      jsonb_build_object(
+        'UID', uid,
+        'POD CIDR', pod_cidr,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_node
+    where
+      uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_node_to_pod_node" {
+  category = category.kubernetes_pod
+
+  sql = <<-EOQ
+    select
+      p.uid as id,
+      p.name as title,
+      jsonb_build_object(
+        'UID', p.uid,
+        'Context Name', p.context_name
+      ) as properties
+    from
+      kubernetes_pod as p,
+      kubernetes_node as n
+    where
+      n.name = p.node_name
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_node_to_pod_edge" {
+  title = "pod"
+
+  sql = <<-EOQ
+     select
+      n.uid as from_id,
+      p.uid as to_id
+    from
+      kubernetes_pod as p,
+      kubernetes_node as n
+    where
+      n.name = p.node_name
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_node_to_pod_to_container_node" {
+  category = category.kubernetes_container
+
+  sql = <<-EOQ
+    select
+      container ->> 'name' || p.name as id,
+      container ->> 'name' as title,
+      jsonb_build_object(
+        'Name', container ->> 'name',
+        'Image', container ->> 'image',
+        'POD Name', p.name
+      ) as properties
+    from
+      kubernetes_node as n,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.containers) as container
+    where
+      n.name = p.node_name
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_node_to_pod_to_container_edge" {
+  title = "container"
+
+  sql = <<-EOQ
+     select
+      p.uid as from_id,
+      container ->> 'name' || p.name as to_id
+    from
+      kubernetes_node as n,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.containers) as container
+    where
+      n.name = p.node_name
+      and n.uid = $1;
+  EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_node_input" {
@@ -345,7 +476,7 @@ query "kubernetes_node_conditions" {
 
 query "kubernetes_node_hierarchy" {
   sql = <<-EOQ
-    -- This deployment
+    -- This node
     select
       null as from_id,
       uid as id,

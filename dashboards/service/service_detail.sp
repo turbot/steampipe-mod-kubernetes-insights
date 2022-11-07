@@ -34,6 +34,31 @@ dashboard "kubernetes_service_detail" {
   }
 
   container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      nodes = [
+        node.kubernetes_service_node,
+        node.kubernetes_service_from_pod_node,
+        node.kubernetes_service_from_statefulset_node,
+        node.kubernetes_service_from_namespace_node
+      ]
+
+      edges = [
+        edge.kubernetes_service_from_pod_edge,
+        edge.kubernetes_service_from_statefulset_edge,
+        edge.kubernetes_service_from_namespace_edge
+      ]
+
+      args = {
+        uid = self.input.service_uid.value
+      }
+    }
+  }
+
+  container {
 
     container {
 
@@ -125,6 +150,159 @@ dashboard "kubernetes_service_detail" {
 
   }
 
+}
+
+category "kubernetes_service_no_link" {
+  icon = local.kubernetes_service_icon
+}
+
+node "kubernetes_service_node" {
+  category = category.kubernetes_service_no_link
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Namespace', namespace,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_service
+    where
+      uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_service_from_pod_node" {
+  category = category.kubernetes_pod
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Namespace', namespace,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_pod
+    where
+      selector_search in
+    (
+      select
+        selector_query
+      from
+        kubernetes_service
+      where
+        uid = $1
+    )
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_service_from_pod_edge" {
+  title = "service"
+
+  sql = <<-EOQ
+     select
+      p.uid as from_id,
+      s.uid as to_id
+    from
+      kubernetes_service as s,
+      kubernetes_pod as p
+     where
+      p.selector_search = s.selector_query
+      and s.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_service_from_statefulset_node" {
+  category = category.kubernetes_statefulset
+
+  sql = <<-EOQ
+    select
+      set.uid as id,
+      set.title as title,
+      jsonb_build_object(
+        'UID', set.uid,
+        'Namespace', set.namespace,
+        'Context Name', set.context_name
+      ) as properties
+    from
+      kubernetes_service as s,
+      kubernetes_stateful_set as set
+    where
+      s.name = set.service_name
+      and s.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_service_from_statefulset_edge" {
+  title = "service"
+
+  sql = <<-EOQ
+     select
+      set.uid as from_id,
+      s.uid as to_id
+    from
+      kubernetes_service as s,
+      kubernetes_stateful_set as set
+    where
+      s.name = set.service_name
+      and s.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_service_from_namespace_node" {
+  category = category.kubernetes_namespace
+
+  sql = <<-EOQ
+    select
+      n.uid as id,
+      n.title as title,
+      jsonb_build_object(
+        'UID', n.uid,
+        'Context Name', n.context_name
+      ) as properties
+    from
+      kubernetes_service as s,
+      kubernetes_namespace as n
+    where
+      s.namespace = n.name
+      and s.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_service_from_namespace_edge" {
+  title = "service"
+
+  sql = <<-EOQ
+     select
+      n.uid as from_id,
+      s.uid as to_id
+    from
+     kubernetes_service as s,
+      kubernetes_namespace as n
+    where
+      s.namespace = n.name
+      and s.uid = $1;
+  EOQ
+
+  param "uid" {}
 }
 
 query "kubernetes_service_input" {

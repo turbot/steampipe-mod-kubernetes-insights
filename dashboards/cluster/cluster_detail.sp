@@ -66,6 +66,37 @@ dashboard "kubernetes_cluster_detail" {
   }
 
   container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      nodes = [
+        node.kubernetes_cluster_node,
+        node.kubernetes_cluster_to_namespace_node,
+        node.kubernetes_cluster_to_node_node,
+        node.kubernetes_cluster_to_persistentvolume_node,
+        node.kubernetes_cluster_to_psp_node,
+        node.kubernetes_cluster_to_rolebinding_node,
+        node.kubernetes_cluster_to_role_node
+      ]
+
+      edges = [
+        edge.kubernetes_cluster_to_namespace_edge,
+        edge.kubernetes_cluster_to_node_edge,
+        edge.kubernetes_cluster_to_persistentvolume_edge,
+        edge.kubernetes_cluster_to_psp_edge,
+        edge.kubernetes_cluster_to_rolebinding_edge,
+        edge.kubernetes_cluster_to_role_edge
+      ]
+
+      args = {
+        context = self.input.cluster_context.value
+      }
+    }
+  }
+
+  container {
 
     table {
       title = "Namespaces"
@@ -137,6 +168,245 @@ dashboard "kubernetes_cluster_detail" {
       }
     }
   }
+}
+
+category "kubernetes_cluster_no_link" {
+  icon = local.kubernetes_cluster_icon
+}
+
+node "kubernetes_cluster_node" {
+  category = category.kubernetes_cluster_no_link
+
+  sql = <<-EOQ
+    select
+      context_name as id,
+      context_name as title
+    from
+      kubernetes_namespace
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+node "kubernetes_cluster_to_namespace_node" {
+  category = category.kubernetes_namespace
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Phase', phase,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_namespace
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+edge "kubernetes_cluster_to_namespace_edge" {
+  title = "namespace"
+
+  sql = <<-EOQ
+    select
+      context_name as from_id,
+      uid as to_id
+    from
+      kubernetes_namespace
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+node "kubernetes_cluster_to_node_node" {
+  category = category.kubernetes_node
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      name as title,
+      jsonb_build_object(
+        'UID', uid,
+        'POD CIDR', pod_cidr,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_node
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+edge "kubernetes_cluster_to_node_edge" {
+  title = "node"
+
+  sql = <<-EOQ
+    select
+      context_name as from_id,
+      uid as to_id
+    from
+      kubernetes_node
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+node "kubernetes_cluster_to_persistentvolume_node" {
+  category = category.kubernetes_persistentvolume
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      name as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Storage Class', storage_class,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_persistent_volume
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+edge "kubernetes_cluster_to_persistentvolume_edge" {
+  title = "persistentvolume"
+
+  sql = <<-EOQ
+    select
+      context_name as from_id,
+      uid as to_id
+    from
+      kubernetes_persistent_volume
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+node "kubernetes_cluster_to_psp_node" {
+  category = category.kubernetes_psp
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      name as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_pod_security_policy
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+edge "kubernetes_cluster_to_psp_edge" {
+  title = "psp"
+
+  sql = <<-EOQ
+    select
+      context_name as from_id,
+      uid as to_id
+    from
+      kubernetes_pod_security_policy
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+node "kubernetes_cluster_to_rolebinding_node" {
+  category = category.kubernetes_rolebinding
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      name as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_role_binding
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+edge "kubernetes_cluster_to_rolebinding_edge" {
+  title = "rolebinding"
+
+  sql = <<-EOQ
+    select
+      context_name as from_id,
+      uid as to_id
+    from
+      kubernetes_role_binding
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+node "kubernetes_cluster_to_role_node" {
+  category = category.kubernetes_role
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      name as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_role
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
+}
+
+edge "kubernetes_cluster_to_role_edge" {
+  title = "role"
+
+  sql = <<-EOQ
+    select
+      context_name as from_id,
+      uid as to_id
+    from
+      kubernetes_role
+    where
+      context_name = $1;
+  EOQ
+
+  param "context" {}
 }
 
 query "kubernetes_cluster_input" {

@@ -58,6 +58,27 @@ dashboard "kubernetes_container_detail" {
   }
 
   container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      nodes = [
+        node.kubernetes_container_node,
+        node.kubernetes_container_from_pod_node
+      ]
+
+      edges = [
+        edge.kubernetes_container_from_pod_edge
+      ]
+
+      args = {
+        name = self.input.container_name.value
+      }
+    }
+  }
+
+  container {
 
     container {
 
@@ -108,6 +129,69 @@ dashboard "kubernetes_container_detail" {
     }
   }
 
+}
+
+category "kubernetes_container_no_link" {}
+
+node "kubernetes_container_node" {
+  category = category.kubernetes_container_no_link
+
+  sql = <<-EOQ
+    select
+      container ->> 'name' || p.name as id,
+      container ->> 'name' as title,
+      jsonb_build_object(
+        'Name', container ->> 'name',
+        'Image', container ->> 'image',
+        'POD Name', p.name
+      ) as properties
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(containers) as container
+    where
+      concat(container ->> 'name',name) = $1;
+  EOQ
+
+  param "name" {}
+}
+
+node "kubernetes_container_from_pod_node" {
+  category = category.kubernetes_pod
+
+  sql = <<-EOQ
+    select
+      uid as id,
+      title as title,
+      jsonb_build_object(
+        'UID', uid,
+        'Namespace', namespace,
+        'Context Name', context_name
+      ) as properties
+    from
+      kubernetes_pod,
+      jsonb_array_elements(containers) as container
+    where
+      concat(container ->> 'name',name) = $1;
+  EOQ
+
+  param "name" {}
+}
+
+edge "kubernetes_container_from_pod_edge" {
+  title = "container"
+
+  sql = <<-EOQ
+     select
+      p.uid as from_id,
+      container ->> 'name' || p.name as to_id
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(p.containers) as container
+    where
+      concat(container ->> 'name',name) = $1;
+  EOQ
+
+  param "name" {}
 }
 
 query "kubernetes_container_input" {
