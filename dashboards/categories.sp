@@ -109,10 +109,11 @@ category "kubernetes_cluster" {
 }
 
 category "kubernetes_persistentvolume" {
-  icon = local.kubernetes_persistentvolume_icon
+  href = "/kubernetes_insights.dashboard.kubernetes_persistent_volume_detail?input.persistent_volume_uid={{.properties.'UID' | @uri}}"
+  icon = local.kubernetes_persistent_volume_icon
   fold {
     title     = "Kubernetes Persistent Volumes"
-    icon      = local.kubernetes_persistentvolume_icon
+    icon      = local.kubernetes_persistent_volume_icon
     threshold = 3
   }
 }
@@ -127,6 +128,7 @@ category "kubernetes_psp" {
 }
 
 category "kubernetes_rolebinding" {
+  href = "/kubernetes_insights.dashboard.kubernetes_role_binding_detail?input.role_binding_uid={{.properties.'UID' | @uri}}"
   icon = local.kubernetes_rolebinding_icon
   fold {
     title     = "Kubernetes Role Bindings"
@@ -154,6 +156,7 @@ category "kubernetes_crd" {
 }
 
 category "kubernetes_endpoint" {
+  href = "/kubernetes_insights.dashboard.kubernetes_endpoint_detail?input.endpoint_uid={{.properties.'UID' | @uri}}"
   icon = local.kubernetes_endpoint_icon
   fold {
     title     = "Kubernetes Endpoints"
@@ -181,6 +184,7 @@ category "kubernetes_networkpolicy" {
 }
 
 category "kubernetes_role" {
+  href = "/kubernetes_insights.dashboard.kubernetes_role_detail?input.role_uid={{.properties.'UID' | @uri}}"
   icon = local.kubernetes_role_icon
   fold {
     title     = "Kubernetes Roles"

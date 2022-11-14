@@ -74,6 +74,7 @@ dashboard "kubernetes_pod_detail" {
       nodes = [
         node.kubernetes_pod_node,
         node.kubernetes_pod_to_container_node,
+        node.kubernetes_pod_to_persistent_volume_node,
         node.kubernetes_pod_from_node_node,
         node.kubernetes_pod_from_namespace_node,
         node.kubernetes_pod_from_daemonset_node,
@@ -85,6 +86,7 @@ dashboard "kubernetes_pod_detail" {
 
       edges = [
         edge.kubernetes_pod_to_container_edge,
+        edge.kubernetes_pod_to_persistent_volume_edge,
         edge.kubernetes_pod_from_node_edge,
         edge.kubernetes_pod_from_namespace_edge,
         edge.kubernetes_pod_from_daemonset_edge,
@@ -330,6 +332,49 @@ edge "kubernetes_pod_to_container_edge" {
       jsonb_array_elements(p.containers) as container
     where
       p.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+node "kubernetes_pod_to_persistent_volume_node" {
+  category = category.kubernetes_persistentvolume
+
+  sql = <<-EOQ
+    select
+      pv.uid as id,
+      pv.title as title,
+      jsonb_build_object(
+        'UID', pv.uid,
+        'Phase', pv.phase,
+        'Context Name', pv.context_name
+      ) as properties
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_persistent_volume as pv
+      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
+    where
+      p.uid = $1;
+  EOQ
+
+  param "uid" {}
+}
+
+edge "kubernetes_pod_to_persistent_volume_edge" {
+  title = "persistentvolume"
+
+  sql = <<-EOQ
+     select
+      p.uid as from_id,
+      pv.uid as to_id
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_persistent_volume as pv
+      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
+    where
+      p.uid = $1 and pv.uid is not null;
   EOQ
 
   param "uid" {}
