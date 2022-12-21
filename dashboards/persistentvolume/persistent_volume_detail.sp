@@ -49,23 +49,36 @@ dashboard "kubernetes_persistent_volume_detail" {
 
   }
 
+  with "pods" {
+    query = query.persistent_volume_pods
+    args  = [self.input.persistent_volume_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
       type      = "graph"
-      direction = "LR"
+      direction = "TD"
 
-      nodes = [
-        node.kubernetes_persistent_volume_node,
-        node.kubernetes_persistent_volume_from_pod_node,
-      ]
+      node {
+        base = node.persistent_volume
+        args = {
+          persistent_volume_uids = [self.input.persistent_volume_uid.value]
+        }
+      }
 
-      edges = [
-        edge.kubernetes_persistent_volume_from_pod_edge
-      ]
+      node {
+        base = node.pod
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
+      }
 
-      args = {
-        uid = self.input.persistent_volume_uid.value
+      edge {
+        base = edge.pod_to_persistent_volume
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
       }
     }
   }
@@ -140,73 +153,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
 }
 
-category "kubernetes_persistent_volume_no_link" {
-  icon = local.kubernetes_persistent_volume_icon
-}
-
-node "kubernetes_persistent_volume_node" {
-  category = category.kubernetes_persistent_volume_no_link
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      title as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Phase', phase,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_persistent_volume
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_persistent_volume_from_pod_node" {
-  category = category.kubernetes_pod
-
-  sql = <<-EOQ
-    select
-      p.uid as id,
-      p.title as title,
-      jsonb_build_object(
-        'UID', p.uid,
-        'Namespace', p.namespace,
-        'Context Name', p.context_name
-      ) as properties
-    from
-    kubernetes_pod as p,
-      jsonb_array_elements(volumes) as v
-      left join kubernetes_persistent_volume as pv
-      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
-    where
-      pv.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_persistent_volume_from_pod_edge" {
-  title = "persistentvolume"
-
-  sql = <<-EOQ
-     select
-      p.uid as from_id,
-      pv.uid as to_id
-    from
-      kubernetes_pod as p,
-      jsonb_array_elements(volumes) as v
-      left join kubernetes_persistent_volume as pv
-      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
-    where
-      pv.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
+# Input queries
 
 query "kubernetes_persistent_volume_input" {
   sql = <<-EOQ
@@ -222,6 +169,8 @@ query "kubernetes_persistent_volume_input" {
       title;
   EOQ
 }
+
+# Card queries
 
 query "kubernetes_persistent_volume_phase" {
   sql = <<-EOQ
@@ -279,6 +228,24 @@ query "kubernetes_persistent_volume_mode" {
 
   param "uid" {}
 }
+
+# With queries
+
+query "persistent_volume_pods" {
+  sql = <<-EOQ
+    select
+      p.uid as uid
+    from
+    kubernetes_pod as p,
+    jsonb_array_elements(volumes) as v
+    left join kubernetes_persistent_volume as pv
+    on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
+    where
+    pv.uid = $1;
+  EOQ
+}
+
+# Other queries
 
 query "kubernetes_persistent_volume_overview" {
   sql = <<-EOQ

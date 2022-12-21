@@ -1,7 +1,7 @@
 dashboard "kubernetes_role_binding_detail" {
 
   title         = "Kubernetes Role Binding Detail"
-  documentation = file("./dashboards/rolebinding/docs/role_binding_detail.md")
+  documentation = file("./dashboards/rolebinding/docs/rolebinding_detail.md")
 
   tags = merge(local.role_binding_common_tags, {
     type = "Detail"
@@ -41,25 +41,55 @@ dashboard "kubernetes_role_binding_detail" {
 
   }
 
+  with "namespaces" {
+    query = query.role_binding_namespaces
+    args  = [self.input.role_binding_uid.value]
+  }
+
+  with "roles" {
+    query = query.role_binding_roles
+    args  = [self.input.role_binding_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
       type      = "graph"
-      direction = "LR"
+      direction = "TD"
 
-      nodes = [
-        node.kubernetes_role_binding_node,
-        node.kubernetes_role_binding_from_namespace_node,
-        node.kubernetes_role_binding_from_role_node
-      ]
+      node {
+        base = node.role
+        args = {
+          role_uids = with.roles.rows[*].uid
+        }
+      }
 
-      edges = [
-        edge.kubernetes_role_binding_from_namespace_edge,
-        edge.kubernetes_role_binding_from_role_edge
-      ]
+      node {
+        base = node.role_binding
+        args = {
+          role_binding_uids = [self.input.role_binding_uid.value]
+        }
+      }
 
-      args = {
-        uid = self.input.role_binding_uid.value
+      node {
+        base = node.namespace
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.role_to_rolebinding
+        args = {
+          role_uids = with.roles.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.namespace_to_role
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
       }
     }
   }
@@ -117,109 +147,7 @@ dashboard "kubernetes_role_binding_detail" {
 
 }
 
-category "kubernetes_role_binding_no_link" {
-  icon = local.kubernetes_rolebinding_icon
-}
-
-node "kubernetes_role_binding_node" {
-  category = category.kubernetes_role_binding_no_link
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      title as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_role_binding
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_role_binding_from_role_node" {
-  category = category.kubernetes_role
-
-  sql = <<-EOQ
-    select
-      r.uid as id,
-      r.title as title,
-      jsonb_build_object(
-        'UID', r.uid,
-        'Context Name', r.context_name
-      ) as properties
-    from
-      kubernetes_role_binding as b,
-      kubernetes_role as r
-    where
-      r.name = b.role_name
-      and b.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_role_binding_from_role_edge" {
-  title = "role binding"
-
-  sql = <<-EOQ
-     select
-      r.uid as from_id,
-      b.uid as to_id
-    from
-      kubernetes_role_binding as b,
-      kubernetes_role as r
-    where
-      r.name = b.role_name
-      and b.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_role_binding_from_namespace_node" {
-  category = category.kubernetes_namespace
-
-  sql = <<-EOQ
-    select
-      n.uid as id,
-      n.title as title,
-      jsonb_build_object(
-        'UID', n.uid,
-        'Context Name', n.context_name
-      ) as properties
-    from
-      kubernetes_namespace as n,
-      kubernetes_role_binding as b
-    where
-      n.name = b.namespace
-      and b.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_role_binding_from_namespace_edge" {
-  title = "role binding"
-
-  sql = <<-EOQ
-     select
-      n.uid as from_id,
-      b.uid as to_id
-    from
-      kubernetes_namespace as n,
-      kubernetes_role_binding as b
-    where
-      n.name = b.namespace
-      and b.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
+# Input queries
 
 query "kubernetes_role_binding_input" {
   sql = <<-EOQ
@@ -235,6 +163,8 @@ query "kubernetes_role_binding_input" {
       title;
   EOQ
 }
+
+# Card queries
 
 query "kubernetes_role_binding_namespace" {
   sql = <<-EOQ
@@ -279,6 +209,36 @@ query "kubernetes_role_binding_kind" {
 
   param "uid" {}
 }
+
+# With queries
+
+query "role_binding_namespaces" {
+  sql = <<-EOQ
+    select
+      n.uid as uid
+    from
+      kubernetes_namespace as n,
+      kubernetes_role_binding as b
+    where
+      n.name = b.namespace
+      and b.uid = $1;
+  EOQ
+}
+
+query "role_binding_roles" {
+  sql = <<-EOQ
+    select
+      r.uid as uid
+    from
+      kubernetes_role_binding as b,
+      kubernetes_role as r
+    where
+      r.name = b.role_name
+      and b.uid = $1;
+  EOQ
+}
+
+# Other queries
 
 query "kubernetes_role_binding_overview" {
   sql = <<-EOQ

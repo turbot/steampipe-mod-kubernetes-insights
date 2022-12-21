@@ -33,30 +33,30 @@ dashboard "kubernetes_service_detail" {
 
   }
 
-  container {
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+  # container {
+  #   graph {
+  #     title     = "Relationships"
+  #     type      = "graph"
+  #     direction = "TD"
 
-      nodes = [
-        node.kubernetes_service_node,
-        node.kubernetes_service_from_pod_node,
-        node.kubernetes_service_from_statefulset_node,
-        node.kubernetes_service_from_namespace_node
-      ]
+  #     nodes = [
+  #       node.kubernetes_service_node,
+  #       node.kubernetes_service_from_pod_node,
+  #       node.kubernetes_service_from_statefulset_node,
+  #       node.kubernetes_service_from_namespace_node
+  #     ]
 
-      edges = [
-        edge.kubernetes_service_from_pod_edge,
-        edge.kubernetes_service_from_statefulset_edge,
-        edge.kubernetes_service_from_namespace_edge
-      ]
+  #     edges = [
+  #       edge.kubernetes_service_from_pod_edge,
+  #       edge.kubernetes_service_from_statefulset_edge,
+  #       edge.kubernetes_service_from_namespace_edge
+  #     ]
 
-      args = {
-        uid = self.input.service_uid.value
-      }
-    }
-  }
+  #     args = {
+  #       uid = self.input.service_uid.value
+  #     }
+  #   }
+  # }
 
   container {
 
@@ -157,7 +157,7 @@ category "kubernetes_service_no_link" {
 }
 
 node "kubernetes_service_node" {
-  category = category.kubernetes_service_no_link
+  #category = category.kubernetes_service_no_link
 
   sql = <<-EOQ
     select
@@ -178,7 +178,7 @@ node "kubernetes_service_node" {
 }
 
 node "kubernetes_service_from_pod_node" {
-  category = category.kubernetes_pod
+  #category = category.kubernetes_pod
 
   sql = <<-EOQ
     select
@@ -225,7 +225,7 @@ edge "kubernetes_service_from_pod_edge" {
 }
 
 node "kubernetes_service_from_statefulset_node" {
-  category = category.kubernetes_statefulset
+  #category = category.kubernetes_statefulset
 
   sql = <<-EOQ
     select
@@ -266,7 +266,7 @@ edge "kubernetes_service_from_statefulset_edge" {
 }
 
 node "kubernetes_service_from_namespace_node" {
-  category = category.kubernetes_namespace
+  #category = category.kubernetes_namespace
 
   sql = <<-EOQ
     select

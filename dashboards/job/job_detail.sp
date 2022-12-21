@@ -49,31 +49,112 @@ dashboard "kubernetes_job_detail" {
 
   }
 
+  with "cronjobs" {
+    query = query.job_cronjobs
+    args  = [self.input.job_uid.value]
+  }
+
+  with "namespaces" {
+    query = query.job_namespaces
+    args  = [self.input.job_uid.value]
+  }
+
+  with "pods" {
+    query = query.job_pods
+    args  = [self.input.job_uid.value]
+  }
+
+  with "nodes" {
+    query = query.job_nodes
+    args  = [self.input.job_uid.value]
+  }
+
+  with "containers" {
+    query = query.job_containers
+    args  = [self.input.job_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
       type      = "graph"
-      direction = "LR"
+      direction = "TD"
 
-      nodes = [
-        node.kubernetes_job_node,
-        node.kubernetes_job_from_namespace_node,
-        node.kubernetes_job_to_pod_node,
-        node.kubernetes_job_to_pod_to_container_node,
-        node.kubernetes_job_to_pod_to_node_node,
-        node.kubernetes_job_from_cronjob_node
-      ]
+      node {
+        base = node.cronjob
+        args = {
+          cronjob_uids = with.cronjobs.rows[*].uid
+        }
+      }
 
-      edges = [
-        edge.kubernetes_job_to_pod_edge,
-        edge.kubernetes_job_from_namespace_edge,
-        edge.kubernetes_job_to_pod_to_container_edge,
-        edge.kubernetes_job_to_pod_to_node_edge,
-        edge.kubernetes_job_from_cronjob_edge
-      ]
+      node {
+        base = node.job
+        args = {
+          job_uids = [self.input.job_uid.value]
+        }
+      }
 
-      args = {
-        uid = self.input.job_uid.value
+      node {
+        base = node.namespace
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.node
+        args = {
+          node_uids = with.nodes.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.container
+        args = {
+          container_names = with.containers.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.namespace_to_job
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.namespace_to_cronjob
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.job_to_pod
+        args = {
+          job_uids = [self.input.job_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.pod_to_node
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
       }
     }
   }
@@ -174,237 +255,7 @@ dashboard "kubernetes_job_detail" {
 
 }
 
-category "kubernetes_job_no_link" {
-  icon = local.kubernetes_job_icon
-}
-
-node "kubernetes_job_node" {
-  category = category.kubernetes_job_no_link
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      title as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Namespace', namespace,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_job
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_job_from_namespace_node" {
-  category = category.kubernetes_namespace
-
-  sql = <<-EOQ
-    select
-      n.uid as id,
-      n.title as title,
-      jsonb_build_object(
-        'UID', n.uid,
-        'Phase', n.phase,
-        'Context Name', n.context_name
-      ) as properties
-    from
-      kubernetes_namespace as n,
-      kubernetes_job as d
-    where
-      n.name = d.namespace
-      and d.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_job_from_namespace_edge" {
-  title = "job"
-
-  sql = <<-EOQ
-     select
-      n.uid as from_id,
-      d.uid as to_id
-    from
-      kubernetes_namespace as n,
-      kubernetes_job as d
-    where
-      n.name = d.namespace
-      and d.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_job_from_cronjob_node" {
-  category = category.kubernetes_cronjob
-
-  sql = <<-EOQ
-    select
-      c.uid as id,
-      c.title as title,
-      jsonb_build_object(
-        'UID', c.uid,
-        'Schedule', c.schedule,
-        'Context Name', c.context_name
-      ) as properties
-    from
-      kubernetes_cronjob as c,
-      kubernetes_job as j,
-      jsonb_array_elements(j.owner_references) as owner
-    where
-      owner ->> 'uid' = c.uid
-      and j.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_job_from_cronjob_edge" {
-  title = "cronjob"
-
-  sql = <<-EOQ
-     select
-      c.uid as from_id,
-      j.uid as to_id
-    from
-      kubernetes_cronjob as c,
-      kubernetes_job as j,
-      jsonb_array_elements(j.owner_references) as owner
-    where
-      owner ->> 'uid' = c.uid
-      and j.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_job_to_pod_node" {
-  category = category.kubernetes_pod
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      title as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Namespace', namespace,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_job_to_pod_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      pod_owner ->> 'uid' as from_id,
-      uid as to_id
-    from
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_job_to_pod_to_container_node" {
-  category = category.kubernetes_container
-
-  sql = <<-EOQ
-    select
-      container ->> 'name' || pod.name as id,
-      container ->> 'name' as title,
-      jsonb_build_object(
-        'Name', container ->> 'name',
-        'Image', container ->> 'image',
-        'POD Name', pod.name
-      ) as properties
-    from
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
-      jsonb_array_elements(pod.containers) as container
-    where
-      pod_owner ->> 'uid' = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_job_to_pod_to_container_edge" {
-  title = "container"
-
-  sql = <<-EOQ
-     select
-      pod.uid as from_id,
-      container ->> 'name' || pod.name as to_id
-    from
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
-      jsonb_array_elements(pod.containers) as container
-    where
-      pod_owner ->> 'uid' = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_job_to_pod_to_node_node" {
-  category = category.kubernetes_node
-
-  sql = <<-EOQ
-    select
-      n.uid as id,
-      n.name as title,
-      jsonb_build_object(
-        'UID', n.uid,
-        'POD CIDR', n.pod_cidr,
-        'Context Name', n.context_name
-      ) as properties
-    from
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
-      kubernetes_node as n
-    where
-      n.name = pod.node_name
-      and pod_owner ->> 'uid' = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_job_to_pod_to_node_edge" {
-  title = "node"
-
-  sql = <<-EOQ
-    select
-      n.uid as to_id,
-      pod.uid as from_id
-    from
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
-      kubernetes_node as n
-    where
-      n.name = pod.node_name
-      and pod_owner ->> 'uid' = $1;
-  EOQ
-
-  param "uid" {}
-}
+# Input queries
 
 query "kubernetes_job_input" {
   sql = <<-EOQ
@@ -421,6 +272,8 @@ query "kubernetes_job_input" {
       title;
   EOQ
 }
+
+# Card queries
 
 query "kubernetes_job_default_namespace" {
   sql = <<-EOQ
@@ -481,6 +334,80 @@ query "kubernetes_job_container_host_ipc" {
 
   param "uid" {}
 }
+
+# With queries
+
+query "job_cronjobs" {
+  sql = <<-EOQ
+    select
+      owner ->> 'uid' as uid
+    from
+      kubernetes_job as j,
+      jsonb_array_elements(j.owner_references) as owner
+    where
+      uid = $1;
+  EOQ
+}
+
+query "job_namespaces" {
+  sql = <<-EOQ
+    select
+      n.uid as uid
+    from
+      kubernetes_namespace as n,
+      kubernetes_job as j
+    where
+      n.name = j.namespace
+      and j.uid = $1;
+  EOQ
+}
+
+query "job_pods" {
+  sql = <<-EOQ
+    select
+      pod.uid as uid
+    from
+      kubernetes_job as j,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      j.uid = $1
+      and pod_owner ->> 'uid' = j.uid;
+  EOQ
+}
+
+query "job_nodes" {
+  sql = <<-EOQ
+    select
+      n.uid as uid
+    from
+      kubernetes_job as j,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and pod_owner ->> 'uid' = j.uid
+      and j.uid = $1;
+  EOQ
+}
+
+query "job_containers" {
+  sql = <<-EOQ
+    select
+      container ->> 'name' || pod.name as name
+    from
+      kubernetes_job as j,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
+    where
+      j.uid = $1
+      and pod_owner ->> 'uid' = j.uid;
+  EOQ
+}
+
+# Other queries
 
 query "kubernetes_job_overview" {
   sql = <<-EOQ

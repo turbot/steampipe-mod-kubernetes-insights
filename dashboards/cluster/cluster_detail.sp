@@ -65,33 +65,131 @@ dashboard "kubernetes_cluster_detail" {
 
   }
 
+  with "namespaces" {
+    query = query.cluster_namespaces
+    args  = [self.input.cluster_context.value]
+  }
+
+  with "nodes" {
+    query = query.cluster_nodes
+    args  = [self.input.cluster_context.value]
+  }
+
+  with "persistent_volumes" {
+    query = query.cluster_persistent_volumes
+    args  = [self.input.cluster_context.value]
+  }
+
+  with "pod_security_policies" {
+    query = query.cluster_pod_security_policies
+    args  = [self.input.cluster_context.value]
+  }
+
+  with "role_bindings" {
+    query = query.cluster_role_bindings
+    args  = [self.input.cluster_context.value]
+  }
+
+  with "roles" {
+    query = query.cluster_roles
+    args  = [self.input.cluster_context.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
       type      = "graph"
       direction = "TD"
 
-      nodes = [
-        node.kubernetes_cluster_node,
-        node.kubernetes_cluster_to_namespace_node,
-        node.kubernetes_cluster_to_node_node,
-        node.kubernetes_cluster_to_persistentvolume_node,
-        node.kubernetes_cluster_to_psp_node,
-        node.kubernetes_cluster_to_rolebinding_node,
-        node.kubernetes_cluster_to_role_node
-      ]
+      node {
+        base = node.cluster
+        args = {
+          cluster_names = [self.input.cluster_context.value]
+        }
+      }
 
-      edges = [
-        edge.kubernetes_cluster_to_namespace_edge,
-        edge.kubernetes_cluster_to_node_edge,
-        edge.kubernetes_cluster_to_persistentvolume_edge,
-        edge.kubernetes_cluster_to_psp_edge,
-        edge.kubernetes_cluster_to_rolebinding_edge,
-        edge.kubernetes_cluster_to_role_edge
-      ]
+      node {
+        base = node.namespace
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
 
-      args = {
-        context = self.input.cluster_context.value
+      node {
+        base = node.node
+        args = {
+          node_uids = with.nodes.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.persistent_volume
+        args = {
+          persistent_volume_uids = with.persistent_volumes.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.pod_security_policy
+        args = {
+          pod_security_policy_uids = with.pod_security_policies.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.role
+        args = {
+          role_uids = with.roles.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.role_binding
+        args = {
+          role_binding_uids = with.role_bindings.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.cluster_to_namespace
+        args = {
+          cluster_names = [self.input.cluster_context.value]
+        }
+      }
+
+      edge {
+        base = edge.cluster_to_node
+        args = {
+          cluster_names = [self.input.cluster_context.value]
+        }
+      }
+
+      edge {
+        base = edge.cluster_to_persistent_volume
+        args = {
+          cluster_names = [self.input.cluster_context.value]
+        }
+      }
+
+      edge {
+        base = edge.cluster_to_pod_security_policy
+        args = {
+          cluster_names = [self.input.cluster_context.value]
+        }
+      }
+
+      edge {
+        base = edge.cluster_to_role_binding
+        args = {
+          cluster_names = [self.input.cluster_context.value]
+        }
+      }
+
+      edge {
+        base = edge.cluster_to_role
+        args = {
+          cluster_names = [self.input.cluster_context.value]
+        }
       }
     }
   }
@@ -169,248 +267,8 @@ dashboard "kubernetes_cluster_detail" {
     }
   }
 }
-
-category "kubernetes_cluster_no_link" {
-  icon = local.kubernetes_cluster_icon
-}
-
-node "kubernetes_cluster_node" {
-  category = category.kubernetes_cluster_no_link
-
-  sql = <<-EOQ
-    select
-      context_name as id,
-      context_name as title,
-      jsonb_build_object(
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_namespace
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-node "kubernetes_cluster_to_namespace_node" {
-  category = category.kubernetes_namespace
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      title as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Phase', phase,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_namespace
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-edge "kubernetes_cluster_to_namespace_edge" {
-  title = "namespace"
-
-  sql = <<-EOQ
-    select
-      context_name as from_id,
-      uid as to_id
-    from
-      kubernetes_namespace
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-node "kubernetes_cluster_to_node_node" {
-  category = category.kubernetes_node
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      name as title,
-      jsonb_build_object(
-        'UID', uid,
-        'POD CIDR', pod_cidr,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_node
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-edge "kubernetes_cluster_to_node_edge" {
-  title = "node"
-
-  sql = <<-EOQ
-    select
-      context_name as from_id,
-      uid as to_id
-    from
-      kubernetes_node
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-node "kubernetes_cluster_to_persistentvolume_node" {
-  category = category.kubernetes_persistentvolume
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      name as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Storage Class', storage_class,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_persistent_volume
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-edge "kubernetes_cluster_to_persistentvolume_edge" {
-  title = "persistentvolume"
-
-  sql = <<-EOQ
-    select
-      context_name as from_id,
-      uid as to_id
-    from
-      kubernetes_persistent_volume
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-node "kubernetes_cluster_to_psp_node" {
-  category = category.kubernetes_psp
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      name as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_pod_security_policy
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-edge "kubernetes_cluster_to_psp_edge" {
-  title = "psp"
-
-  sql = <<-EOQ
-    select
-      context_name as from_id,
-      uid as to_id
-    from
-      kubernetes_pod_security_policy
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-node "kubernetes_cluster_to_rolebinding_node" {
-  category = category.kubernetes_rolebinding
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      name as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_role_binding
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-edge "kubernetes_cluster_to_rolebinding_edge" {
-  title = "rolebinding"
-
-  sql = <<-EOQ
-    select
-      context_name as from_id,
-      uid as to_id
-    from
-      kubernetes_role_binding
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-node "kubernetes_cluster_to_role_node" {
-  category = category.kubernetes_role
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      name as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_role
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
-
-edge "kubernetes_cluster_to_role_edge" {
-  title = "role"
-
-  sql = <<-EOQ
-    select
-      context_name as from_id,
-      uid as to_id
-    from
-      kubernetes_role
-    where
-      context_name = $1;
-  EOQ
-
-  param "context" {}
-}
+ 
+# Input queries
 
 query "kubernetes_cluster_input" {
   sql = <<-EOQ
@@ -423,6 +281,8 @@ query "kubernetes_cluster_input" {
       context_name;
   EOQ
 }
+
+# Card queries
 
 query "kubernetes_cluster_namespaces_count" {
   sql = <<-EOQ
@@ -507,6 +367,76 @@ query "kubernetes_cluster_role_count" {
 
   param "context" {}
 }
+
+# With queries
+
+query "cluster_namespaces" {
+  sql = <<-EOQ
+    select
+      uid
+    from
+      kubernetes_namespace
+    where
+      context_name = $1;
+  EOQ
+}
+
+query "cluster_nodes" {
+  sql = <<-EOQ
+    select
+      uid
+    from
+      kubernetes_node
+    where
+      context_name = $1;
+  EOQ
+}
+
+query "cluster_persistent_volumes" {
+  sql = <<-EOQ
+    select
+      uid
+    from
+      kubernetes_persistent_volume
+    where
+      context_name = $1;
+  EOQ
+}
+
+query "cluster_pod_security_policies" {
+  sql = <<-EOQ
+    select
+      uid
+    from
+      kubernetes_pod_security_policy
+    where
+      context_name = $1;
+  EOQ
+}
+
+query "cluster_role_bindings" {
+  sql = <<-EOQ
+    select
+      uid
+    from
+      kubernetes_role_binding
+    where
+      context_name = $1;
+  EOQ
+}
+
+query "cluster_roles" {
+  sql = <<-EOQ
+    select
+      uid
+    from
+      kubernetes_role
+    where
+      context_name = $1;
+  EOQ
+}
+
+# Other queries
 
 query "kubernetes_cluster_namespaces_table" {
   sql = <<-EOQ

@@ -65,34 +65,34 @@ dashboard "kubernetes_statefulset_detail" {
 
   }
 
-  container {
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "LR"
+  # container {
+  #   graph {
+  #     title     = "Relationships"
+  #     type      = "graph"
+  #     direction = "LR"
 
-      nodes = [
-        node.kubernetes_statefulset_node,
-        node.kubernetes_statefulset_from_namespace_node,
-        node.kubernetes_statefulset_to_pod_node,
-        node.kubernetes_statefulset_to_pod_to_container_node,
-        node.kubernetes_statefulset_to_pod_to_node_node,
-        node.kubernetes_statefulset_to_service_node
-      ]
+  #     nodes = [
+  #       node.kubernetes_statefulset_node,
+  #       node.kubernetes_statefulset_from_namespace_node,
+  #       node.kubernetes_statefulset_to_pod_node,
+  #       node.kubernetes_statefulset_to_pod_to_container_node,
+  #       node.kubernetes_statefulset_to_pod_to_node_node,
+  #       node.kubernetes_statefulset_to_service_node
+  #     ]
 
-      edges = [
-        edge.kubernetes_statefulset_to_pod_edge,
-        edge.kubernetes_statefulset_from_namespace_edge,
-        edge.kubernetes_statefulset_to_pod_to_container_edge,
-        edge.kubernetes_statefulset_to_pod_to_node_edge,
-        edge.kubernetes_statefulset_to_service_edge
-      ]
+  #     edges = [
+  #       edge.kubernetes_statefulset_to_pod_edge,
+  #       edge.kubernetes_statefulset_from_namespace_edge,
+  #       edge.kubernetes_statefulset_to_pod_to_container_edge,
+  #       edge.kubernetes_statefulset_to_pod_to_node_edge,
+  #       edge.kubernetes_statefulset_to_service_edge
+  #     ]
 
-      args = {
-        uid = self.input.statefulset_uid.value
-      }
-    }
-  }
+  #     args = {
+  #       uid = self.input.statefulset_uid.value
+  #     }
+  #   }
+  # }
 
   container {
 
@@ -193,7 +193,7 @@ category "kubernetes_statefulset_no_link" {
 }
 
 node "kubernetes_statefulset_node" {
-  category = category.kubernetes_statefulset_no_link
+  #category = category.kubernetes_statefulset_no_link
 
   sql = <<-EOQ
     select
@@ -214,7 +214,7 @@ node "kubernetes_statefulset_node" {
 }
 
 node "kubernetes_statefulset_from_namespace_node" {
-  category = category.kubernetes_namespace
+  #category = category.kubernetes_namespace
 
   sql = <<-EOQ
     select
@@ -255,7 +255,7 @@ edge "kubernetes_statefulset_from_namespace_edge" {
 }
 
 node "kubernetes_statefulset_to_pod_node" {
-  category = category.kubernetes_pod
+  #category = category.kubernetes_pod
 
   sql = <<-EOQ
     select
@@ -294,7 +294,7 @@ edge "kubernetes_statefulset_to_pod_edge" {
 }
 
 node "kubernetes_statefulset_to_service_node" {
-  category = category.kubernetes_service
+  #category = category.kubernetes_service
 
   sql = <<-EOQ
     select
@@ -335,7 +335,7 @@ edge "kubernetes_statefulset_to_service_edge" {
 }
 
 node "kubernetes_statefulset_to_pod_to_container_node" {
-  category = category.kubernetes_container
+  #category = category.kubernetes_container
 
   sql = <<-EOQ
     select
@@ -376,7 +376,7 @@ edge "kubernetes_statefulset_to_pod_to_container_edge" {
 }
 
 node "kubernetes_statefulset_to_pod_to_node_node" {
-  category = category.kubernetes_node
+  #category = category.kubernetes_node
 
   sql = <<-EOQ
     select

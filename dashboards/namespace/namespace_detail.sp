@@ -57,50 +57,50 @@ dashboard "kubernetes_namespace_detail" {
 
   }
 
-  container {
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+  # container {
+  #   graph {
+  #     title     = "Relationships"
+  #     type      = "graph"
+  #     direction = "TD"
 
-      nodes = [
-        node.kubernetes_namespace_node,
-        node.kubernetes_namespace_to_deployment_node,
-        node.kubernetes_namespace_to_daemonset_node,
-        node.kubernetes_namespace_to_pod_node,
-        node.kubernetes_namespace_to_job_node,
-        node.kubernetes_namespace_to_configmap_node,
-        node.kubernetes_namespace_to_cronjob_node,
-        node.kubernetes_namespace_to_networkpolicy_node,
-        node.kubernetes_namespace_to_endpoint_node,
-        node.kubernetes_namespace_to_ingress_node,
-        node.kubernetes_namespace_to_role_node,
-        node.kubernetes_namespace_to_secret_node,
-        node.kubernetes_namespace_to_service_node,
-        node.kubernetes_namespace_to_statefulset_node
-      ]
+  #     nodes = [
+  #       node.kubernetes_namespace_node,
+  #       node.kubernetes_namespace_to_deployment_node,
+  #       node.kubernetes_namespace_to_daemonset_node,
+  #       node.kubernetes_namespace_to_pod_node,
+  #       node.kubernetes_namespace_to_job_node,
+  #       node.kubernetes_namespace_to_configmap_node,
+  #       node.kubernetes_namespace_to_cronjob_node,
+  #       node.kubernetes_namespace_to_networkpolicy_node,
+  #       node.kubernetes_namespace_to_endpoint_node,
+  #       node.kubernetes_namespace_to_ingress_node,
+  #       node.kubernetes_namespace_to_role_node,
+  #       node.kubernetes_namespace_to_secret_node,
+  #       node.kubernetes_namespace_to_service_node,
+  #       node.kubernetes_namespace_to_statefulset_node
+  #     ]
 
-      edges = [
-        edge.kubernetes_namespace_to_deployment_edge,
-        edge.kubernetes_namespace_to_daemonset_edge,
-        edge.kubernetes_namespace_to_pod_edge,
-        edge.kubernetes_namespace_to_job_edge,
-        edge.kubernetes_namespace_to_configmap_edge,
-        edge.kubernetes_namespace_to_cronjob_edge,
-        edge.kubernetes_namespace_to_networkpolicy_edge,
-        edge.kubernetes_namespace_to_endpoint_edge,
-        edge.kubernetes_namespace_to_ingress_edge,
-        edge.kubernetes_namespace_to_role_edge,
-        edge.kubernetes_namespace_to_secret_edge,
-        edge.kubernetes_namespace_to_service_edge,
-        edge.kubernetes_namespace_to_statefulset_edge
-      ]
+  #     edges = [
+  #       edge.kubernetes_namespace_to_deployment_edge,
+  #       edge.kubernetes_namespace_to_daemonset_edge,
+  #       edge.kubernetes_namespace_to_pod_edge,
+  #       edge.kubernetes_namespace_to_job_edge,
+  #       edge.kubernetes_namespace_to_configmap_edge,
+  #       edge.kubernetes_namespace_to_cronjob_edge,
+  #       edge.kubernetes_namespace_to_networkpolicy_edge,
+  #       edge.kubernetes_namespace_to_endpoint_edge,
+  #       edge.kubernetes_namespace_to_ingress_edge,
+  #       edge.kubernetes_namespace_to_role_edge,
+  #       edge.kubernetes_namespace_to_secret_edge,
+  #       edge.kubernetes_namespace_to_service_edge,
+  #       edge.kubernetes_namespace_to_statefulset_edge
+  #     ]
 
-      args = {
-        uid = self.input.namespace_uid.value
-      }
-    }
-  }
+  #     args = {
+  #       uid = self.input.namespace_uid.value
+  #     }
+  #   }
+  # }
 
   container {
 
@@ -284,7 +284,7 @@ category "kubernetes_namespace_no_link" {
 }
 
 node "kubernetes_namespace_node" {
-  category = category.kubernetes_namespace_no_link
+  #category = category.kubernetes_namespace_no_link
 
   sql = <<-EOQ
     select
@@ -305,7 +305,7 @@ node "kubernetes_namespace_node" {
 }
 
 node "kubernetes_namespace_to_deployment_node" {
-  category = category.kubernetes_deployment
+  #category = category.kubernetes_deployment
 
   sql = <<-EOQ
     select
@@ -345,7 +345,7 @@ edge "kubernetes_namespace_to_deployment_edge" {
 }
 
 node "kubernetes_namespace_to_daemonset_node" {
-  category = category.kubernetes_daemonset
+  #category = category.kubernetes_daemonset
 
   sql = <<-EOQ
     select
@@ -385,7 +385,7 @@ edge "kubernetes_namespace_to_daemonset_edge" {
 }
 
 node "kubernetes_namespace_to_pod_node" {
-  category = category.kubernetes_pod
+  #category = category.kubernetes_pod
 
   sql = <<-EOQ
     select
@@ -425,7 +425,7 @@ edge "kubernetes_namespace_to_pod_edge" {
 }
 
 node "kubernetes_namespace_to_job_node" {
-  category = category.kubernetes_job
+  #category = category.kubernetes_job
 
   sql = <<-EOQ
     select
@@ -465,7 +465,7 @@ edge "kubernetes_namespace_to_job_edge" {
 }
 
 node "kubernetes_namespace_to_configmap_node" {
-  category = category.kubernetes_configmap
+  #category = category.kubernetes_configmap
 
   sql = <<-EOQ
     select
@@ -505,7 +505,7 @@ edge "kubernetes_namespace_to_configmap_edge" {
 }
 
 node "kubernetes_namespace_to_cronjob_node" {
-  category = category.kubernetes_cronjob
+  #category = category.kubernetes_cronjob
 
   sql = <<-EOQ
     select
@@ -545,7 +545,7 @@ edge "kubernetes_namespace_to_cronjob_edge" {
 }
 
 node "kubernetes_namespace_to_networkpolicy_node" {
-  category = category.kubernetes_networkpolicy
+  #category = category.kubernetes_networkpolicy
 
   sql = <<-EOQ
     select
@@ -585,7 +585,7 @@ edge "kubernetes_namespace_to_networkpolicy_edge" {
 }
 
 node "kubernetes_namespace_to_endpoint_node" {
-  category = category.kubernetes_endpoint
+  #category = category.kubernetes_endpoint
 
   sql = <<-EOQ
     select
@@ -625,7 +625,7 @@ edge "kubernetes_namespace_to_endpoint_edge" {
 }
 
 node "kubernetes_namespace_to_ingress_node" {
-  category = category.kubernetes_ingress
+  #category = category.kubernetes_ingress
 
   sql = <<-EOQ
     select
@@ -665,7 +665,7 @@ edge "kubernetes_namespace_to_ingress_edge" {
 }
 
 node "kubernetes_namespace_to_role_node" {
-  category = category.kubernetes_role
+  #category = category.kubernetes_role
 
   sql = <<-EOQ
     select
@@ -705,7 +705,7 @@ edge "kubernetes_namespace_to_role_edge" {
 }
 
 node "kubernetes_namespace_to_secret_node" {
-  category = category.kubernetes_secret
+  #category = category.kubernetes_secret
 
   sql = <<-EOQ
     select
@@ -745,7 +745,7 @@ edge "kubernetes_namespace_to_secret_edge" {
 }
 
 node "kubernetes_namespace_to_service_node" {
-  category = category.kubernetes_service
+  #category = category.kubernetes_service
 
   sql = <<-EOQ
     select
@@ -785,7 +785,7 @@ edge "kubernetes_namespace_to_service_edge" {
 }
 
 node "kubernetes_namespace_to_statefulset_node" {
-  category = category.kubernetes_statefulset
+  #category = category.kubernetes_statefulset
 
   sql = <<-EOQ
     select

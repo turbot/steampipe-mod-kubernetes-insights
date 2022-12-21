@@ -57,34 +57,34 @@ dashboard "kubernetes_deployment_detail" {
 
   }
 
-  container {
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "LR"
+  # container {
+  #   graph {
+  #     title     = "Relationships"
+  #     type      = "graph"
+  #     direction = "LR"
 
-      nodes = [
-        node.kubernetes_deployment_node,
-        node.kubernetes_deployment_from_namespace_node,
-        node.kubernetes_deployment_to_replicaset_node,
-        node.kubernetes_deployment_to_replicaset_to_pod_node,
-        node.kubernetes_deployment_to_replicaset_to_pod_to_container_node,
-        node.kubernetes_deployment_to_replicaset_to_pod_to_node_node
-      ]
+  #     nodes = [
+  #       node.kubernetes_deployment_node,
+  #       node.kubernetes_deployment_from_namespace_node,
+  #       node.kubernetes_deployment_to_replicaset_node,
+  #       node.kubernetes_deployment_to_replicaset_to_pod_node,
+  #       node.kubernetes_deployment_to_replicaset_to_pod_to_container_node,
+  #       node.kubernetes_deployment_to_replicaset_to_pod_to_node_node
+  #     ]
 
-      edges = [
-        edge.kubernetes_deployment_to_replicaset_edge,
-        edge.kubernetes_deployment_from_namespace_edge,
-        edge.kubernetes_deployment_to_replicaset_to_pod_edge,
-        edge.kubernetes_deployment_to_replicaset_to_pod_to_container_edge,
-        edge.kubernetes_deployment_to_replicaset_to_pod_to_node_edge
-      ]
+  #     edges = [
+  #       edge.kubernetes_deployment_to_replicaset_edge,
+  #       edge.kubernetes_deployment_from_namespace_edge,
+  #       edge.kubernetes_deployment_to_replicaset_to_pod_edge,
+  #       edge.kubernetes_deployment_to_replicaset_to_pod_to_container_edge,
+  #       edge.kubernetes_deployment_to_replicaset_to_pod_to_node_edge
+  #     ]
 
-      args = {
-        uid = self.input.deployment_uid.value
-      }
-    }
-  }
+  #     args = {
+  #       uid = self.input.deployment_uid.value
+  #     }
+  #   }
+  # }
 
   container {
 
@@ -213,7 +213,7 @@ category "kubernetes_deployment_no_link" {
 }
 
 node "kubernetes_deployment_node" {
-  category = category.kubernetes_deployment_no_link
+  #category = category.kubernetes_deployment_no_link
 
   sql = <<-EOQ
     select
@@ -235,7 +235,7 @@ node "kubernetes_deployment_node" {
 }
 
 node "kubernetes_deployment_from_namespace_node" {
-  category = category.kubernetes_namespace
+  #category = category.kubernetes_namespace
 
   sql = <<-EOQ
     select
@@ -276,7 +276,7 @@ edge "kubernetes_deployment_from_namespace_edge" {
 }
 
 node "kubernetes_deployment_to_replicaset_node" {
-  category = category.kubernetes_replicaset
+  #category = category.kubernetes_replicaset
 
   sql = <<-EOQ
     select
@@ -316,7 +316,7 @@ edge "kubernetes_deployment_to_replicaset_edge" {
 }
 
 node "kubernetes_deployment_to_replicaset_to_pod_node" {
-  category = category.kubernetes_pod
+  #category = category.kubernetes_pod
 
   sql = <<-EOQ
     select
@@ -362,7 +362,7 @@ edge "kubernetes_deployment_to_replicaset_to_pod_edge" {
 }
 
 node "kubernetes_deployment_to_replicaset_to_pod_to_container_node" {
-  category = category.kubernetes_container
+  #category = category.kubernetes_container
 
   sql = <<-EOQ
     select
@@ -409,7 +409,7 @@ edge "kubernetes_deployment_to_replicaset_to_pod_to_container_edge" {
 }
 
 node "kubernetes_deployment_to_replicaset_to_pod_to_node_node" {
-  category = category.kubernetes_node
+  #category = category.kubernetes_node
 
   sql = <<-EOQ
     select

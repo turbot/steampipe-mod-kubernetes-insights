@@ -3,3 +3,9 @@ locals {
     service = "Kubernetes/CronJob"
   }
 }
+
+category "cronjob" {
+  href  = "/kubernetes_insights.dashboard.kubernetes_cronjob_detail?input.cronjob_uid={{.properties.'UID' | @uri}}"
+  icon  = local.kubernetes_cronjob_icon
+  title = "CronJob"
+}

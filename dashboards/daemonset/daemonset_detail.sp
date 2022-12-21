@@ -49,32 +49,32 @@ dashboard "kubernetes_daemonset_detail" {
 
   }
 
-  container {
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "LR"
+  # container {
+  #   graph {
+  #     title     = "Relationships"
+  #     type      = "graph"
+  #     direction = "LR"
 
-      nodes = [
-        node.kubernetes_daemonset_node,
-        node.kubernetes_daemonset_from_namespace_node,
-        node.kubernetes_daemonset_to_pod_node,
-        node.kubernetes_daemonset_to_pod_to_container_node,
-        node.kubernetes_daemonset_to_pod_to_node_node
-      ]
+  #     nodes = [
+  #       node.kubernetes_daemonset_node,
+  #       node.kubernetes_daemonset_from_namespace_node,
+  #       node.kubernetes_daemonset_to_pod_node,
+  #       node.kubernetes_daemonset_to_pod_to_container_node,
+  #       node.kubernetes_daemonset_to_pod_to_node_node
+  #     ]
 
-      edges = [
-        edge.kubernetes_daemonset_to_pod_edge,
-        edge.kubernetes_daemonset_from_namespace_edge,
-        edge.kubernetes_daemonset_to_pod_to_container_edge,
-        edge.kubernetes_daemonset_to_pod_to_node_edge
-      ]
+  #     edges = [
+  #       edge.kubernetes_daemonset_to_pod_edge,
+  #       edge.kubernetes_daemonset_from_namespace_edge,
+  #       edge.kubernetes_daemonset_to_pod_to_container_edge,
+  #       edge.kubernetes_daemonset_to_pod_to_node_edge
+  #     ]
 
-      args = {
-        uid = self.input.daemonset_uid.value
-      }
-    }
-  }
+  #     args = {
+  #       uid = self.input.daemonset_uid.value
+  #     }
+  #   }
+  # }
 
   container {
 
@@ -187,7 +187,7 @@ category "kubernetes_daemonset_no_link" {
 }
 
 node "kubernetes_daemonset_node" {
-  category = category.kubernetes_daemonset_no_link
+  #category = category.kubernetes_daemonset_no_link
 
   sql = <<-EOQ
     select
@@ -208,7 +208,7 @@ node "kubernetes_daemonset_node" {
 }
 
 node "kubernetes_daemonset_from_namespace_node" {
-  category = category.kubernetes_namespace
+  #category = category.kubernetes_namespace
 
   sql = <<-EOQ
     select
@@ -249,7 +249,7 @@ edge "kubernetes_daemonset_from_namespace_edge" {
 }
 
 node "kubernetes_daemonset_to_pod_node" {
-  category = category.kubernetes_pod
+  #category = category.kubernetes_pod
 
   sql = <<-EOQ
     select
@@ -288,7 +288,7 @@ edge "kubernetes_daemonset_to_pod_edge" {
 }
 
 node "kubernetes_daemonset_to_pod_to_container_node" {
-  category = category.kubernetes_container
+  #category = category.kubernetes_container
 
   sql = <<-EOQ
     select
@@ -329,7 +329,7 @@ edge "kubernetes_daemonset_to_pod_to_container_edge" {
 }
 
 node "kubernetes_daemonset_to_pod_to_node_node" {
-  category = category.kubernetes_node
+  #category = category.kubernetes_node
 
   sql = <<-EOQ
     select

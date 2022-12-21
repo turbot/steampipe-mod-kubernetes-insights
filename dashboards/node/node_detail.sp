@@ -33,28 +33,28 @@ dashboard "kubernetes_node_detail" {
 
   }
 
-  container {
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+  # container {
+  #   graph {
+  #     title     = "Relationships"
+  #     type      = "graph"
+  #     direction = "TD"
 
-      nodes = [
-        node.kubernetes_node_node,
-        node.kubernetes_node_to_pod_node,
-        node.kubernetes_node_to_pod_to_container_node
-      ]
+  #     nodes = [
+  #       node.kubernetes_node_node,
+  #       node.kubernetes_node_to_pod_node,
+  #       node.kubernetes_node_to_pod_to_container_node
+  #     ]
 
-      edges = [
-        edge.kubernetes_node_to_pod_edge,
-        edge.kubernetes_node_to_pod_to_container_edge
-      ]
+  #     edges = [
+  #       edge.kubernetes_node_to_pod_edge,
+  #       edge.kubernetes_node_to_pod_to_container_edge
+  #     ]
 
-      args = {
-        uid = self.input.node_uid.value
-      }
-    }
-  }
+  #     args = {
+  #       uid = self.input.node_uid.value
+  #     }
+  #   }
+  # }
 
   container {
 
@@ -170,33 +170,8 @@ dashboard "kubernetes_node_detail" {
 
 }
 
-category "kubernetes_node_no_link" {
-  icon = local.kubernetes_node_icon
-}
-
-node "kubernetes_node_node" {
-  category = category.kubernetes_node_no_link
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      name as title,
-      jsonb_build_object(
-        'UID', uid,
-        'POD CIDR', pod_cidr,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_node
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
 node "kubernetes_node_to_pod_node" {
-  category = category.kubernetes_pod
+  #category = category.kubernetes_pod
 
   sql = <<-EOQ
     select
@@ -236,7 +211,7 @@ edge "kubernetes_node_to_pod_edge" {
 }
 
 node "kubernetes_node_to_pod_to_container_node" {
-  category = category.kubernetes_container
+  #category = category.kubernetes_container
 
   sql = <<-EOQ
     select

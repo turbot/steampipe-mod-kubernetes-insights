@@ -65,41 +65,41 @@ dashboard "kubernetes_pod_detail" {
 
   }
 
-  container {
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "TD"
+  # container {
+  #   graph {
+  #     title     = "Relationships"
+  #     type      = "graph"
+  #     direction = "TD"
 
-      nodes = [
-        node.kubernetes_pod_node,
-        node.kubernetes_pod_to_container_node,
-        node.kubernetes_pod_to_persistent_volume_node,
-        node.kubernetes_pod_from_node_node,
-        node.kubernetes_pod_from_namespace_node,
-        node.kubernetes_pod_from_daemonset_node,
-        node.kubernetes_pod_from_job_node,
-        node.kubernetes_pod_from_replicaset_node,
-        node.kubernetes_pod_from_statefulset_node
+  #     nodes = [
+  #       node.kubernetes_pod_node,
+  #       node.kubernetes_pod_to_container_node,
+  #       node.kubernetes_pod_to_persistent_volume_node,
+  #       node.kubernetes_pod_from_node_node,
+  #       node.kubernetes_pod_from_namespace_node,
+  #       node.kubernetes_pod_from_daemonset_node,
+  #       node.kubernetes_pod_from_job_node,
+  #       node.kubernetes_pod_from_replicaset_node,
+  #       node.kubernetes_pod_from_statefulset_node
 
-      ]
+  #     ]
 
-      edges = [
-        edge.kubernetes_pod_to_container_edge,
-        edge.kubernetes_pod_to_persistent_volume_edge,
-        edge.kubernetes_pod_from_node_edge,
-        edge.kubernetes_pod_from_namespace_edge,
-        edge.kubernetes_pod_from_daemonset_edge,
-        edge.kubernetes_pod_from_job_edge,
-        edge.kubernetes_pod_from_replicaset_edge,
-        edge.kubernetes_pod_from_statefulset_edge
-      ]
+  #     edges = [
+  #       edge.kubernetes_pod_to_container_edge,
+  #       edge.kubernetes_pod_to_persistent_volume_edge,
+  #       edge.kubernetes_pod_from_node_edge,
+  #       edge.kubernetes_pod_from_namespace_edge,
+  #       edge.kubernetes_pod_from_daemonset_edge,
+  #       edge.kubernetes_pod_from_job_edge,
+  #       edge.kubernetes_pod_from_replicaset_edge,
+  #       edge.kubernetes_pod_from_statefulset_edge
+  #     ]
 
-      args = {
-        uid = self.input.pod_uid.value
-      }
-    }
-  }
+  #     args = {
+  #       uid = self.input.pod_uid.value
+  #     }
+  #   }
+  # }
 
   container {
 
@@ -238,7 +238,7 @@ category "kubernetes_pod_no_link" {
 }
 
 node "kubernetes_pod_node" {
-  category = category.kubernetes_pod_no_link
+  #category = category.kubernetes_pod_no_link
 
   sql = <<-EOQ
     select
@@ -259,7 +259,7 @@ node "kubernetes_pod_node" {
 }
 
 node "kubernetes_pod_from_node_node" {
-  category = category.kubernetes_node
+  #category = category.kubernetes_node
 
   sql = <<-EOQ
     select
@@ -299,7 +299,7 @@ edge "kubernetes_pod_from_node_edge" {
 }
 
 node "kubernetes_pod_to_container_node" {
-  category = category.kubernetes_container
+  #category = category.kubernetes_container
 
   sql = <<-EOQ
     select
@@ -338,7 +338,7 @@ edge "kubernetes_pod_to_container_edge" {
 }
 
 node "kubernetes_pod_to_persistent_volume_node" {
-  category = category.kubernetes_persistentvolume
+  #category = category.kubernetes_persistentvolume
 
   sql = <<-EOQ
     select
@@ -381,7 +381,7 @@ edge "kubernetes_pod_to_persistent_volume_edge" {
 }
 
 node "kubernetes_pod_from_namespace_node" {
-  category = category.kubernetes_namespace
+  #category = category.kubernetes_namespace
 
   sql = <<-EOQ
     select
@@ -421,7 +421,7 @@ edge "kubernetes_pod_from_namespace_edge" {
 }
 
 node "kubernetes_pod_from_daemonset_node" {
-  category = category.kubernetes_daemonset
+  #category = category.kubernetes_daemonset
 
   sql = <<-EOQ
     select
@@ -464,7 +464,7 @@ edge "kubernetes_pod_from_daemonset_edge" {
 }
 
 node "kubernetes_pod_from_job_node" {
-  category = category.kubernetes_job
+  #category = category.kubernetes_job
 
   sql = <<-EOQ
     select
@@ -507,7 +507,7 @@ edge "kubernetes_pod_from_job_edge" {
 }
 
 node "kubernetes_pod_from_replicaset_node" {
-  category = category.kubernetes_replicaset
+  #category = category.kubernetes_replicaset
 
   sql = <<-EOQ
     select
@@ -550,7 +550,7 @@ edge "kubernetes_pod_from_replicaset_edge" {
 }
 
 node "kubernetes_pod_from_statefulset_node" {
-  category = category.kubernetes_statefulset
+  #category = category.kubernetes_statefulset
 
   sql = <<-EOQ
     select

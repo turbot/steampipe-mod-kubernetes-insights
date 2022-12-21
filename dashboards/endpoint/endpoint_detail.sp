@@ -33,30 +33,30 @@ dashboard "kubernetes_endpoint_detail" {
 
   }
 
-  container {
-    graph {
-      title     = "Relationships"
-      type      = "graph"
-      direction = "LR"
+  # container {
+  #   graph {
+  #     title     = "Relationships"
+  #     type      = "graph"
+  #     direction = "LR"
 
-      nodes = [
-        node.kubernetes_endpoint_node,
-        node.kubernetes_endpoint_from_namespace_node,
-        node.kubernetes_endpoint_from_node_node,
-        node.kubernetes_endpoint_from_pod_node,
-      ]
+  #     nodes = [
+  #       node.kubernetes_endpoint_node,
+  #       node.kubernetes_endpoint_from_namespace_node,
+  #       node.kubernetes_endpoint_from_node_node,
+  #       node.kubernetes_endpoint_from_pod_node,
+  #     ]
 
-      edges = [
-        edge.kubernetes_endpoint_from_namespace_edge,
-        edge.kubernetes_endpoint_from_node_edge,
-        edge.kubernetes_endpoint_from_pod_edge
-      ]
+  #     edges = [
+  #       edge.kubernetes_endpoint_from_namespace_edge,
+  #       edge.kubernetes_endpoint_from_node_edge,
+  #       edge.kubernetes_endpoint_from_pod_edge
+  #     ]
 
-      args = {
-        uid = self.input.endpoint_uid.value
-      }
-    }
-  }
+  #     args = {
+  #       uid = self.input.endpoint_uid.value
+  #     }
+  #   }
+  # }
 
   container {
 
@@ -125,7 +125,7 @@ category "kubernetes_endpoint_no_link" {
 }
 
 node "kubernetes_endpoint_node" {
-  category = category.kubernetes_endpoint_no_link
+  #category = category.kubernetes_endpoint_no_link
 
   sql = <<-EOQ
     select
@@ -145,7 +145,7 @@ node "kubernetes_endpoint_node" {
 }
 
 node "kubernetes_endpoint_from_namespace_node" {
-  category = category.kubernetes_namespace
+  #category = category.kubernetes_namespace
 
   sql = <<-EOQ
     select
@@ -185,7 +185,7 @@ edge "kubernetes_endpoint_from_namespace_edge" {
 }
 
 node "kubernetes_endpoint_from_node_node" {
-  category = category.kubernetes_node
+  #category = category.kubernetes_node
 
   sql = <<-EOQ
     select
@@ -229,7 +229,7 @@ edge "kubernetes_endpoint_from_node_edge" {
 }
 
 node "kubernetes_endpoint_from_pod_node" {
-  category = category.kubernetes_pod
+  #category = category.kubernetes_pod
 
   sql = <<-EOQ
     select
