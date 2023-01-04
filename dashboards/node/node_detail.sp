@@ -33,28 +33,77 @@ dashboard "kubernetes_node_detail" {
 
   }
 
-  # container {
-  #   graph {
-  #     title     = "Relationships"
-  #     type      = "graph"
-  #     direction = "TD"
+  with "pods" {
+    query = query.node_pods
+    args  = [self.input.node_uid.value]
+  }
 
-  #     nodes = [
-  #       node.kubernetes_node_node,
-  #       node.kubernetes_node_to_pod_node,
-  #       node.kubernetes_node_to_pod_to_container_node
-  #     ]
+  with "endpoints" {
+    query = query.node_endpoints
+    args  = [self.input.node_uid.value]
+  }
 
-  #     edges = [
-  #       edge.kubernetes_node_to_pod_edge,
-  #       edge.kubernetes_node_to_pod_to_container_edge
-  #     ]
+  with "containers" {
+    query = query.node_containers
+    args  = [self.input.node_uid.value]
+  }
 
-  #     args = {
-  #       uid = self.input.node_uid.value
-  #     }
-  #   }
-  # }
+  container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      node {
+        base = node.node
+        args = {
+          node_uids = [self.input.node_uid.value]
+        }
+      }
+
+      node {
+        base = node.endpoint
+        args = {
+          endpoint_uids = with.endpoints.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.container
+        args = {
+          container_names = with.containers.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.node_to_pod
+        args = {
+          node_uids = [self.input.node_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.endpoint_to_node
+        args = {
+          endpoint_uids = with.endpoints.rows[*].uid
+        }
+      }
+    }
+  }
 
   container {
 
@@ -170,88 +219,7 @@ dashboard "kubernetes_node_detail" {
 
 }
 
-node "kubernetes_node_to_pod_node" {
-  #category = category.kubernetes_pod
-
-  sql = <<-EOQ
-    select
-      p.uid as id,
-      p.name as title,
-      jsonb_build_object(
-        'UID', p.uid,
-        'Context Name', p.context_name
-      ) as properties
-    from
-      kubernetes_pod as p,
-      kubernetes_node as n
-    where
-      n.name = p.node_name
-      and n.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_node_to_pod_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      n.uid as from_id,
-      p.uid as to_id
-    from
-      kubernetes_pod as p,
-      kubernetes_node as n
-    where
-      n.name = p.node_name
-      and n.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_node_to_pod_to_container_node" {
-  #category = category.kubernetes_container
-
-  sql = <<-EOQ
-    select
-      container ->> 'name' || p.name as id,
-      container ->> 'name' as title,
-      jsonb_build_object(
-        'Name', container ->> 'name',
-        'Image', container ->> 'image',
-        'POD Name', p.name
-      ) as properties
-    from
-      kubernetes_node as n,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.containers) as container
-    where
-      n.name = p.node_name
-      and n.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_node_to_pod_to_container_edge" {
-  title = "container"
-
-  sql = <<-EOQ
-     select
-      p.uid as from_id,
-      container ->> 'name' || p.name as to_id
-    from
-      kubernetes_node as n,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.containers) as container
-    where
-      n.name = p.node_name
-      and n.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
+# Input queries
 
 query "kubernetes_node_input" {
   sql = <<-EOQ
@@ -267,6 +235,8 @@ query "kubernetes_node_input" {
       title;
   EOQ
 }
+
+# Card queries
 
 query "kubernetes_node_pods" {
   sql = <<-EOQ
@@ -298,6 +268,52 @@ query "kubernetes_node_containers" {
 
   param "uid" {}
 }
+
+# With queries
+
+query "node_pods" {
+  sql = <<-EOQ
+    select
+      p.uid as uid
+    from
+      kubernetes_pod as p,
+      kubernetes_node as n
+    where
+      n.name = p.node_name
+      and n.uid = $1;
+  EOQ
+}
+
+query "node_containers" {
+  sql = <<-EOQ
+    select
+      container ->> 'name' || p.name as name
+    from
+      kubernetes_node as n,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.containers) as container
+    where
+      n.name = p.node_name
+      and n.uid = $1;
+  EOQ
+}
+
+query "node_endpoints" {
+  sql = <<-EOQ
+    select
+      e.uid as uid
+    from
+      kubernetes_node as n,
+      kubernetes_endpoint as e,
+      jsonb_array_elements(subsets) as s,
+      jsonb_array_elements(s -> 'addresses') as a
+    where
+      n.name = a ->> 'nodeName'
+      and n.uid = $1;
+  EOQ
+}
+
+# Other queries
 
 query "kubernetes_node_overview" {
   sql = <<-EOQ

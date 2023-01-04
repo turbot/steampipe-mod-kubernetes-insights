@@ -4,8 +4,8 @@ locals {
   }
 }
 
-category "kubernetes_deployment" {
+category "deployment" {
   href  = "/kubernetes_insights.dashboard.kubernetes_deployment_detail?input.deployment_uid={{.properties.'UID' | @uri}}"
   icon  = local.kubernetes_deployment_icon
-  title = "Kubernetes Deployment"
+  title = "Deployment"
 }

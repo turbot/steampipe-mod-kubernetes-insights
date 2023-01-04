@@ -4,8 +4,8 @@ locals {
   }
 }
 
-category "kubernetes_statefulset" {
+category "statefulset" {
   href  = "/kubernetes_insights.dashboard.kubernetes_statefulset_detail?input.statefulset_uid={{.properties.'UID' | @uri}}"
   icon  = local.kubernetes_statefulset_icon
-  title = "Kubernetes StatefulSet"
+  title = "StatefulSet"
 }

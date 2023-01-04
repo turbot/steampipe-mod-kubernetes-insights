@@ -65,41 +65,153 @@ dashboard "kubernetes_pod_detail" {
 
   }
 
-  # container {
-  #   graph {
-  #     title     = "Relationships"
-  #     type      = "graph"
-  #     direction = "TD"
+  with "containers" {
+    query = query.pod_containers
+    args  = [self.input.pod_uid.value]
+  }
 
-  #     nodes = [
-  #       node.kubernetes_pod_node,
-  #       node.kubernetes_pod_to_container_node,
-  #       node.kubernetes_pod_to_persistent_volume_node,
-  #       node.kubernetes_pod_from_node_node,
-  #       node.kubernetes_pod_from_namespace_node,
-  #       node.kubernetes_pod_from_daemonset_node,
-  #       node.kubernetes_pod_from_job_node,
-  #       node.kubernetes_pod_from_replicaset_node,
-  #       node.kubernetes_pod_from_statefulset_node
+  with "persistent_volumes" {
+    query = query.pod_persistent_volumes
+    args  = [self.input.pod_uid.value]
+  }
 
-  #     ]
+  with "nodes" {
+    query = query.pod_nodes
+    args  = [self.input.pod_uid.value]
+  }
 
-  #     edges = [
-  #       edge.kubernetes_pod_to_container_edge,
-  #       edge.kubernetes_pod_to_persistent_volume_edge,
-  #       edge.kubernetes_pod_from_node_edge,
-  #       edge.kubernetes_pod_from_namespace_edge,
-  #       edge.kubernetes_pod_from_daemonset_edge,
-  #       edge.kubernetes_pod_from_job_edge,
-  #       edge.kubernetes_pod_from_replicaset_edge,
-  #       edge.kubernetes_pod_from_statefulset_edge
-  #     ]
+  with "daemonsets" {
+    query = query.pod_daemonsets
+    args  = [self.input.pod_uid.value]
+  }
 
-  #     args = {
-  #       uid = self.input.pod_uid.value
-  #     }
-  #   }
-  # }
+  with "jobs" {
+    query = query.pod_jobs
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "replicasets" {
+    query = query.pod_replicasets
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "statefulsets" {
+    query = query.pod_statefulsets
+    args  = [self.input.pod_uid.value]
+  }
+
+  container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      node {
+        base = node.container
+        args = {
+          container_names = with.containers.rows[*].name
+        }
+      }
+
+      node {
+        base = node.persistent_volume
+        args = {
+          persistent_volume_uids = with.persistent_volumes.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.node
+        args = {
+          node_uids = with.nodes.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.daemonset
+        args = {
+          daemonset_uids = with.daemonsets.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.job
+        args = {
+          job_uids = with.jobs.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.replicaset
+        args = {
+          replicaset_uids = with.replicasets.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.statefulset
+        args = {
+          statefulset_uids = with.statefulsets.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.pod_to_persistent_volume
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.pod_to_node
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.daemonset_to_pod
+        args = {
+          daemonset_uids = with.daemonsets.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.job_to_pod
+        args = {
+          job_uids = with.jobs.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.replicaset_to_pod
+        args = {
+          replicaset_uids = with.replicasets.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.statefulset_to_pod
+        args = {
+          statefulset_uids = with.statefulsets.rows[*].uid
+        }
+      }
+    }
+  }
 
   container {
 
@@ -233,364 +345,7 @@ dashboard "kubernetes_pod_detail" {
 
 }
 
-category "kubernetes_pod_no_link" {
-  icon = local.kubernetes_pod_icon
-}
-
-node "kubernetes_pod_node" {
-  #category = category.kubernetes_pod_no_link
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      title as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Namespace', namespace,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_pod
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_pod_from_node_node" {
-  #category = category.kubernetes_node
-
-  sql = <<-EOQ
-    select
-      n.uid as id,
-      n.name as title,
-      jsonb_build_object(
-        'UID', n.uid,
-        'Context Name', n.context_name
-      ) as properties
-    from
-      kubernetes_pod as p,
-      kubernetes_node as n
-    where
-      n.name = p.node_name
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_pod_from_node_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      n.uid as from_id,
-      p.uid as to_id
-    from
-      kubernetes_pod as p,
-      kubernetes_node as n
-    where
-      n.name = p.node_name
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_pod_to_container_node" {
-  #category = category.kubernetes_container
-
-  sql = <<-EOQ
-    select
-      container ->> 'name' || p.name as id,
-      container ->> 'name' as title,
-      jsonb_build_object(
-        'Name', container ->> 'name',
-        'Image', container ->> 'image',
-        'POD Name', p.name
-      ) as properties
-    from
-      kubernetes_pod as p,
-      jsonb_array_elements(p.containers) as container
-    where
-      p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_pod_to_container_edge" {
-  title = "container"
-
-  sql = <<-EOQ
-     select
-      p.uid as from_id,
-      container ->> 'name' || p.name as to_id
-    from
-      kubernetes_pod as p,
-      jsonb_array_elements(p.containers) as container
-    where
-      p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_pod_to_persistent_volume_node" {
-  #category = category.kubernetes_persistentvolume
-
-  sql = <<-EOQ
-    select
-      pv.uid as id,
-      pv.title as title,
-      jsonb_build_object(
-        'UID', pv.uid,
-        'Phase', pv.phase,
-        'Context Name', pv.context_name
-      ) as properties
-    from
-      kubernetes_pod as p,
-      jsonb_array_elements(volumes) as v
-      left join kubernetes_persistent_volume as pv
-      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
-    where
-      p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_pod_to_persistent_volume_edge" {
-  title = "persistentvolume"
-
-  sql = <<-EOQ
-     select
-      p.uid as from_id,
-      pv.uid as to_id
-    from
-      kubernetes_pod as p,
-      jsonb_array_elements(volumes) as v
-      left join kubernetes_persistent_volume as pv
-      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
-    where
-      p.uid = $1 and pv.uid is not null;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_pod_from_namespace_node" {
-  #category = category.kubernetes_namespace
-
-  sql = <<-EOQ
-    select
-      n.uid as id,
-      n.title as title,
-      jsonb_build_object(
-        'UID', n.uid,
-        'Context Name', n.context_name
-      ) as properties
-    from
-      kubernetes_namespace as n,
-      kubernetes_pod as p
-    where
-      n.name = p.namespace
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_pod_from_namespace_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      n.uid as from_id,
-      p.uid as to_id
-    from
-      kubernetes_namespace as n,
-      kubernetes_pod as p
-    where
-      n.name = p.namespace
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_pod_from_daemonset_node" {
-  #category = category.kubernetes_daemonset
-
-  sql = <<-EOQ
-    select
-      d.uid as id,
-      d.title as title,
-      jsonb_build_object(
-        'UID', d.uid,
-        'Namespace', d.namespace,
-        'Context Name', d.context_name
-      ) as properties
-    from
-      kubernetes_daemonset as d,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = d.uid
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_pod_from_daemonset_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      d.uid as from_id,
-      p.uid as to_id
-    from
-      kubernetes_daemonset as d,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = d.uid
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_pod_from_job_node" {
-  #category = category.kubernetes_job
-
-  sql = <<-EOQ
-    select
-      j.uid as id,
-      j.title as title,
-      jsonb_build_object(
-        'UID', j.uid,
-        'Namespace', j.namespace,
-        'Context Name', j.context_name
-      ) as properties
-    from
-      kubernetes_job as j,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = j.uid
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_pod_from_job_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      j.uid as from_id,
-      p.uid as to_id
-    from
-      kubernetes_job as j,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = j.uid
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_pod_from_replicaset_node" {
-  #category = category.kubernetes_replicaset
-
-  sql = <<-EOQ
-    select
-      r.uid as id,
-      r.title as title,
-      jsonb_build_object(
-        'UID', r.uid,
-        'Namespace', r.namespace,
-        'Context Name', r.context_name
-      ) as properties
-    from
-      kubernetes_replicaset as r,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = r.uid
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_pod_from_replicaset_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      r.uid as from_id,
-      p.uid as to_id
-    from
-      kubernetes_replicaset as r,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = r.uid
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_pod_from_statefulset_node" {
-  #category = category.kubernetes_statefulset
-
-  sql = <<-EOQ
-    select
-      s.uid as id,
-      s.title as title,
-      jsonb_build_object(
-        'UID', s.uid,
-        'Namespace', s.namespace,
-        'Context Name', s.context_name
-      ) as properties
-    from
-      kubernetes_stateful_set as s,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = s.uid
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_pod_from_statefulset_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      s.uid as from_id,
-      p.uid as to_id
-    from
-      kubernetes_stateful_set as s,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.owner_references) as pod_owner
-    where
-      pod_owner ->> 'uid' = s.uid
-      and p.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
+# Input queries
 
 query "kubernetes_pod_input" {
   sql = <<-EOQ
@@ -607,6 +362,8 @@ query "kubernetes_pod_input" {
       title;
   EOQ
 }
+
+# Card queries
 
 query "kubernetes_pod_status" {
   sql = <<-EOQ
@@ -695,6 +452,106 @@ query "kubernetes_pod_container_host_ipc" {
 
   param "uid" {}
 }
+
+# With queries
+
+query "pod_containers" {
+  sql = <<-EOQ
+    select
+      container ->> 'name' || p.name as name
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(p.containers) as container
+    where
+      p.uid = $1;
+  EOQ
+}
+
+query "pod_persistent_volumes" {
+  sql = <<-EOQ
+    select
+      pv.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_persistent_volume as pv
+      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
+    where
+      pv.uid is not null
+      and p.uid = $1;
+  EOQ
+}
+
+query "pod_nodes" {
+  sql = <<-EOQ
+     select
+      n.uid as uid
+    from
+      kubernetes_pod as p,
+      kubernetes_node as n
+    where
+      n.name = p.node_name
+      and p.uid = $1;
+  EOQ
+}
+
+query "pod_daemonsets" {
+  sql = <<-EOQ
+    select
+      d.uid as uid
+    from
+      kubernetes_daemonset as d,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = d.uid
+      and p.uid = $1;
+  EOQ
+}
+
+query "pod_jobs" {
+  sql = <<-EOQ
+    select
+      j.uid as uid
+    from
+      kubernetes_job as j,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = j.uid
+      and p.uid = $1;
+  EOQ
+}
+
+query "pod_replicasets" {
+  sql = <<-EOQ
+    select
+      r.uid as uid
+    from
+      kubernetes_replicaset as r,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = r.uid
+      and p.uid = $1;
+  EOQ
+}
+
+query "pod_statefulsets" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_stateful_set as s,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = s.uid
+      and p.uid = $1;
+  EOQ
+}
+
+# Other queries
 
 query "kubernetes_pod_overview" {
   sql = <<-EOQ

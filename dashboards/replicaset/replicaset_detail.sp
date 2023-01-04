@@ -49,34 +49,115 @@ dashboard "kubernetes_replicaset_detail" {
 
   }
 
-  # container {
-  #   graph {
-  #     title     = "Relationships"
-  #     type      = "graph"
-  #     direction = "LR"
+  with "deployments" {
+    query = query.replicaset_deployments
+    args  = [self.input.replicaset_uid.value]
+  }
 
-  #     nodes = [
-  #       node.kubernetes_replicaset_node,
-  #       node.kubernetes_replicaset_from_deployment_node,
-  #       node.kubernetes_replicaset_from_deployment_from_namespace_node,
-  #       node.kubernetes_replicaset_to_pod_node,
-  #       node.kubernetes_replicaset_to_pod_to_container_node,
-  #       node.kubernetes_replicaset_to_pod_to_node_node
-  #     ]
+  with "namespaces" {
+    query = query.replicaset_namespaces
+    args  = [self.input.replicaset_uid.value]
+  }
 
-  #     edges = [
-  #       edge.kubernetes_replicaset_from_deployment_edge,
-  #       edge.kubernetes_replicaset_from_deployment_from_namespace_edge,
-  #       edge.kubernetes_replicaset_to_pod_edge,
-  #       edge.kubernetes_replicaset_to_pod_to_container_edge,
-  #       edge.kubernetes_replicaset_to_pod_to_node_edge
-  #     ]
+  with "pods" {
+    query = query.replicaset_pods
+    args  = [self.input.replicaset_uid.value]
+  }
 
-  #     args = {
-  #       uid = self.input.replicaset_uid.value
-  #     }
-  #   }
-  # }
+  with "containers" {
+    query = query.replicaset_containers
+    args  = [self.input.replicaset_uid.value]
+  }
+
+  with "nodes" {
+    query = query.replicaset_nodes
+    args  = [self.input.replicaset_uid.value]
+  }
+
+  container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      node {
+        base = node.replicaset
+        args = {
+          replicaset_uids = [self.input.replicaset_uid.value]
+        }
+      }
+
+      node {
+        base = node.deployment
+        args = {
+          deployment_uids = with.deployments.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.namespace
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.node
+        args = {
+          node_uids = with.nodes.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.container
+        args = {
+          container_names = with.containers.rows[*].name
+        }
+      }
+      
+      edge {
+        base = edge.namespace_to_deployment
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.deployment_to_replicaset
+        args = {
+          deployment_uids = with.deployments.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.replicaset_to_pod
+        args = {
+          replicaset_uids = [self.input.replicaset_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.pod_to_node
+        args = {
+          pod_uids = with.pods.rows[*].uid
+        }
+      }
+    }
+  }
 
   container {
 
@@ -165,251 +246,8 @@ dashboard "kubernetes_replicaset_detail" {
 
 }
 
-category "kubernetes_replicaset_no_link" {
-  icon = local.kubernetes_replicaset_icon
-}
+# Input queries
 
-node "kubernetes_replicaset_node" {
-  #category = category.kubernetes_replicaset_no_link
-
-  sql = <<-EOQ
-    select
-      uid as id,
-      title as title,
-      jsonb_build_object(
-        'UID', uid,
-        'Namespace', namespace,
-        'Replicas', replicas,
-        'Context Name', context_name
-      ) as properties
-    from
-      kubernetes_replicaset
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_replicaset_from_deployment_node" {
-  #category = category.kubernetes_deployment
-
-  sql = <<-EOQ
-    select
-      d.uid as id,
-      d.title as title,
-      jsonb_build_object(
-        'UID', d.uid,
-        'Namespace', d.namespace,
-        'Replicas', d.replicas,
-        'Context Name', d.context_name
-      ) as properties
-    from
-      kubernetes_deployment as d,
-      kubernetes_replicaset as r,
-      jsonb_array_elements(r.owner_references) as owner
-    where
-      d.uid = owner ->> 'uid'
-      and r.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_replicaset_from_deployment_edge" {
-  title = "replicaset"
-
-  sql = <<-EOQ
-     select
-      owner ->> 'uid' as from_id,
-      uid as to_id
-    from
-      kubernetes_replicaset,
-      jsonb_array_elements(owner_references) as owner
-    where
-      uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_replicaset_from_deployment_from_namespace_node" {
-  #category = category.kubernetes_namespace
-
-  sql = <<-EOQ
-    select
-      n.uid as id,
-      n.title as title,
-      jsonb_build_object(
-        'UID', n.uid,
-        'Phase', n.phase,
-        'Context Name', n.context_name
-      ) as properties
-    from
-      kubernetes_namespace as n,
-      kubernetes_replicaset as r
-    where
-      n.name = r.namespace
-      and r.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_replicaset_from_deployment_from_namespace_edge" {
-  title = "deployment"
-
-  sql = <<-EOQ
-     select
-      n.uid as from_id,
-      owner ->> 'uid' as to_id
-    from
-      kubernetes_namespace as n,
-      kubernetes_replicaset as r,
-      jsonb_array_elements(r.owner_references) as owner
-    where
-      n.name = r.namespace
-      and r.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_replicaset_to_pod_node" {
-  #category = category.kubernetes_pod
-
-  sql = <<-EOQ
-    select
-      pod.uid as id,
-      pod.title as title,
-      jsonb_build_object(
-        'UID', pod.uid,
-        'Namespace', pod.namespace,
-        'Phase', pod.phase,
-        'Context Name', pod.context_name
-      ) as properties
-    from
-      kubernetes_replicaset as rs,
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner
-    where
-      rs.uid = $1
-      and pod_owner ->> 'uid' = rs.uid;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_replicaset_to_pod_edge" {
-  title = "pod"
-
-  sql = <<-EOQ
-     select
-      rs.uid as from_id,
-      pod.uid as to_id
-    from
-      kubernetes_replicaset as rs,
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner
-    where
-      rs.uid = $1
-      and pod_owner ->> 'uid' = rs.uid;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_replicaset_to_pod_to_container_node" {
-  #category = category.kubernetes_container
-
-  sql = <<-EOQ
-    select
-      container ->> 'name' || pod.name as id,
-      container ->> 'name' as title,
-      jsonb_build_object(
-        'Name', container ->> 'name',
-        'Image', container ->> 'image',
-        'POD Name', pod.name
-      ) as properties
-    from
-      kubernetes_replicaset as rs,
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
-      jsonb_array_elements(pod.containers) as container
-    where
-      rs.uid = $1
-      and pod_owner ->> 'uid' = rs.uid;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_replicaset_to_pod_to_container_edge" {
-  title = "container"
-
-  sql = <<-EOQ
-     select
-      pod.uid as from_id,
-      container ->> 'name' || pod.name as to_id
-    from
-      kubernetes_replicaset as rs,
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
-      jsonb_array_elements(pod.containers) as container
-    where
-      rs.uid = $1
-      and pod_owner ->> 'uid' = rs.uid;
-  EOQ
-
-  param "uid" {}
-}
-
-node "kubernetes_replicaset_to_pod_to_node_node" {
-  #category = category.kubernetes_node
-
-  sql = <<-EOQ
-    select
-      n.uid as id,
-      n.name as title,
-      jsonb_build_object(
-        'UID', n.uid,
-        'POD CIDR', n.pod_cidr,
-        'Context Name', n.context_name
-      ) as properties
-    from
-      kubernetes_replicaset as rs,
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
-      kubernetes_node as n
-    where
-      n.name = pod.node_name
-      and rs.uid = $1
-      and pod_owner ->> 'uid' = rs.uid;
-  EOQ
-
-  param "uid" {}
-}
-
-edge "kubernetes_replicaset_to_pod_to_node_edge" {
-  title = "node"
-
-  sql = <<-EOQ
-    select
-      n.uid as to_id,
-      pod.uid as from_id
-    from
-      kubernetes_replicaset as rs,
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
-      kubernetes_node as n
-    where
-      n.name = pod.node_name
-      and rs.uid = $1
-      and pod_owner ->> 'uid' = rs.uid;
-  EOQ
-
-  param "uid" {}
-}
 query "kubernetes_replicaset_input" {
   sql = <<-EOQ
     select
@@ -425,6 +263,8 @@ query "kubernetes_replicaset_input" {
       title;
   EOQ
 }
+
+# Card queries
 
 query "kubernetes_replicaset_default_namespace" {
   sql = <<-EOQ
@@ -485,6 +325,74 @@ query "kubernetes_replicaset_container_host_ipc" {
 
   param "uid" {}
 }
+
+# With queries
+
+query "replicaset_containers" {
+  sql = <<-EOQ
+    select
+      container ->> 'name' || pod.name as name
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+}
+
+query "replicaset_pods" {
+  sql = <<-EOQ
+    select
+      pod.uid as uid
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+}
+
+query "replicaset_nodes" {
+  sql = <<-EOQ
+    select
+      n.uid as uid
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and pod_owner ->> 'uid' = $1;
+  EOQ
+}
+
+query "replicaset_namespaces" {
+  sql = <<-EOQ
+    select
+      n.uid as uid
+    from
+      kubernetes_namespace as n,
+      kubernetes_replicaset as r
+    where
+      n.name = r.namespace
+      and r.uid = $1;
+  EOQ
+}
+
+query "replicaset_deployments" {
+  sql = <<-EOQ
+    select
+      owner ->> 'uid' as uid
+    from
+      kubernetes_replicaset as r,
+      jsonb_array_elements(r.owner_references) as owner
+    where
+      r.uid = $1;
+  EOQ
+}
+
+# Other queries
 
 query "kubernetes_replicaset_overview" {
   sql = <<-EOQ

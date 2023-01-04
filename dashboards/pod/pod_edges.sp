@@ -32,3 +32,23 @@ edge "pod_to_node" {
 
   param "pod_uids" {}
 }
+
+edge "pod_to_endpoint" {
+  title = "endpoint"
+
+  sql = <<-EOQ
+     select
+      p.uid as from_id,
+      e.uid as to_id
+    from
+      kubernetes_pod as p,
+      kubernetes_endpoint as e,
+      jsonb_array_elements(subsets) as s,
+      jsonb_array_elements(s -> 'addresses') as a
+    where
+      p.uid = a -> 'targetRef' ->> 'uid'
+      and p.uid = any($1);
+  EOQ
+
+  param "pod_uids" {}
+}
