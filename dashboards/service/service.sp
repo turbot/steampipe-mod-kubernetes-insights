@@ -6,6 +6,7 @@ locals {
 
 category "service" {
   href  = "/kubernetes_insights.dashboard.kubernetes_service_detail?input.service_uid={{.properties.'UID' | @uri}}"
-  icon  = local.kubernetes_service_icon
+  //icon  = local.kubernetes_service_icon
+  icon  = "lan"
   title = "Service"
 }

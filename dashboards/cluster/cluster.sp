@@ -6,6 +6,7 @@ locals {
 
 category "cluster" {
   href  = "/kubernetes_insights.dashboard.kubernetes_cluster_detail?input.cluster_context={{.'id' | @uri}}"
-  icon  = local.kubernetes_cluster_icon
+  //icon  = local.kubernetes_cluster_icon
+  icon  = "tenancy"
   title = "Cluster"
 }

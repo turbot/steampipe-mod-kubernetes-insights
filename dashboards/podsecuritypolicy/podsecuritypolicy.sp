@@ -5,6 +5,7 @@ locals {
 }
 
 category "pod_security_policy" {
-  icon  = local.kubernetes_psp_icon
+  //icon  = local.kubernetes_psp_icon
+  icon  = "policy"
   title = "Pod Security Policy"
 }

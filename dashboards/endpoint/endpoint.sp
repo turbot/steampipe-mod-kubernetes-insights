@@ -6,6 +6,7 @@ locals {
 
 category "endpoint" {
   href  = "/kubernetes_insights.dashboard.kubernetes_endpoint_detail?input.endpoint_uid={{.properties.'UID' | @uri}}"
-  icon  = local.kubernetes_endpoint_icon
+  //icon  = local.kubernetes_endpoint_icon
+  icon  = "settings_input_antenna"
   title = "Endpoint"
 }
