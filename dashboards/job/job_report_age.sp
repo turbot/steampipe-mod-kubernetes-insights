@@ -1,4 +1,4 @@
-dashboard "kubernetes_job_age_report" {
+dashboard "job_age_report" {
 
   title         = "Kubernetes Job Age Report"
   documentation = file("./dashboards/job/docs/job_report_age.md")
@@ -11,38 +11,38 @@ dashboard "kubernetes_job_age_report" {
   container {
 
     card {
-      query = query.kubernetes_job_count
+      query = query.job_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_job_24_hours_count
+      query = query.job_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_job_30_days_count
+      query = query.job_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_job_30_90_days_count
+      query = query.job_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_job_90_365_days_count
+      query = query.job_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_job_1_year_count
+      query = query.job_1_year_count
     }
   }
   table {
@@ -52,14 +52,14 @@ dashboard "kubernetes_job_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_job_detail.url_path}?input.job_uid={{.UID | @uri}}"
+      href = "${dashboard.job_detail.url_path}?input.job_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_job_age_table
+    query = query.job_age_table
   }
 }
 
-query "kubernetes_job_24_hours_count" {
+query "job_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -71,7 +71,7 @@ query "kubernetes_job_24_hours_count" {
   EOQ
 }
 
-query "kubernetes_job_30_days_count" {
+query "job_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -84,7 +84,7 @@ query "kubernetes_job_30_days_count" {
   EOQ
 }
 
-query "kubernetes_job_30_90_days_count" {
+query "job_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +97,7 @@ query "kubernetes_job_30_90_days_count" {
   EOQ
 }
 
-query "kubernetes_job_90_365_days_count" {
+query "job_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -110,7 +110,7 @@ query "kubernetes_job_90_365_days_count" {
   EOQ
 }
 
-query "kubernetes_job_1_year_count" {
+query "job_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -122,7 +122,7 @@ query "kubernetes_job_1_year_count" {
   EOQ
 }
 
-query "kubernetes_job_age_table" {
+query "job_age_table" {
   sql = <<-EOQ
     select
       name as "Name",

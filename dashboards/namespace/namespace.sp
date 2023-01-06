@@ -5,8 +5,8 @@ locals {
 }
 
 category "namespace" {
+  color = local.namespace_color
   href  = "/kubernetes_insights.dashboard.kubernetes_namespace_detail?input.namespace_uid={{.properties.'UID' | @uri}}"
-  //icon  = local.kubernetes_namespace_icon
   icon  = "format_shapes"
   title = "Namespace"
 }

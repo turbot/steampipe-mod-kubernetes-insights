@@ -1,4 +1,4 @@
-dashboard "kubernetes_service_detail" {
+dashboard "service_detail" {
 
   title         = "Kubernetes Service Detail"
   documentation = file("./dashboards/service/docs/service_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_service_detail" {
 
   input "service_uid" {
     title = "Select a Service:"
-    query = query.kubernetes_service_input
+    query = query.service_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_service_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_service_type
+      query = query.service_type
       args = {
         uid = self.input.service_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_service_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_service_default_namespace
+      query = query.service_default_namespace
       args = {
         uid = self.input.service_uid.value
       }
@@ -97,7 +97,7 @@ dashboard "kubernetes_service_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.kubernetes_service_overview
+        query = query.service_overview
         args = {
           uid = self.input.service_uid.value
         }
@@ -106,7 +106,7 @@ dashboard "kubernetes_service_detail" {
       table {
         title = "Labels"
         width = 6
-        query = query.kubernetes_service_labels
+        query = query.service_labels
         args = {
           uid = self.input.service_uid.value
         }
@@ -119,7 +119,7 @@ dashboard "kubernetes_service_detail" {
 
       table {
         title = "Annotations"
-        query = query.kubernetes_service_annotations
+        query = query.service_annotations
         args = {
           uid = self.input.service_uid.value
         }
@@ -127,7 +127,7 @@ dashboard "kubernetes_service_detail" {
 
       table {
         title = "IP Details"
-        query = query.kubernetes_service_ip_details
+        query = query.service_ip_details
         args = {
           uid = self.input.service_uid.value
         }
@@ -140,7 +140,7 @@ dashboard "kubernetes_service_detail" {
 
       flow {
         title = "Service Port Analysis"
-        query = query.kubernetes_service_tree
+        query = query.service_tree
         args = {
           uid = self.input.service_uid.value
         }
@@ -152,7 +152,7 @@ dashboard "kubernetes_service_detail" {
       table {
         title = "Ports"
         width = 6
-        query = query.kubernetes_service_ports
+        query = query.service_ports
         args = {
           uid = self.input.service_uid.value
         }
@@ -162,7 +162,7 @@ dashboard "kubernetes_service_detail" {
       table {
         title = "Pods"
         width = 6
-        query = query.kubernetes_service_pods
+        query = query.service_pods_detail
         args = {
           uid = self.input.service_uid.value
         }
@@ -172,7 +172,7 @@ dashboard "kubernetes_service_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+          href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
         }
       }
     }
@@ -183,7 +183,7 @@ dashboard "kubernetes_service_detail" {
 
 # Input queries
 
-query "kubernetes_service_input" {
+query "service_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -201,7 +201,7 @@ query "kubernetes_service_input" {
 
 # Card queries
 
-query "kubernetes_service_type" {
+query "service_type" {
   sql = <<-EOQ
     select
       'Type' as label,
@@ -215,7 +215,7 @@ query "kubernetes_service_type" {
   param "uid" {}
 }
 
-query "kubernetes_service_default_namespace" {
+query "service_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -259,7 +259,7 @@ query "service_pods" {
 
 # Other queries
 
-query "kubernetes_service_overview" {
+query "service_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -275,7 +275,7 @@ query "kubernetes_service_overview" {
   param "uid" {}
 }
 
-query "kubernetes_service_labels" {
+query "service_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -298,7 +298,7 @@ query "kubernetes_service_labels" {
   param "uid" {}
 }
 
-query "kubernetes_service_annotations" {
+query "service_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -321,7 +321,7 @@ query "kubernetes_service_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_service_ports" {
+query "service_ports" {
   sql = <<-EOQ
     select
       p ->> 'name' as "Name",
@@ -341,7 +341,7 @@ query "kubernetes_service_ports" {
   param "uid" {}
 }
 
-query "kubernetes_service_pods" {
+query "service_pods_detail" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -359,7 +359,7 @@ query "kubernetes_service_pods" {
   param "uid" {}
 }
 
-query "kubernetes_service_ip_details" {
+query "service_ip_details" {
   sql = <<-EOQ
     select
       cluster_ip as "Cluster IP",
@@ -374,7 +374,7 @@ query "kubernetes_service_ip_details" {
   param "uid" {}
 }
 
-query "kubernetes_service_tree" {
+query "service_tree" {
   sql = <<-EOQ
   with pods as (
     select

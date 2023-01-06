@@ -1,4 +1,4 @@
-dashboard "kubernetes_daemonset_dashboard" {
+dashboard "daemonset_dashboard" {
 
   title         = "Kubernetes DaemonSet Dashboard"
   documentation = file("./dashboards/daemonset/docs/daemonset_dashboard.md")
@@ -10,31 +10,31 @@ dashboard "kubernetes_daemonset_dashboard" {
   container {
 
     card {
-      query = query.kubernetes_daemonset_count
+      query = query.daemonset_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_daemonset_default_namespace_count
+      query = query.daemonset_default_namespace_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_daemonset_container_host_network_count
+      query = query.daemonset_container_host_network_count
       width = 2
-      href  = dashboard.kubernetes_daemonset_host_access_report.url_path
+      href  = dashboard.daemonset_host_access_report.url_path
     }
 
     card {
-      query = query.kubernetes_daemonset_container_host_pid_count
+      query = query.daemonset_container_host_pid_count
       width = 2
-      href  = dashboard.kubernetes_daemonset_host_access_report.url_path
+      href  = dashboard.daemonset_host_access_report.url_path
     }
 
     card {
-      query = query.kubernetes_daemonset_container_host_ipc_count
+      query = query.daemonset_container_host_ipc_count
       width = 2
-      href  = dashboard.kubernetes_daemonset_host_access_report.url_path
+      href  = dashboard.daemonset_host_access_report.url_path
     }
 
   }
@@ -45,7 +45,7 @@ dashboard "kubernetes_daemonset_dashboard" {
 
     chart {
       title = "Default Namespace Status"
-      query = query.kubernetes_daemonset_default_namespace_status
+      query = query.daemonset_default_namespace_status
       type  = "donut"
       width = 3
 
@@ -61,7 +61,7 @@ dashboard "kubernetes_daemonset_dashboard" {
 
     chart {
       title = "Host Network Access Status"
-      query = query.kubernetes_daemonset_container_host_network_status
+      query = query.daemonset_container_host_network_status
       type  = "donut"
       width = 3
 
@@ -77,7 +77,7 @@ dashboard "kubernetes_daemonset_dashboard" {
 
     chart {
       title = "Host PID Sharing Status"
-      query = query.kubernetes_daemonset_container_host_pid_status
+      query = query.daemonset_container_host_pid_status
       type  = "donut"
       width = 3
 
@@ -93,7 +93,7 @@ dashboard "kubernetes_daemonset_dashboard" {
 
     chart {
       title = "Host IPC Sharing Status"
-      query = query.kubernetes_daemonset_container_host_ipc_status
+      query = query.daemonset_container_host_ipc_status
       type  = "donut"
       width = 3
 
@@ -115,21 +115,21 @@ dashboard "kubernetes_daemonset_dashboard" {
 
     chart {
       title = "DaemonSets by Cluster"
-      query = query.kubernetes_daemonset_by_context_name
+      query = query.daemonset_by_context_name
       type  = "column"
       width = 4
     }
 
     chart {
       title = "DaemonSets by Namespace"
-      query = query.kubernetes_daemonset_by_namespace
+      query = query.daemonset_by_namespace
       type  = "column"
       width = 4
     }
 
     chart {
       title = "DaemonSets by Age"
-      query = query.kubernetes_daemonset_by_creation_month
+      query = query.daemonset_by_creation_month
       type  = "column"
       width = 4
     }
@@ -139,7 +139,7 @@ dashboard "kubernetes_daemonset_dashboard" {
 
 # Card Queries
 
-query "kubernetes_daemonset_count" {
+query "daemonset_count" {
   sql = <<-EOQ
     select
       count(*) as "DaemonSets"
@@ -148,7 +148,7 @@ query "kubernetes_daemonset_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_default_namespace_count" {
+query "daemonset_default_namespace_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -161,7 +161,7 @@ query "kubernetes_daemonset_default_namespace_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_container_host_network_count" {
+query "daemonset_container_host_network_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -174,7 +174,7 @@ query "kubernetes_daemonset_container_host_network_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_container_host_pid_count" {
+query "daemonset_container_host_pid_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -187,7 +187,7 @@ query "kubernetes_daemonset_container_host_pid_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_container_host_ipc_count" {
+query "daemonset_container_host_ipc_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -202,7 +202,7 @@ query "kubernetes_daemonset_container_host_ipc_count" {
 
 # Assessment Queries
 
-query "kubernetes_daemonset_default_namespace_status" {
+query "daemonset_default_namespace_status" {
   sql = <<-EOQ
     select
       case when namespace = 'default' then 'used' else 'unused' end as status,
@@ -214,7 +214,7 @@ query "kubernetes_daemonset_default_namespace_status" {
   EOQ
 }
 
-query "kubernetes_daemonset_container_host_network_status" {
+query "daemonset_container_host_network_status" {
   sql = <<-EOQ
     select
       case when template -> 'spec' ->> 'hostNetwork' = 'true' then 'enabled' else 'disabled' end as status,
@@ -226,7 +226,7 @@ query "kubernetes_daemonset_container_host_network_status" {
   EOQ
 }
 
-query "kubernetes_daemonset_container_host_pid_status" {
+query "daemonset_container_host_pid_status" {
   sql = <<-EOQ
     select
       case when template -> 'spec' ->> 'hostPID' = 'true' then 'enabled' else 'disabled' end as status,
@@ -238,7 +238,7 @@ query "kubernetes_daemonset_container_host_pid_status" {
   EOQ
 }
 
-query "kubernetes_daemonset_container_host_ipc_status" {
+query "daemonset_container_host_ipc_status" {
   sql = <<-EOQ
     select
       case when template -> 'spec' ->> 'hostIPC' = 'true' then 'enabled' else 'disabled' end as status,
@@ -252,7 +252,7 @@ query "kubernetes_daemonset_container_host_ipc_status" {
 
 # Analysis Queries
 
-query "kubernetes_daemonset_by_namespace" {
+query "daemonset_by_namespace" {
   sql = <<-EOQ
     select
       namespace,
@@ -266,7 +266,7 @@ query "kubernetes_daemonset_by_namespace" {
   EOQ
 }
 
-query "kubernetes_daemonset_by_context_name" {
+query "daemonset_by_context_name" {
   sql = <<-EOQ
     select
       context_name,
@@ -280,7 +280,7 @@ query "kubernetes_daemonset_by_context_name" {
   EOQ
 }
 
-query "kubernetes_daemonset_by_creation_month" {
+query "daemonset_by_creation_month" {
   sql = <<-EOQ
     with daemonsets as (
       select

@@ -1,4 +1,4 @@
-dashboard "kubernetes_cronjob_detail" {
+dashboard "cronjob_detail" {
 
   title         = "Kubernetes CronJob Detail"
   documentation = file("./dashboards/cronjob/docs/cronjob_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_cronjob_detail" {
 
   input "cronjob_uid" {
     title = "Select a CronJob:"
-    query = query.kubernetes_cronjob_input
+    query = query.cronjob_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_cronjob_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cronjob_default_namespace
+      query = query.cronjob_default_namespace
       args = {
         uid = self.input.cronjob_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_cronjob_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cronjob_container_host_network
+      query = query.cronjob_container_host_network
       args = {
         uid = self.input.cronjob_uid.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_cronjob_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cronjob_container_host_pid
+      query = query.cronjob_container_host_pid
       args = {
         uid = self.input.cronjob_uid.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_cronjob_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cronjob_container_host_ipc
+      query = query.cronjob_container_host_ipc
       args = {
         uid = self.input.cronjob_uid.value
       }
@@ -151,9 +151,9 @@ dashboard "kubernetes_cronjob_detail" {
       }
 
       edge {
-        base = edge.pod_to_node
+        base = edge.node_to_pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          node_uids = with.nodes.rows[*].uid
         }
       }
     }
@@ -169,7 +169,7 @@ dashboard "kubernetes_cronjob_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.kubernetes_cronjob_overview
+        query = query.cronjob_overview
         args = {
           uid = self.input.cronjob_uid.value
         }
@@ -178,7 +178,7 @@ dashboard "kubernetes_cronjob_detail" {
       table {
         title = "Labels"
         width = 6
-        query = query.kubernetes_cronjob_labels
+        query = query.cronjob_labels
         args = {
           uid = self.input.cronjob_uid.value
         }
@@ -191,7 +191,7 @@ dashboard "kubernetes_cronjob_detail" {
 
       table {
         title = "Annotations"
-        query = query.kubernetes_cronjob_annotations
+        query = query.cronjob_annotations
         args = {
           uid = self.input.cronjob_uid.value
         }
@@ -199,7 +199,7 @@ dashboard "kubernetes_cronjob_detail" {
 
       table {
         title = "Configuration"
-        query = query.kubernetes_cronjob_configuration_detail
+        query = query.cronjob_configuration_detail
         args = {
           uid = self.input.cronjob_uid.value
         }
@@ -214,7 +214,7 @@ dashboard "kubernetes_cronjob_detail" {
 
     flow {
       title = "CronJob Hierarchy"
-      query = query.kubernetes_cronjob_tree
+      query = query.cronjob_tree
       args = {
         uid = self.input.cronjob_uid.value
       }
@@ -227,7 +227,7 @@ dashboard "kubernetes_cronjob_detail" {
 
       title = "Jobs"
       width = 6
-      query = query.kubernetes_cronjob_jobs
+      query = query.cronjob_jobs_detail
       args = {
         uid = self.input.cronjob_uid.value
       }
@@ -236,14 +236,14 @@ dashboard "kubernetes_cronjob_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_job_detail.url_path}?input.job_uid={{.UID | @uri}}"
+        href = "${dashboard.job_detail.url_path}?input.job_uid={{.UID | @uri}}"
       }
     }
 
     table {
       title = "Pods"
       width = 6
-      query = query.kubernetes_cronjob_pods
+      query = query.cronjob_pods_detail
       args = {
         uid = self.input.cronjob_uid.value
       }
@@ -252,7 +252,7 @@ dashboard "kubernetes_cronjob_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+        href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
       }
 
     }
@@ -264,7 +264,7 @@ dashboard "kubernetes_cronjob_detail" {
 
 # Input queries
 
-query "kubernetes_cronjob_input" {
+query "cronjob_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -282,7 +282,7 @@ query "kubernetes_cronjob_input" {
 
 # Card queries
 
-query "kubernetes_cronjob_default_namespace" {
+query "cronjob_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -297,7 +297,7 @@ query "kubernetes_cronjob_default_namespace" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_container_host_network" {
+query "cronjob_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -312,7 +312,7 @@ query "kubernetes_cronjob_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_container_host_pid" {
+query "cronjob_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -327,7 +327,7 @@ query "kubernetes_cronjob_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_container_host_ipc" {
+query "cronjob_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -419,7 +419,7 @@ query "cronjob_containers" {
 
 # Other queries
 
-query "kubernetes_cronjob_overview" {
+query "cronjob_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -435,7 +435,7 @@ query "kubernetes_cronjob_overview" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_labels" {
+query "cronjob_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -458,7 +458,7 @@ query "kubernetes_cronjob_labels" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_annotations" {
+query "cronjob_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -481,7 +481,7 @@ query "kubernetes_cronjob_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_configuration_detail" {
+query "cronjob_configuration_detail" {
   sql = <<-EOQ
     select
       schedule as "Schedule",
@@ -501,7 +501,7 @@ query "kubernetes_cronjob_configuration_detail" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_jobs" {
+query "cronjob_jobs_detail" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -520,7 +520,7 @@ query "kubernetes_cronjob_jobs" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_pods" {
+query "cronjob_pods_detail" {
   sql = <<-EOQ
     select
       pod.name as "Name",
@@ -542,7 +542,7 @@ query "kubernetes_cronjob_pods" {
   param "uid" {}
 }
 
-query "kubernetes_cronjob_tree" {
+query "cronjob_tree" {
   sql = <<-EOQ
 
     -- This cronjob

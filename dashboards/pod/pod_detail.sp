@@ -1,4 +1,4 @@
-dashboard "kubernetes_pod_detail" {
+dashboard "pod_detail" {
 
   title         = "Kubernetes Pod Detail"
   documentation = file("./dashboards/pod/docs/pod_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_pod_detail" {
 
   input "pod_uid" {
     title = "Select a Pod:"
-    query = query.kubernetes_pod_input
+    query = query.pod_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_status
+      query = query.pod_status
       args = {
         uid = self.input.pod_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_container
+      query = query.pod_container
       args = {
         uid = self.input.pod_uid.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_default_namespace
+      query = query.pod_default_namespace
       args = {
         uid = self.input.pod_uid.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_container_host_network
+      query = query.pod_container_host_network
       args = {
         uid = self.input.pod_uid.value
       }
@@ -49,7 +49,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_container_host_pid
+      query = query.pod_container_host_pid
       args = {
         uid = self.input.pod_uid.value
       }
@@ -57,7 +57,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_container_host_ipc
+      query = query.pod_container_host_ipc
       args = {
         uid = self.input.pod_uid.value
       }
@@ -177,16 +177,9 @@ dashboard "kubernetes_pod_detail" {
       }
 
       edge {
-        base = edge.pod_to_node
+        base = edge.node_to_pod
         args = {
-          pod_uids = [self.input.pod_uid.value]
-        }
-      }
-
-      edge {
-        base = edge.daemonset_to_pod
-        args = {
-          daemonset_uids = with.daemonsets.rows[*].uid
+          node_uids = with.nodes.rows[*].uid
         }
       }
 
@@ -198,7 +191,7 @@ dashboard "kubernetes_pod_detail" {
       }
 
       edge {
-        base = edge.replicaset_to_pod
+        base = edge.replicaset_to_node
         args = {
           replicaset_uids = with.replicasets.rows[*].uid
         }
@@ -221,7 +214,7 @@ dashboard "kubernetes_pod_detail" {
         title = "Overview"
         type  = "line"
         width = 3
-        query = query.kubernetes_pod_overview
+        query = query.pod_overview
         args = {
           uid = self.input.pod_uid.value
         }
@@ -230,7 +223,7 @@ dashboard "kubernetes_pod_detail" {
       table {
         title = "Labels"
         width = 3
-        query = query.kubernetes_pod_labels
+        query = query.pod_labels
         args = {
           uid = self.input.pod_uid.value
         }
@@ -239,7 +232,7 @@ dashboard "kubernetes_pod_detail" {
       table {
         title = "Annotations"
         width = 6
-        query = query.kubernetes_pod_annotations
+        query = query.pod_annotations
         args = {
           uid = self.input.pod_uid.value
         }
@@ -251,7 +244,7 @@ dashboard "kubernetes_pod_detail" {
       table {
         title = "Configuration"
         width = 6
-        query = query.kubernetes_pod_configuration
+        query = query.pod_configuration
         args = {
           uid = self.input.pod_uid.value
         }
@@ -261,7 +254,7 @@ dashboard "kubernetes_pod_detail" {
         }
 
         column "Node Name" {
-          href = "${dashboard.kubernetes_node_detail.url_path}?input.node_uid={{.UID | @uri}}"
+          href = "${dashboard.node_detail.url_path}?input.node_uid={{.UID | @uri}}"
         }
 
       }
@@ -269,7 +262,7 @@ dashboard "kubernetes_pod_detail" {
       table {
         title = "Containers"
         width = 6
-        query = query.kubernetes_pod_container_basic_detail
+        query = query.pod_container_basic_detail
         args = {
           uid = self.input.pod_uid.value
         }
@@ -279,7 +272,7 @@ dashboard "kubernetes_pod_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_container_detail.url_path}?input.container_name={{.'Container Value' | @uri}}"
+          href = "${dashboard.container_detail.url_path}?input.container_name={{.'Container Value' | @uri}}"
         }
       }
     }
@@ -290,7 +283,7 @@ dashboard "kubernetes_pod_detail" {
     chart {
       title    = "Containers CPU Analysis"
       width    = 6
-      query    = query.kubernetes_pod_container_cpu_detail
+      query    = query.pod_container_cpu_detail
       grouping = "compare"
       type     = "column"
       args = {
@@ -302,7 +295,7 @@ dashboard "kubernetes_pod_detail" {
     chart {
       title    = "Containers Memory Analysis"
       width    = 6
-      query    = query.kubernetes_pod_container_memory_detail
+      query    = query.pod_container_memory_detail
       grouping = "compare"
       type     = "column"
       args = {
@@ -314,7 +307,7 @@ dashboard "kubernetes_pod_detail" {
     table {
       title = "Init Containers"
       width = 6
-      query = query.kubernetes_pod_init_containers
+      query = query.pod_init_containers
       args = {
         uid = self.input.pod_uid.value
       }
@@ -324,7 +317,7 @@ dashboard "kubernetes_pod_detail" {
     table {
       title = "Volumes"
       width = 6
-      query = query.kubernetes_pod_volumes
+      query = query.pod_volumes
       args = {
         uid = self.input.pod_uid.value
       }
@@ -334,7 +327,7 @@ dashboard "kubernetes_pod_detail" {
     table {
       title = "Conditions"
       width = 6
-      query = query.kubernetes_pod_conditions
+      query = query.pod_conditions
       args = {
         uid = self.input.pod_uid.value
       }
@@ -347,7 +340,7 @@ dashboard "kubernetes_pod_detail" {
 
 # Input queries
 
-query "kubernetes_pod_input" {
+query "pod_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -365,7 +358,7 @@ query "kubernetes_pod_input" {
 
 # Card queries
 
-query "kubernetes_pod_status" {
+query "pod_status" {
   sql = <<-EOQ
     select
       phase as "Phase"
@@ -378,7 +371,7 @@ query "kubernetes_pod_status" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container" {
+query "pod_container" {
   sql = <<-EOQ
     select
       count(c) as value,
@@ -393,7 +386,7 @@ query "kubernetes_pod_container" {
   param "uid" {}
 }
 
-query "kubernetes_pod_default_namespace" {
+query "pod_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -408,7 +401,7 @@ query "kubernetes_pod_default_namespace" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_host_network" {
+query "pod_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -423,7 +416,7 @@ query "kubernetes_pod_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_host_pid" {
+query "pod_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -438,7 +431,7 @@ query "kubernetes_pod_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_host_ipc" {
+query "pod_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -553,7 +546,7 @@ query "pod_statefulsets" {
 
 # Other queries
 
-query "kubernetes_pod_overview" {
+query "pod_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -569,7 +562,7 @@ query "kubernetes_pod_overview" {
   param "uid" {}
 }
 
-query "kubernetes_pod_labels" {
+query "pod_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -592,7 +585,7 @@ query "kubernetes_pod_labels" {
   param "uid" {}
 }
 
-query "kubernetes_pod_annotations" {
+query "pod_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -615,7 +608,7 @@ query "kubernetes_pod_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_pod_conditions" {
+query "pod_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -634,7 +627,7 @@ query "kubernetes_pod_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_pod_configuration" {
+query "pod_configuration" {
   sql = <<-EOQ
     select
       p.node_name as "Node Name",
@@ -654,7 +647,7 @@ query "kubernetes_pod_configuration" {
   param "uid" {}
 }
 
-query "kubernetes_pod_init_containers" {
+query "pod_init_containers" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
@@ -674,7 +667,7 @@ query "kubernetes_pod_init_containers" {
   param "uid" {}
 }
 
-query "kubernetes_pod_volumes" {
+query "pod_volumes" {
   sql = <<-EOQ
     select
       v ->> 'name' as "Name",
@@ -692,7 +685,7 @@ query "kubernetes_pod_volumes" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_basic_detail" {
+query "pod_container_basic_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
@@ -711,7 +704,7 @@ query "kubernetes_pod_container_basic_detail" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_cpu_detail" {
+query "pod_container_cpu_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
@@ -729,7 +722,7 @@ query "kubernetes_pod_container_cpu_detail" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_memory_detail" {
+query "pod_container_memory_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",

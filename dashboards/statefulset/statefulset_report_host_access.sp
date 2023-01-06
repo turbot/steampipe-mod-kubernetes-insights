@@ -1,4 +1,4 @@
-dashboard "kubernetes_statefulset_host_access_report" {
+dashboard "statefulset_host_access_report" {
 
   title         = "Kubernetes StatefulSet Host Access Report"
   documentation = file("./dashboards/statefulset/docs/statefulset_report_host_access.md")
@@ -11,22 +11,22 @@ dashboard "kubernetes_statefulset_host_access_report" {
   container {
 
     card {
-      query = query.kubernetes_statefulset_count
+      query = query.statefulset_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_statefulset_container_host_network_count
+      query = query.statefulset_container_host_network_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_statefulset_container_host_pid_count
+      query = query.statefulset_container_host_pid_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_statefulset_container_host_ipc_count
+      query = query.statefulset_container_host_ipc_count
       width = 2
     }
 
@@ -38,15 +38,15 @@ dashboard "kubernetes_statefulset_host_access_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_statefulset_detail.url_path}?input.statefulset_uid={{.UID | @uri}}"
+      href = "${dashboard.statefulset_detail.url_path}?input.statefulset_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_statefulset_host_table
+    query = query.statefulset_host_table
   }
 
 }
 
-query "kubernetes_statefulset_host_table" {
+query "statefulset_host_table" {
   sql = <<-EOQ
     select
       name as "Name",

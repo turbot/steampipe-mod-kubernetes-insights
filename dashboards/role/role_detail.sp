@@ -1,4 +1,4 @@
-dashboard "kubernetes_role_detail" {
+dashboard "role_detail" {
 
   title         = "Kubernetes Role Detail"
   documentation = file("./dashboards/role/docs/role_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_role_detail" {
 
   input "role_uid" {
     title = "Select a Role:"
-    query = query.kubernetes_role_input
+    query = query.role_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_role_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_role_rules_count
+      query = query.role_rules_count
       args = {
         uid = self.input.role_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_role_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_role_namespace
+      query = query.role_namespace
       args = {
         uid = self.input.role_uid.value
       }
@@ -96,7 +96,7 @@ dashboard "kubernetes_role_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.kubernetes_role_overview
+        query = query.role_overview
         args = {
           uid = self.input.role_uid.value
         }
@@ -105,7 +105,7 @@ dashboard "kubernetes_role_detail" {
       table {
         title = "Labels"
         width = 6
-        query = query.kubernetes_role_labels
+        query = query.role_labels
         args = {
           uid = self.input.role_uid.value
         }
@@ -118,7 +118,7 @@ dashboard "kubernetes_role_detail" {
 
       table {
         title = "Annotations"
-        query = query.kubernetes_role_annotations
+        query = query.role_annotations
         args = {
           uid = self.input.role_uid.value
         }
@@ -126,7 +126,7 @@ dashboard "kubernetes_role_detail" {
 
       table {
         title = "Rules"
-        query = query.kubernetes_role_rules
+        query = query.role_rules
         args = {
           uid = self.input.role_uid.value
         }
@@ -141,7 +141,7 @@ dashboard "kubernetes_role_detail" {
 
 # Input queries
 
-query "kubernetes_role_input" {
+query "role_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -158,7 +158,7 @@ query "kubernetes_role_input" {
 
 # Card queries
 
-query "kubernetes_role_namespace" {
+query "role_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -173,7 +173,7 @@ query "kubernetes_role_namespace" {
   param "uid" {}
 }
 
-query "kubernetes_role_rules_count" {
+query "role_rules_count" {
   sql = <<-EOQ
     select
       'Rules' as label,
@@ -218,7 +218,7 @@ query "role_role_bindings" {
 
 # Other queries
 
-query "kubernetes_role_overview" {
+query "role_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -235,7 +235,7 @@ query "kubernetes_role_overview" {
   param "uid" {}
 }
 
-query "kubernetes_role_labels" {
+query "role_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -258,7 +258,7 @@ query "kubernetes_role_labels" {
   param "uid" {}
 }
 
-query "kubernetes_role_annotations" {
+query "role_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -281,7 +281,7 @@ query "kubernetes_role_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_role_rules" {
+query "role_rules" {
   sql = <<-EOQ
     select
       r -> 'verbs' as "Verbs",

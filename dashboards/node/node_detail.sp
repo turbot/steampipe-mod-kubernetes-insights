@@ -1,4 +1,4 @@
-dashboard "kubernetes_node_detail" {
+dashboard "node_detail" {
 
   title         = "Kubernetes Node Detail"
   documentation = file("./dashboards/node/docs/node_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_node_detail" {
 
   input "node_uid" {
     title = "Select a node:"
-    query = query.kubernetes_node_input
+    query = query.node_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_node_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_node_pods
+      query = query.node_pods_count
       args = {
         uid = self.input.node_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_node_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_node_containers
+      query = query.node_containers_count
       args = {
         uid = self.input.node_uid.value
       }
@@ -115,7 +115,7 @@ dashboard "kubernetes_node_detail" {
         title = "Overview"
         width = 6
         type  = "line"
-        query = query.kubernetes_node_overview
+        query = query.node_overview
         args = {
           uid = self.input.node_uid.value
         }
@@ -124,7 +124,7 @@ dashboard "kubernetes_node_detail" {
       table {
         title = "Labels"
         width = 6
-        query = query.kubernetes_node_labels
+        query = query.node_labels
         args = {
           uid = self.input.node_uid.value
         }
@@ -138,7 +138,7 @@ dashboard "kubernetes_node_detail" {
 
       table {
         title = "Annotations"
-        query = query.kubernetes_node_annotations
+        query = query.node_annotations
         args = {
           uid = self.input.node_uid.value
         }
@@ -146,7 +146,7 @@ dashboard "kubernetes_node_detail" {
 
       table {
         title = "Capacity"
-        query = query.kubernetes_node_capacity
+        query = query.node_capacity
         args = {
           uid = self.input.node_uid.value
         }
@@ -155,7 +155,7 @@ dashboard "kubernetes_node_detail" {
 
       table {
         title = "Allocatable"
-        query = query.kubernetes_node_allocatable
+        query = query.node_allocatable
         args = {
           uid = self.input.node_uid.value
         }
@@ -164,7 +164,7 @@ dashboard "kubernetes_node_detail" {
 
       flow {
         title = "Node Hierarchy"
-        query = query.kubernetes_node_hierarchy
+        query = query.node_hierarchy
         args = {
           uid = self.input.node_uid.value
         }
@@ -177,7 +177,7 @@ dashboard "kubernetes_node_detail" {
       width = 6
       table {
         title = "Pods"
-        query = query.kubernetes_node_pod_details
+        query = query.node_pod_details
         args = {
           uid = self.input.node_uid.value
         }
@@ -187,7 +187,7 @@ dashboard "kubernetes_node_detail" {
         }
 
         column "Name" {
-          href = "/kubernetes_insights.dashboard.kubernetes_pod_detail?input.pod_uid={{.'UID' | @uri}}"
+          href = "/kubernetes_insights.dashboard.pod_detail?input.pod_uid={{.'UID' | @uri}}"
         }
 
       }
@@ -199,7 +199,7 @@ dashboard "kubernetes_node_detail" {
 
       table {
         title = "Addresses"
-        query = query.kubernetes_node_addresses
+        query = query.node_addresses
         args = {
           uid = self.input.node_uid.value
         }
@@ -208,7 +208,7 @@ dashboard "kubernetes_node_detail" {
 
       table {
         title = "Conditions"
-        query = query.kubernetes_node_conditions
+        query = query.node_conditions
         args = {
           uid = self.input.node_uid.value
         }
@@ -221,7 +221,7 @@ dashboard "kubernetes_node_detail" {
 
 # Input queries
 
-query "kubernetes_node_input" {
+query "node_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -238,7 +238,7 @@ query "kubernetes_node_input" {
 
 # Card queries
 
-query "kubernetes_node_pods" {
+query "node_pods_count" {
   sql = <<-EOQ
     select
       count(distinct p.name) as value,
@@ -253,7 +253,7 @@ query "kubernetes_node_pods" {
   param "uid" {}
 }
 
-query "kubernetes_node_containers" {
+query "node_containers_count" {
   sql = <<-EOQ
     select
       count(c) as value,
@@ -315,7 +315,7 @@ query "node_endpoints" {
 
 # Other queries
 
-query "kubernetes_node_overview" {
+query "node_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -332,7 +332,7 @@ query "kubernetes_node_overview" {
   param "uid" {}
 }
 
-query "kubernetes_node_labels" {
+query "node_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -355,7 +355,7 @@ query "kubernetes_node_labels" {
   param "uid" {}
 }
 
-query "kubernetes_node_annotations" {
+query "node_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -378,7 +378,7 @@ query "kubernetes_node_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_node_capacity" {
+query "node_capacity" {
   sql = <<-EOQ
     select
       capacity ->> 'cpu' as "CPU",
@@ -394,7 +394,7 @@ query "kubernetes_node_capacity" {
   param "uid" {}
 }
 
-query "kubernetes_node_allocatable" {
+query "node_allocatable" {
   sql = <<-EOQ
     select
       allocatable ->> 'cpu' as "CPU",
@@ -410,7 +410,7 @@ query "kubernetes_node_allocatable" {
   param "uid" {}
 }
 
-query "kubernetes_node_pod_details" {
+query "node_pod_details" {
   sql = <<-EOQ
     select
       p.name as "Name",
@@ -429,7 +429,7 @@ query "kubernetes_node_pod_details" {
   param "uid" {}
 }
 
-query "kubernetes_node_addresses" {
+query "node_addresses" {
   sql = <<-EOQ
     select
       a ->> 'address' as "Address",
@@ -444,7 +444,7 @@ query "kubernetes_node_addresses" {
   param "uid" {}
 }
 
-query "kubernetes_node_conditions" {
+query "node_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -465,7 +465,7 @@ query "kubernetes_node_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_node_hierarchy" {
+query "node_hierarchy" {
   sql = <<-EOQ
     -- This node
     select

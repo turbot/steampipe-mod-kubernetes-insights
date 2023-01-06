@@ -1,4 +1,4 @@
-dashboard "kubernetes_role_binding_detail" {
+dashboard "role_binding_detail" {
 
   title         = "Kubernetes Role Binding Detail"
   documentation = file("./dashboards/rolebinding/docs/rolebinding_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_role_binding_detail" {
 
   input "role_binding_uid" {
     title = "Select a Role Binding:"
-    query = query.kubernetes_role_binding_input
+    query = query.role_binding_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_role_binding_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_role_binding_subject_count
+      query = query.role_binding_subject_count
       args = {
         uid = self.input.role_binding_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_role_binding_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_role_binding_kind
+      query = query.role_binding_kind
       args = {
         uid = self.input.role_binding_uid.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_role_binding_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_role_binding_namespace
+      query = query.role_binding_namespace
       args = {
         uid = self.input.role_binding_uid.value
       }
@@ -104,7 +104,7 @@ dashboard "kubernetes_role_binding_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.kubernetes_role_binding_overview
+        query = query.role_binding_overview
         args = {
           uid = self.input.role_binding_uid.value
         }
@@ -113,7 +113,7 @@ dashboard "kubernetes_role_binding_detail" {
       table {
         title = "Labels"
         width = 6
-        query = query.kubernetes_role_binding_labels
+        query = query.role_binding_labels
         args = {
           uid = self.input.role_binding_uid.value
         }
@@ -126,7 +126,7 @@ dashboard "kubernetes_role_binding_detail" {
 
       table {
         title = "Annotations"
-        query = query.kubernetes_role_binding_annotations
+        query = query.role_binding_annotations
         args = {
           uid = self.input.role_binding_uid.value
         }
@@ -134,7 +134,7 @@ dashboard "kubernetes_role_binding_detail" {
 
       table {
         title = "Subjects"
-        query = query.kubernetes_role_binding_subjects
+        query = query.role_binding_subjects
         args = {
           uid = self.input.role_binding_uid.value
         }
@@ -149,7 +149,7 @@ dashboard "kubernetes_role_binding_detail" {
 
 # Input queries
 
-query "kubernetes_role_binding_input" {
+query "role_binding_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -166,7 +166,7 @@ query "kubernetes_role_binding_input" {
 
 # Card queries
 
-query "kubernetes_role_binding_namespace" {
+query "role_binding_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -181,7 +181,7 @@ query "kubernetes_role_binding_namespace" {
   param "uid" {}
 }
 
-query "kubernetes_role_binding_subject_count" {
+query "role_binding_subject_count" {
   sql = <<-EOQ
     select
       'Subjects' as label,
@@ -196,7 +196,7 @@ query "kubernetes_role_binding_subject_count" {
   param "uid" {}
 }
 
-query "kubernetes_role_binding_kind" {
+query "role_binding_kind" {
   sql = <<-EOQ
     select
       'Role Kind' as label,
@@ -240,7 +240,7 @@ query "role_binding_roles" {
 
 # Other queries
 
-query "kubernetes_role_binding_overview" {
+query "role_binding_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -257,7 +257,7 @@ query "kubernetes_role_binding_overview" {
   param "uid" {}
 }
 
-query "kubernetes_role_binding_labels" {
+query "role_binding_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -280,7 +280,7 @@ query "kubernetes_role_binding_labels" {
   param "uid" {}
 }
 
-query "kubernetes_role_binding_annotations" {
+query "role_binding_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -303,7 +303,7 @@ query "kubernetes_role_binding_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_role_binding_subjects" {
+query "role_binding_subjects" {
   sql = <<-EOQ
     select
       s ->> 'kind' as "Kind",

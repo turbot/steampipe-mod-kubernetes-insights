@@ -1,4 +1,4 @@
-dashboard "kubernetes_replicaset_detail" {
+dashboard "replicaset_detail" {
 
   title         = "Kubernetes ReplicaSet Detail"
   documentation = file("./dashboards/replicaset/docs/replicaset_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_replicaset_detail" {
 
   input "replicaset_uid" {
     title = "Select a ReplicaSet:"
-    query = query.kubernetes_replicaset_input
+    query = query.replicaset_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_replicaset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_replicaset_default_namespace
+      query = query.replicaset_default_namespace
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_replicaset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_replicaset_container_host_network
+      query = query.replicaset_container_host_network
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_replicaset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_replicaset_container_host_pid
+      query = query.replicaset_container_host_pid
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_replicaset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_replicaset_container_host_ipc
+      query = query.replicaset_container_host_ipc
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -121,7 +121,7 @@ dashboard "kubernetes_replicaset_detail" {
           container_names = with.containers.rows[*].name
         }
       }
-      
+
       edge {
         base = edge.namespace_to_deployment
         args = {
@@ -137,7 +137,7 @@ dashboard "kubernetes_replicaset_detail" {
       }
 
       edge {
-        base = edge.replicaset_to_pod
+        base = edge.replicaset_to_node
         args = {
           replicaset_uids = [self.input.replicaset_uid.value]
         }
@@ -151,9 +151,9 @@ dashboard "kubernetes_replicaset_detail" {
       }
 
       edge {
-        base = edge.pod_to_node
+        base = edge.node_to_pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          node_uids = with.nodes.rows[*].uid
         }
       }
     }
@@ -165,7 +165,7 @@ dashboard "kubernetes_replicaset_detail" {
       title = "Overview"
       type  = "line"
       width = 3
-      query = query.kubernetes_replicaset_overview
+      query = query.replicaset_overview
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -174,7 +174,7 @@ dashboard "kubernetes_replicaset_detail" {
     table {
       title = "Labels"
       width = 3
-      query = query.kubernetes_replicaset_labels
+      query = query.replicaset_labels
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -183,7 +183,7 @@ dashboard "kubernetes_replicaset_detail" {
     table {
       title = "Annotations"
       width = 6
-      query = query.kubernetes_replicaset_annotations
+      query = query.replicaset_annotations
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -195,7 +195,7 @@ dashboard "kubernetes_replicaset_detail" {
     chart {
       title = "Replicas"
       width = 4
-      query = query.kubernetes_replicaset_replicas_detail
+      query = query.replicaset_replicas_detail
       type  = "donut"
       args = {
         uid = self.input.replicaset_uid.value
@@ -206,7 +206,7 @@ dashboard "kubernetes_replicaset_detail" {
     flow {
       title = "ReplicaSet Hierarchy"
       width = 8
-      query = query.kubernetes_replicaset_tree
+      query = query.replicaset_tree
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -218,7 +218,7 @@ dashboard "kubernetes_replicaset_detail" {
     table {
       title = "Pods"
       width = 6
-      query = query.kubernetes_replicaset_pods
+      query = query.replicaset_pods_detail
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -227,7 +227,7 @@ dashboard "kubernetes_replicaset_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+        href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
       }
 
     }
@@ -235,7 +235,7 @@ dashboard "kubernetes_replicaset_detail" {
     table {
       title = "Conditions"
       width = 6
-      query = query.kubernetes_replicaset_conditions
+      query = query.replicaset_conditions
       args = {
         uid = self.input.replicaset_uid.value
       }
@@ -248,7 +248,7 @@ dashboard "kubernetes_replicaset_detail" {
 
 # Input queries
 
-query "kubernetes_replicaset_input" {
+query "replicaset_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -266,7 +266,7 @@ query "kubernetes_replicaset_input" {
 
 # Card queries
 
-query "kubernetes_replicaset_default_namespace" {
+query "replicaset_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -281,7 +281,7 @@ query "kubernetes_replicaset_default_namespace" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_container_host_network" {
+query "replicaset_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -296,7 +296,7 @@ query "kubernetes_replicaset_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_container_host_pid" {
+query "replicaset_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -311,7 +311,7 @@ query "kubernetes_replicaset_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_container_host_ipc" {
+query "replicaset_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -394,7 +394,7 @@ query "replicaset_deployments" {
 
 # Other queries
 
-query "kubernetes_replicaset_overview" {
+query "replicaset_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -410,7 +410,7 @@ query "kubernetes_replicaset_overview" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_labels" {
+query "replicaset_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -433,7 +433,7 @@ query "kubernetes_replicaset_labels" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_annotations" {
+query "replicaset_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -456,7 +456,7 @@ query "kubernetes_replicaset_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_conditions" {
+query "replicaset_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -477,7 +477,7 @@ query "kubernetes_replicaset_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_replicas_detail" {
+query "replicaset_replicas_detail" {
   sql = <<-EOQ
     select
       case when status_replicas <> 0 then 'status replicas' end as label,
@@ -515,7 +515,7 @@ query "kubernetes_replicaset_replicas_detail" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_pods" {
+query "replicaset_pods_detail" {
   sql = <<-EOQ
     select
       pod.name as "Name",
@@ -534,7 +534,7 @@ query "kubernetes_replicaset_pods" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_tree" {
+query "replicaset_tree" {
   sql = <<-EOQ
 
     -- This replicaset

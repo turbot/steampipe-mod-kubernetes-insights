@@ -1,4 +1,4 @@
-dashboard "kubernetes_deployment_ha_report" {
+dashboard "deployment_ha_report" {
 
   title         = "Kubernetes Deployment HA Report"
   documentation = file("./dashboards/deployment/docs/deployment_report_ha.md")
@@ -11,12 +11,12 @@ dashboard "kubernetes_deployment_ha_report" {
   container {
 
     card {
-      query = query.kubernetes_deployment_count
+      query = query.deployment_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_deployment_replica_count
+      query = query.deployment_replica_count
       width = 2
     }
 
@@ -28,15 +28,15 @@ dashboard "kubernetes_deployment_ha_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
+      href = "${dashboard.deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_deployment_replicas_table
+    query = query.deployment_replicas_table
   }
 
 }
 
-query "kubernetes_deployment_replicas_table" {
+query "deployment_replicas_table" {
   sql = <<-EOQ
     select
       name as "Name",

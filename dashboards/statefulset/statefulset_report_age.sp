@@ -1,4 +1,4 @@
-dashboard "kubernetes_statefulset_age_report" {
+dashboard "statefulset_age_report" {
 
   title         = "Kubernetes StatefulSet Age Report"
   documentation = file("./dashboards/statefulset/docs/statefulset_report_age.md")
@@ -12,37 +12,37 @@ dashboard "kubernetes_statefulset_age_report" {
 
     card {
       width = 2
-      query = query.kubernetes_statefulset_count
+      query = query.statefulset_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_statefulset_24_hours_count
+      query = query.statefulset_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_statefulset_30_days_count
+      query = query.statefulset_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_statefulset_30_90_days_count
+      query = query.statefulset_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_statefulset_90_365_days_count
+      query = query.statefulset_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_statefulset_1_year_count
+      query = query.statefulset_1_year_count
     }
 
   }
@@ -53,15 +53,15 @@ dashboard "kubernetes_statefulset_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_statefulset_detail.url_path}?input.statefulset_uid={{.UID | @uri}}"
+      href = "${dashboard.statefulset_detail.url_path}?input.statefulset_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_statefulset_age_table
+    query = query.statefulset_age_table
   }
 
 }
 
-query "kubernetes_statefulset_24_hours_count" {
+query "statefulset_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -73,7 +73,7 @@ query "kubernetes_statefulset_24_hours_count" {
   EOQ
 }
 
-query "kubernetes_statefulset_30_days_count" {
+query "statefulset_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -86,7 +86,7 @@ query "kubernetes_statefulset_30_days_count" {
   EOQ
 }
 
-query "kubernetes_statefulset_30_90_days_count" {
+query "statefulset_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -99,7 +99,7 @@ query "kubernetes_statefulset_30_90_days_count" {
   EOQ
 }
 
-query "kubernetes_statefulset_90_365_days_count" {
+query "statefulset_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -112,7 +112,7 @@ query "kubernetes_statefulset_90_365_days_count" {
   EOQ
 }
 
-query "kubernetes_statefulset_1_year_count" {
+query "statefulset_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -124,7 +124,7 @@ query "kubernetes_statefulset_1_year_count" {
   EOQ
 }
 
-query "kubernetes_statefulset_age_table" {
+query "statefulset_age_table" {
   sql = <<-EOQ
     select
       name as "Name",
