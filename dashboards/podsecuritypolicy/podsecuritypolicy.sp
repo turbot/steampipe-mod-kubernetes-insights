@@ -5,7 +5,7 @@ locals {
 }
 
 category "pod_security_policy" {
+  title = "Pod Security Policy"
   color = local.pod_security_policy_color
   icon  = "policy"
-  title = "Pod Security Policy"
 }

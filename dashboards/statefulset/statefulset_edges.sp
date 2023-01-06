@@ -1,3 +1,23 @@
+edge "statefulset_to_node" {
+  title = "node"
+
+  sql = <<-EOQ
+     select
+      pod_owner ->> 'uid' as from_id,
+      n.uid as to_id
+    from
+      kubernetes_pod as p
+      cross join jsonb_array_elements(p.owner_references) as pod_owner
+      left join kubernetes_node as n
+      on n.name = p.node_name
+    where
+      p.node_name <> ''
+      and pod_owner ->> 'uid' = any($1);
+  EOQ
+
+  param "statefulset_uids" {}
+}
+
 edge "statefulset_to_pod" {
   title = "pod"
 
@@ -9,7 +29,8 @@ edge "statefulset_to_pod" {
       kubernetes_pod as p,
       jsonb_array_elements(p.owner_references) as pod_owner
     where
-      pod_owner ->> 'uid' = any($1);
+      p.node_name = ''
+      and pod_owner ->> 'uid' = any($1);
   EOQ
 
   param "statefulset_uids" {}

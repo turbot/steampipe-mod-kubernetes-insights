@@ -7,6 +7,8 @@ node "persistent_volume" {
       title as title,
       jsonb_build_object(
         'UID', uid,
+        'Storage Class', storage_class,
+        'Volume Mode', volume_mode,
         'Phase', phase,
         'Context Name', context_name
       ) as properties

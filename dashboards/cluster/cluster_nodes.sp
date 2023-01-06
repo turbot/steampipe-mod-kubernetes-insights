@@ -4,10 +4,7 @@ node "cluster" {
   sql = <<-EOQ
     select
       context_name as id,
-      context_name as title,
-      jsonb_build_object(
-        'Context Name', context_name
-      ) as properties
+      context_name as title
     from
       kubernetes_namespace
     where

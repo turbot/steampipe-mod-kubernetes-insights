@@ -7,6 +7,9 @@ node "service" {
       title as title,
       jsonb_build_object(
         'UID', uid,
+        'Type', type,
+        'Cluster IP', cluster_ip,
+        'Creation Timestamp', creation_timestamp,
         'Namespace', namespace,
         'Context Name', context_name
       ) as properties

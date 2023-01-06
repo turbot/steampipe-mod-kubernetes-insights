@@ -7,6 +7,9 @@ node "cronjob" {
       title as title,
       jsonb_build_object(
         'UID', uid,
+        'Schedule', schedule,
+        'Suspend', suspend,
+        'Last Schedule Time', last_schedule_time,
         'Namespace', namespace,
         'Context Name', context_name
       ) as properties

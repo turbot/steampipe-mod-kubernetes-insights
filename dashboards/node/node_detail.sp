@@ -33,6 +33,11 @@ dashboard "node_detail" {
 
   }
 
+  with "namespaces" {
+    query = query.node_namespaces
+    args  = [self.input.node_uid.value]
+  }
+
   with "pods" {
     query = query.node_pods
     args  = [self.input.node_uid.value]
@@ -62,6 +67,13 @@ dashboard "node_detail" {
       }
 
       node {
+        base = node.namespace
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      node {
         base = node.endpoint
         args = {
           endpoint_uids = with.endpoints.rows[*].uid
@@ -79,6 +91,13 @@ dashboard "node_detail" {
         base = node.container
         args = {
           container_names = with.containers.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.namespace_to_endpoint
+        args = {
+          namespace_uids = with.namespaces.rows[*].uid
         }
       }
 
@@ -309,6 +328,23 @@ query "node_endpoints" {
       jsonb_array_elements(s -> 'addresses') as a
     where
       n.name = a ->> 'nodeName'
+      and n.uid = $1;
+  EOQ
+}
+
+query "node_namespaces" {
+  sql = <<-EOQ
+    select
+      nm.uid as uid
+    from
+      kubernetes_namespace as nm,
+      kubernetes_node as n,
+      kubernetes_endpoint as e,
+      jsonb_array_elements(subsets) as s,
+      jsonb_array_elements(s -> 'addresses') as a
+    where
+      n.name = a ->> 'nodeName'
+      and nm.name = e.namespace
       and n.uid = $1;
   EOQ
 }

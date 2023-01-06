@@ -144,6 +144,13 @@ dashboard "replicaset_detail" {
       }
 
       edge {
+        base = edge.replicaset_to_pod
+        args = {
+          replicaset_uids = [self.input.replicaset_uid.value]
+        }
+      }
+
+      edge {
         base = edge.pod_to_container
         args = {
           pod_uids = with.pods.rows[*].uid

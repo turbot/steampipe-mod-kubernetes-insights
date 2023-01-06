@@ -8,6 +8,7 @@ node "namespace" {
       jsonb_build_object(
         'UID', uid,
         'Phase', phase,
+        'Creation Timestamp', creation_timestamp,
         'Context Name', context_name
       ) as properties
     from

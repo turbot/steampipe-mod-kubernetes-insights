@@ -137,6 +137,13 @@ dashboard "job_detail" {
       }
 
       edge {
+        base = edge.job_to_node
+        args = {
+          job_uids = [self.input.job_uid.value]
+        }
+      }
+
+      edge {
         base = edge.job_to_pod
         args = {
           job_uids = [self.input.job_uid.value]

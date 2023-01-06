@@ -5,8 +5,8 @@ locals {
 }
 
 category "container" {
+  title = "Container"
   color = local.container_color
   href  = "/kubernetes_insights.dashboard.container_detail?input.container_name={{.properties.'Name'+.properties.'POD Name' | @uri}}"
   icon  = "square"
-  title = "Container"
 }

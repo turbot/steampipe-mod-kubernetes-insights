@@ -7,6 +7,7 @@ node "node" {
       name as title,
       jsonb_build_object(
         'UID', uid,
+        'Phase', phase,
         'POD CIDR', pod_cidr,
         'Context Name', context_name
       ) as properties

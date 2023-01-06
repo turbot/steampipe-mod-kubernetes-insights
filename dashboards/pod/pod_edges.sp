@@ -34,3 +34,21 @@ edge "pod_to_endpoint" {
 
   param "pod_uids" {}
 }
+
+edge "pod_to_service" {
+  title = "service"
+
+  sql = <<-EOQ
+     select
+      p.uid as from_id,
+      s.uid as to_id
+    from
+      kubernetes_service as s,
+      kubernetes_pod as p
+     where
+      p.selector_search = s.selector_query
+      and p.uid = any($1);
+  EOQ
+
+  param "pod_uids" {}
+}

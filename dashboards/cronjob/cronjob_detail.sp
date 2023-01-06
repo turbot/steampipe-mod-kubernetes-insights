@@ -137,6 +137,13 @@ dashboard "cronjob_detail" {
       }
 
       edge {
+        base = edge.job_to_node
+        args = {
+          job_uids = with.jobs.rows[*].uid
+        }
+      }
+
+      edge {
         base = edge.job_to_pod
         args = {
           job_uids = with.jobs.rows[*].uid

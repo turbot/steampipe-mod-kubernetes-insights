@@ -7,6 +7,11 @@ node "job" {
       title as title,
       jsonb_build_object(
         'UID', uid,
+        'Parallelism', parallelism,
+        'Completions', completions,
+        'Backoff Limit', backoff_limit,
+        'Start Time', start_time,
+        'Completion Time', completion_time,
         'Namespace', namespace,
         'Context Name', context_name
       ) as properties

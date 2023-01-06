@@ -7,6 +7,7 @@ node "pod_security_policy" {
       title as title,
       jsonb_build_object(
         'UID', uid,
+        'Allow Privilege Escalation', allow_privilege_escalation,
         'Privileged', privileged,
         'Context Name', context_name
       ) as properties

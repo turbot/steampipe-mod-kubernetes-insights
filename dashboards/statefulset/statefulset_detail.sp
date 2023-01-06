@@ -134,6 +134,13 @@ dashboard "statefulset_detail" {
       }
 
       edge {
+        base = edge.statefulset_to_node
+        args = {
+          statefulset_uids = [self.input.statefulset_uid.value]
+        }
+      }
+
+      edge {
         base = edge.statefulset_to_pod
         args = {
           statefulset_uids = [self.input.statefulset_uid.value]

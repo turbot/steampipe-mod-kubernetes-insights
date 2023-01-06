@@ -48,6 +48,11 @@ dashboard "endpoint_detail" {
     args  = [self.input.endpoint_uid.value]
   }
 
+  with "containers" {
+    query = query.endpoint_containers
+    args  = [self.input.endpoint_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
@@ -76,6 +81,13 @@ dashboard "endpoint_detail" {
       }
 
       node {
+        base = node.container
+        args = {
+          container_names = with.containers.rows[*].name
+        }
+      }
+
+      node {
         base = node.node
         args = {
           node_uids = with.nodes.rows[*].uid
@@ -83,9 +95,9 @@ dashboard "endpoint_detail" {
       }
 
       edge {
-        base = edge.namespace_to_pod
+        base = edge.node_to_pod
         args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          node_uids = with.nodes.rows[*].uid
         }
       }
 
@@ -96,11 +108,17 @@ dashboard "endpoint_detail" {
         }
       }
 
-
       edge {
         base = edge.endpoint_to_node
         args = {
           endpoint_uids = [self.input.endpoint_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = with.pods.rows[*].uid
         }
       }
     }
@@ -260,6 +278,22 @@ query "endpoint_pods" {
     where
       a -> 'targetRef' ->> 'uid' is not null
       and uid = $1;
+  EOQ
+}
+
+query "endpoint_containers" {
+  sql = <<-EOQ
+    select
+      distinct container ->> 'name' || p.name as name
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(p.containers) as container,
+      kubernetes_endpoint as e,
+      jsonb_array_elements(subsets) as s,
+      jsonb_array_elements(s -> 'addresses') as a
+    where
+      a -> 'targetRef' ->> 'uid' = p.uid
+      and e.uid = $1;
   EOQ
 }
 

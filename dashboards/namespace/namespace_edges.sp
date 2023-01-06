@@ -116,16 +116,11 @@ edge "namespace_to_endpoint" {
 
   sql = <<-EOQ
      select
-      coalesce(
-        a -> 'targetRef' ->> 'uid',
-        n.uid
-      ) as from_id,
+      n.uid from_id,
       e.uid as to_id
     from
       kubernetes_namespace as n,
       kubernetes_endpoint as e
-      left join jsonb_array_elements(subsets) as s on subsets is not null
-      left join jsonb_array_elements(s -> 'addresses') as a on s -> 'addresses' is not null
     where
       n.name = e.namespace
       and n.uid = any($1);

@@ -79,9 +79,9 @@ dashboard "service_detail" {
       }
 
       edge {
-        base = edge.namespace_to_service
+        base = edge.pod_to_service
         args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          pod_uids = with.pods.rows[*].uid
         }
       }
     }

@@ -7,6 +7,9 @@ node "pod" {
       title as title,
       jsonb_build_object(
         'UID', uid,
+        'Restart Policy', restart_policy,
+        'Service Account Name', service_account_name,
+        'Phase', phase,
         'Namespace', namespace,
         'Context Name', context_name
       ) as properties

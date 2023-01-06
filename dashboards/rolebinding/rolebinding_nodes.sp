@@ -7,6 +7,8 @@ node "role_binding" {
       title as title,
       jsonb_build_object(
         'UID', uid,
+        'Role Kind', role_kind,
+        'Creation Timestamp', creation_timestamp,
         'Context Name', context_name
       ) as properties
     from

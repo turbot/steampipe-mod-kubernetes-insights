@@ -7,6 +7,8 @@ node "deployment" {
       title as title,
       jsonb_build_object(
         'UID', uid,
+        'Replicas', replicas,
+        'Paused', paused,
         'Namespace', namespace,
         'Context Name', context_name
       ) as properties
