@@ -139,15 +139,10 @@ edge "namespace_to_service" {
 
   sql = <<-EOQ
      select
-      coalesce(
-      p.uid,
-      n.uid
-      ) as from_id,
+      n.uid as from_id,
       s.uid as to_id
     from
       kubernetes_service as s
-      left join kubernetes_pod as p
-      on p.selector_search = s.selector_query
       left join kubernetes_namespace as n
       on s.namespace = n.name
       and n.uid = any($1);

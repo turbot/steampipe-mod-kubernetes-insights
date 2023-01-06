@@ -1,4 +1,4 @@
-dashboard "kubernetes_namespace_detail" {
+dashboard "namespace_detail" {
 
   title         = "Kubernetes Namespace Detail"
   documentation = file("./dashboards/namespace/docs/namespace_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_namespace_detail" {
 
   input "namespace_uid" {
     title = "Select a namespace:"
-    query = query.kubernetes_namespace_input
+    query = query.namespace_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_namespace_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_namespace_service_count
+      query = query.namespace_service_count
       args = {
         uid = self.input.namespace_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_namespace_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_namespace_daemonset_count
+      query = query.namespace_daemonset_count
       args = {
         uid = self.input.namespace_uid.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_namespace_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_namespace_deployment_count
+      query = query.namespace_deployment_count
       args = {
         uid = self.input.namespace_uid.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_namespace_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_namespace_replicaset_count
+      query = query.namespace_replicaset_count
       args = {
         uid = self.input.namespace_uid.value
       }
@@ -49,17 +49,12 @@ dashboard "kubernetes_namespace_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_namespace_pod_count
+      query = query.namespace_pod_count
       args = {
         uid = self.input.namespace_uid.value
       }
     }
 
-  }
-
-  with "replicasets" {
-    query = query.namespace_replicasets
-    args  = [self.input.namespace_uid.value]
   }
 
   with "deployments" {
@@ -92,11 +87,6 @@ dashboard "kubernetes_namespace_detail" {
     args  = [self.input.namespace_uid.value]
   }
 
-  with "pods" {
-    query = query.namespace_pods
-    args  = [self.input.namespace_uid.value]
-  }
-
   container {
     graph {
       title     = "Relationships"
@@ -107,13 +97,6 @@ dashboard "kubernetes_namespace_detail" {
         base = node.namespace
         args = {
           namespace_uids = [self.input.namespace_uid.value]
-        }
-      }
-
-      node {
-        base = node.pod
-        args = {
-          pod_uids = with.pods.rows[*].uid
         }
       }
 
@@ -159,31 +142,10 @@ dashboard "kubernetes_namespace_detail" {
         }
       }
 
-      node {
-        base = node.replicaset
-        args = {
-          replicaset_uids = with.replicasets.rows[*].uid
-        }
-      }
-
       edge {
         base = edge.namespace_to_deployment
         args = {
           namespace_uids = [self.input.namespace_uid.value]
-        }
-      }
-
-      edge {
-        base = edge.deployment_to_replicaset
-        args = {
-          deployment_uids = with.deployments.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.replicaset_to_pod
-        args = {
-          replicaset_uids = with.replicasets.rows[*].uid
         }
       }
 
@@ -209,13 +171,6 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       edge {
-        base = edge.job_to_pod
-        args = {
-          job_uids = with.jobs.rows[*].uid
-        }
-      }
-
-      edge {
         base = edge.namespace_to_daemonset
         args = {
           namespace_uids = [self.input.namespace_uid.value]
@@ -223,23 +178,9 @@ dashboard "kubernetes_namespace_detail" {
       }
 
       edge {
-        base = edge.daemonset_to_pod
-        args = {
-          daemonset_uids = with.daemonsets.rows[*].uid
-        }
-      }
-
-      edge {
         base = edge.namespace_to_statefulset
         args = {
           namespace_uids = [self.input.namespace_uid.value]
-        }
-      }
-
-      edge {
-        base = edge.statefulset_to_pod
-        args = {
-          statefulset_uids = with.statefulsets.rows[*].uid
         }
       }
 
@@ -260,7 +201,7 @@ dashboard "kubernetes_namespace_detail" {
         title = "Overview"
         type  = "line"
         width = 3
-        query = query.kubernetes_namespace_overview
+        query = query.namespace_overview
         args = {
           uid = self.input.namespace_uid.value
         }
@@ -269,7 +210,7 @@ dashboard "kubernetes_namespace_detail" {
       table {
         title = "Labels"
         width = 3
-        query = query.kubernetes_namespace_labels
+        query = query.namespace_labels
         args = {
           uid = self.input.namespace_uid.value
         }
@@ -278,7 +219,7 @@ dashboard "kubernetes_namespace_detail" {
       table {
         title = "Annotations"
         width = 6
-        query = query.kubernetes_namespace_annotations
+        query = query.namespace_annotations
         args = {
           uid = self.input.namespace_uid.value
         }
@@ -291,7 +232,7 @@ dashboard "kubernetes_namespace_detail" {
       chart {
         title = "Services Type Analysis"
         width = 6
-        query = query.kubernetes_service_by_type
+        query = query.service_by_type
         type  = "column"
         args = {
           uid = self.input.namespace_uid.value
@@ -301,7 +242,7 @@ dashboard "kubernetes_namespace_detail" {
       table {
         title = "Services"
         width = 6
-        query = query.kubernetes_namespace_service_table
+        query = query.namespace_service_table
         args = {
           uid = self.input.namespace_uid.value
         }
@@ -311,14 +252,14 @@ dashboard "kubernetes_namespace_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_service_detail.url_path}?input.service_uid={{.UID | @uri}}"
+          href = "${dashboard.service_detail.url_path}?input.service_uid={{.UID | @uri}}"
         }
       }
 
       chart {
         title = "DaemonSets Status Analysis"
         width = 6
-        query = query.kubernetes_daemonset_node_status
+        query = query.daemonset_node_status
         type  = "column"
         args = {
           uid = self.input.namespace_uid.value
@@ -328,7 +269,7 @@ dashboard "kubernetes_namespace_detail" {
       table {
         title = "DaemonSets"
         width = 6
-        query = query.kubernetes_namespace_daemonset_table
+        query = query.namespace_daemonset_table
         args = {
           uid = self.input.namespace_uid.value
         }
@@ -338,14 +279,14 @@ dashboard "kubernetes_namespace_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_daemonset_detail.url_path}?input.daemonset_uid={{.UID | @uri}}"
+          href = "${dashboard.daemonset_detail.url_path}?input.daemonset_uid={{.UID | @uri}}"
         }
       }
 
       chart {
         title = "Deployments HA Analysis"
         width = 6
-        query = query.kubernetes_deployment_ha
+        query = query.deployment_ha
         type  = "column"
         args = {
           uid = self.input.namespace_uid.value
@@ -356,7 +297,7 @@ dashboard "kubernetes_namespace_detail" {
       table {
         title = "Deployments"
         width = 6
-        query = query.kubernetes_namespace_deployment_table
+        query = query.namespace_deployment_table
         args = {
           uid = self.input.namespace_uid.value
         }
@@ -366,14 +307,14 @@ dashboard "kubernetes_namespace_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
+          href = "${dashboard.deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
         }
       }
 
       chart {
         title = "ReplicaSets HA Analysis"
         width = 6
-        query = query.kubernetes_replicaset_ha
+        query = query.replicaset_ha
         type  = "column"
         args = {
           uid = self.input.namespace_uid.value
@@ -383,7 +324,7 @@ dashboard "kubernetes_namespace_detail" {
       table {
         title = "ReplicaSets"
         width = 6
-        query = query.kubernetes_namespace_replicaset_table
+        query = query.namespace_replicaset_table
         args = {
           uid = self.input.namespace_uid.value
         }
@@ -393,14 +334,14 @@ dashboard "kubernetes_namespace_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
+          href = "${dashboard.replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
         }
       }
 
       chart {
         title = "Pods Phase Analysis"
         width = 6
-        query = query.kubernetes_pod_by_phase
+        query = query.pod_by_phase
         type  = "column"
         args = {
           uid = self.input.namespace_uid.value
@@ -410,7 +351,7 @@ dashboard "kubernetes_namespace_detail" {
       table {
         title = "Pods"
         width = 6
-        query = query.kubernetes_namespace_pod_table
+        query = query.namespace_pod_table
         args = {
           uid = self.input.namespace_uid.value
         }
@@ -420,7 +361,7 @@ dashboard "kubernetes_namespace_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+          href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
         }
 
       }
@@ -431,7 +372,7 @@ dashboard "kubernetes_namespace_detail" {
 
 # Input queries
 
-query "kubernetes_namespace_input" {
+query "namespace_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -448,7 +389,7 @@ query "kubernetes_namespace_input" {
 
 # Card queries
 
-query "kubernetes_namespace_pod_count" {
+query "namespace_pod_count" {
   sql = <<-EOQ
     select
       'Pods' as label,
@@ -463,7 +404,7 @@ query "kubernetes_namespace_pod_count" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_service_count" {
+query "namespace_service_count" {
   sql = <<-EOQ
     select
       'Services' as label,
@@ -478,7 +419,7 @@ query "kubernetes_namespace_service_count" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_daemonset_count" {
+query "namespace_daemonset_count" {
   sql = <<-EOQ
     select
       'DaemonSets' as label,
@@ -493,7 +434,7 @@ query "kubernetes_namespace_daemonset_count" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_deployment_count" {
+query "namespace_deployment_count" {
   sql = <<-EOQ
     select
       'Deployments' as label,
@@ -508,7 +449,7 @@ query "kubernetes_namespace_deployment_count" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_replicaset_count" {
+query "namespace_replicaset_count" {
   sql = <<-EOQ
     select
       'ReplicaSets' as label,
@@ -534,19 +475,6 @@ query "namespace_services" {
       kubernetes_namespace as n
     where
       s.namespace = n.name
-      and n.uid = $1;
-  EOQ
-}
-
-query "namespace_replicasets" {
-  sql = <<-EOQ
-    select
-      r.uid as uid
-    from
-      kubernetes_replicaset as r,
-      kubernetes_namespace as n
-    where
-      r.namespace = n.name
       and n.uid = $1;
   EOQ
 }
@@ -616,22 +544,9 @@ query "namespace_statefulsets" {
   EOQ
 }
 
-query "namespace_pods" {
-  sql = <<-EOQ
-    select
-      p.uid as uid
-    from
-      kubernetes_pod as p,
-      kubernetes_namespace as n
-    where
-      p.namespace = n.name
-      and n.uid = $1;
-  EOQ
-}
-
 # Other queries
 
-query "kubernetes_namespace_overview" {
+query "namespace_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -647,7 +562,7 @@ query "kubernetes_namespace_overview" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_labels" {
+query "namespace_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -670,7 +585,7 @@ query "kubernetes_namespace_labels" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_annotations" {
+query "namespace_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -693,7 +608,7 @@ query "kubernetes_namespace_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_pod_table" {
+query "namespace_pod_table" {
   sql = <<-EOQ
     select
       p.name as "Name",
@@ -712,7 +627,7 @@ query "kubernetes_namespace_pod_table" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_service_table" {
+query "namespace_service_table" {
   sql = <<-EOQ
     select
       s.name as "Name",
@@ -731,7 +646,7 @@ query "kubernetes_namespace_service_table" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_daemonset_table" {
+query "namespace_daemonset_table" {
   sql = <<-EOQ
     select
       d.name as "Name",
@@ -751,7 +666,7 @@ query "kubernetes_namespace_daemonset_table" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_deployment_table" {
+query "namespace_deployment_table" {
   sql = <<-EOQ
     select
       d.name as "Name",
@@ -770,7 +685,7 @@ query "kubernetes_namespace_deployment_table" {
   param "uid" {}
 }
 
-query "kubernetes_namespace_replicaset_table" {
+query "namespace_replicaset_table" {
   sql = <<-EOQ
     select
       r.name as "Name",
@@ -789,7 +704,7 @@ query "kubernetes_namespace_replicaset_table" {
   param "uid" {}
 }
 
-query "kubernetes_service_by_type" {
+query "service_by_type" {
   sql = <<-EOQ
     select
       type,
@@ -808,7 +723,7 @@ query "kubernetes_service_by_type" {
   param "uid" {}
 }
 
-query "kubernetes_pod_by_phase" {
+query "pod_by_phase" {
   sql = <<-EOQ
     select
       p.phase,
@@ -827,7 +742,7 @@ query "kubernetes_pod_by_phase" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_ha" {
+query "deployment_ha" {
   sql = <<-EOQ
     select
       case when replicas < 3 then 'non-HA' else 'HA' end as status,
@@ -846,7 +761,7 @@ query "kubernetes_deployment_ha" {
   param "uid" {}
 }
 
-query "kubernetes_replicaset_ha" {
+query "replicaset_ha" {
   sql = <<-EOQ
     select
       case when replicas < 3 then 'non-HA' else 'HA' end as status,
@@ -865,7 +780,7 @@ query "kubernetes_replicaset_ha" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_node_status" {
+query "daemonset_node_status" {
   sql = <<-EOQ
     select
       d.name as "Name",

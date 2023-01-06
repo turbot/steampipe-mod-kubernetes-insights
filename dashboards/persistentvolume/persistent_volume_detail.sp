@@ -1,4 +1,4 @@
-dashboard "kubernetes_persistent_volume_detail" {
+dashboard "persistent_volume_detail" {
 
   title         = "Kubernetes Persistent Volume Detail"
   documentation = file("./dashboards/persistentvolume/docs/persistent_volume_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
   input "persistent_volume_uid" {
     title = "Select a Persistent Volume:"
-    query = query.kubernetes_persistent_volume_input
+    query = query.persistent_volume_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_persistent_volume_phase
+      query = query.persistent_volume_phase
       args = {
         uid = self.input.persistent_volume_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_persistent_volume_storage_class
+      query = query.persistent_volume_storage_class
       args = {
         uid = self.input.persistent_volume_uid.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_persistent_volume_mode
+      query = query.persistent_volume_mode
       args = {
         uid = self.input.persistent_volume_uid.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_persistent_volume_storage
+      query = query.persistent_volume_storage
       args = {
         uid = self.input.persistent_volume_uid.value
       }
@@ -93,7 +93,7 @@ dashboard "kubernetes_persistent_volume_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.kubernetes_persistent_volume_overview
+        query = query.persistent_volume_overview
         args = {
           uid = self.input.persistent_volume_uid.value
         }
@@ -102,7 +102,7 @@ dashboard "kubernetes_persistent_volume_detail" {
       table {
         title = "Labels"
         width = 6
-        query = query.kubernetes_persistent_volume_labels
+        query = query.persistent_volume_labels
         args = {
           uid = self.input.persistent_volume_uid.value
         }
@@ -115,7 +115,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
       table {
         title = "Annotations"
-        query = query.kubernetes_persistent_volume_annotations
+        query = query.persistent_volume_annotations
         args = {
           uid = self.input.persistent_volume_uid.value
         }
@@ -123,7 +123,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
       table {
         title = "Claim Reference"
-        query = query.kubernetes_persistent_volume_claim_ref
+        query = query.persistent_volume_claim_ref
         args = {
           uid = self.input.persistent_volume_uid.value
         }
@@ -132,7 +132,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
       table {
         title = "Pods"
-        query = query.kubernetes_persistent_volume_pods
+        query = query.persistent_volume_pods_detail
         args = {
           uid = self.input.persistent_volume_uid.value
         }
@@ -142,7 +142,7 @@ dashboard "kubernetes_persistent_volume_detail" {
         }
 
         column "Name" {
-          href = "/kubernetes_insights.dashboard.kubernetes_pod_detail?input.pod_uid={{.'UID' | @uri}}"
+          href = "/kubernetes_insights.dashboard.pod_detail?input.pod_uid={{.'UID' | @uri}}"
         }
 
       }
@@ -155,7 +155,7 @@ dashboard "kubernetes_persistent_volume_detail" {
 
 # Input queries
 
-query "kubernetes_persistent_volume_input" {
+query "persistent_volume_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -172,7 +172,7 @@ query "kubernetes_persistent_volume_input" {
 
 # Card queries
 
-query "kubernetes_persistent_volume_phase" {
+query "persistent_volume_phase" {
   sql = <<-EOQ
     select
       'Phase' as label,
@@ -187,7 +187,7 @@ query "kubernetes_persistent_volume_phase" {
   param "uid" {}
 }
 
-query "kubernetes_persistent_volume_storage_class" {
+query "persistent_volume_storage_class" {
   sql = <<-EOQ
     select
       'Storage Class' as label,
@@ -201,7 +201,7 @@ query "kubernetes_persistent_volume_storage_class" {
   param "uid" {}
 }
 
-query "kubernetes_persistent_volume_storage" {
+query "persistent_volume_storage" {
   sql = <<-EOQ
     select
       'Capacity Storage' as label,
@@ -215,7 +215,7 @@ query "kubernetes_persistent_volume_storage" {
   param "uid" {}
 }
 
-query "kubernetes_persistent_volume_mode" {
+query "persistent_volume_mode" {
   sql = <<-EOQ
     select
       'Volume Mode' as label,
@@ -247,7 +247,7 @@ query "persistent_volume_pods" {
 
 # Other queries
 
-query "kubernetes_persistent_volume_overview" {
+query "persistent_volume_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -264,7 +264,7 @@ query "kubernetes_persistent_volume_overview" {
   param "uid" {}
 }
 
-query "kubernetes_persistent_volume_labels" {
+query "persistent_volume_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -287,7 +287,7 @@ query "kubernetes_persistent_volume_labels" {
   param "uid" {}
 }
 
-query "kubernetes_persistent_volume_annotations" {
+query "persistent_volume_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -310,7 +310,7 @@ query "kubernetes_persistent_volume_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_persistent_volume_claim_ref" {
+query "persistent_volume_claim_ref" {
   sql = <<-EOQ
     select
       claim_ref ->> 'kind' as "Kind",
@@ -326,7 +326,7 @@ query "kubernetes_persistent_volume_claim_ref" {
   param "uid" {}
 }
 
-query "kubernetes_persistent_volume_pods" {
+query "persistent_volume_pods_detail" {
   sql = <<-EOQ
     select
       p.name as "Name",

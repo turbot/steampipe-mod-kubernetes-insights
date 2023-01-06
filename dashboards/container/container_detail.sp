@@ -1,4 +1,4 @@
-dashboard "kubernetes_container_detail" {
+dashboard "container_detail" {
 
   title         = "Kubernetes Container Detail"
   documentation = file("./dashboards/container/docs/container_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_container_detail" {
 
   input "container_name" {
     title = "Select a container:"
-    query = query.kubernetes_container_input
+    query = query.container_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_container_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_container_privileged
+      query = query.container_privileged
       args = {
         name = self.input.container_name.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_container_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_container_allow_privilege_escalation
+      query = query.container_allow_privilege_escalation
       args = {
         name = self.input.container_name.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_container_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_container_liveness_probe
+      query = query.container_liveness_probe
       args = {
         name = self.input.container_name.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_container_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_container_readiness_probe
+      query = query.container_readiness_probe
       args = {
         name = self.input.container_name.value
       }
@@ -49,7 +49,7 @@ dashboard "kubernetes_container_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_container_immutable_root_filesystem
+      query = query.container_immutable_root_filesystem
       args = {
         name = self.input.container_name.value
       }
@@ -102,7 +102,7 @@ dashboard "kubernetes_container_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.kubernetes_container_overview
+        query = query.container_overview
         args = {
           name = self.input.container_name.value
         }
@@ -111,7 +111,7 @@ dashboard "kubernetes_container_detail" {
       table {
         title = "Volume Mounts"
         width = 6
-        query = query.kubernetes_container_volume_mount
+        query = query.container_volume_mount
         args = {
           name = self.input.container_name.value
         }
@@ -124,7 +124,7 @@ dashboard "kubernetes_container_detail" {
 
       table {
         title = "Ports"
-        query = query.kubernetes_container_ports
+        query = query.container_ports
         args = {
           name = self.input.container_name.value
         }
@@ -132,7 +132,7 @@ dashboard "kubernetes_container_detail" {
 
       chart {
         title = "Resources"
-        query = query.kubernetes_container_resources
+        query = query.container_resources
         type  = "column"
         args = {
           name = self.input.container_name.value
@@ -147,7 +147,7 @@ dashboard "kubernetes_container_detail" {
 
 # Input queries
 
-query "kubernetes_container_input" {
+query "container_input" {
   sql = <<-EOQ
   with containers as (
     select
@@ -175,7 +175,7 @@ query "kubernetes_container_input" {
 # Card queries
 
 
-query "kubernetes_container_privileged" {
+query "container_privileged" {
   sql = <<-EOQ
     select
       case when c -> 'securityContext' ->> 'privileged' = 'true' then 'Enabled' else 'Disabled' end as value,
@@ -191,7 +191,7 @@ query "kubernetes_container_privileged" {
   param "name" {}
 }
 
-query "kubernetes_container_allow_privilege_escalation" {
+query "container_allow_privilege_escalation" {
   sql = <<-EOQ
     select
       case when c -> 'securityContext' ->> 'allowPrivilegeEscalation' = 'true' then 'Enabled' else 'Disabled' end as value,
@@ -207,7 +207,7 @@ query "kubernetes_container_allow_privilege_escalation" {
   param "name" {}
 }
 
-query "kubernetes_container_liveness_probe" {
+query "container_liveness_probe" {
   sql = <<-EOQ
     select
       case when c -> 'livenessProbe' is null then 'Unavailable' else 'Available' end as value,
@@ -223,7 +223,7 @@ query "kubernetes_container_liveness_probe" {
   param "name" {}
 }
 
-query "kubernetes_container_readiness_probe" {
+query "container_readiness_probe" {
   sql = <<-EOQ
     select
       case when c -> 'readinessProbe' is null then 'Unavailable' else 'Available' end as value,
@@ -239,7 +239,7 @@ query "kubernetes_container_readiness_probe" {
   param "name" {}
 }
 
-query "kubernetes_container_immutable_root_filesystem" {
+query "container_immutable_root_filesystem" {
   sql = <<-EOQ
     select
       case when c -> 'securityContext' ->> 'readOnlyRootFilesystem' = 'true' then 'Used' else 'Unused' end as value,
@@ -271,7 +271,7 @@ query "container_pods" {
 
 # Other queries
 
-query "kubernetes_container_overview" {
+query "container_overview" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
@@ -288,7 +288,7 @@ query "kubernetes_container_overview" {
   param "name" {}
 }
 
-query "kubernetes_container_volume_mount" {
+query "container_volume_mount" {
   sql = <<-EOQ
     select
       v ->> 'name' as "Name",
@@ -306,7 +306,7 @@ query "kubernetes_container_volume_mount" {
   param "name" {}
 }
 
-query "kubernetes_container_ports" {
+query "container_ports" {
   sql = <<-EOQ
     select
       p ->> 'name' as "Name",
@@ -325,7 +325,7 @@ query "kubernetes_container_ports" {
   param "name" {}
 }
 
-query "kubernetes_container_resources" {
+query "container_resources" {
   sql = <<-EOQ
     select
       'CPU Limit (m)' as label,

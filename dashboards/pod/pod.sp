@@ -7,5 +7,6 @@ locals {
 category "pod" {
   href  = "/kubernetes_insights.dashboard.kubernetes_pod_detail?input.pod_uid={{.properties.'UID' | @uri}}"
   icon  = local.kubernetes_pod_icon
+  color = local.container_color
   title = "Pod"
 }

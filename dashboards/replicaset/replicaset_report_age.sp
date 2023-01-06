@@ -1,4 +1,4 @@
-dashboard "kubernetes_replicaset_age_report" {
+dashboard "replicaset_age_report" {
 
   title         = "Kubernetes ReplicaSet Age Report"
   documentation = file("./dashboards/replicaset/docs/replicaset_report_age.md")
@@ -11,38 +11,38 @@ dashboard "kubernetes_replicaset_age_report" {
   container {
 
     card {
-      query = query.kubernetes_replicaset_count
+      query = query.replicaset_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_replicaset_24_hours_count
+      query = query.replicaset_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_replicaset_30_days_count
+      query = query.replicaset_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_replicaset_30_90_days_count
+      query = query.replicaset_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_replicaset_90_365_days_count
+      query = query.replicaset_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_replicaset_1_year_count
+      query = query.replicaset_1_year_count
     }
   }
   table {
@@ -52,14 +52,14 @@ dashboard "kubernetes_replicaset_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
+      href = "${dashboard.replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_replicaset_age_table
+    query = query.replicaset_age_table
   }
 }
 
-query "kubernetes_replicaset_24_hours_count" {
+query "replicaset_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -71,7 +71,7 @@ query "kubernetes_replicaset_24_hours_count" {
   EOQ
 }
 
-query "kubernetes_replicaset_30_days_count" {
+query "replicaset_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -84,7 +84,7 @@ query "kubernetes_replicaset_30_days_count" {
   EOQ
 }
 
-query "kubernetes_replicaset_30_90_days_count" {
+query "replicaset_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +97,7 @@ query "kubernetes_replicaset_30_90_days_count" {
   EOQ
 }
 
-query "kubernetes_replicaset_90_365_days_count" {
+query "replicaset_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -110,7 +110,7 @@ query "kubernetes_replicaset_90_365_days_count" {
   EOQ
 }
 
-query "kubernetes_replicaset_1_year_count" {
+query "replicaset_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -122,7 +122,7 @@ query "kubernetes_replicaset_1_year_count" {
   EOQ
 }
 
-query "kubernetes_replicaset_age_table" {
+query "replicaset_age_table" {
   sql = <<-EOQ
     select
       name as "Name",

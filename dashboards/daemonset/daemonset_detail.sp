@@ -1,4 +1,4 @@
-dashboard "kubernetes_daemonset_detail" {
+dashboard "daemonset_detail" {
 
   title         = "Kubernetes DaemonSet Detail"
   documentation = file("./dashboards/daemonset/docs/daemonset_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_daemonset_detail" {
 
   input "daemonset_uid" {
     title = "Select a DaemonSet:"
-    query = query.kubernetes_daemonset_input
+    query = query.daemonset_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_daemonset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_daemonset_default_namespace
+      query = query.daemonset_default_namespace
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_daemonset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_daemonset_container_host_network
+      query = query.daemonset_container_host_network
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_daemonset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_daemonset_container_host_pid
+      query = query.daemonset_container_host_pid
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_daemonset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_daemonset_container_host_ipc
+      query = query.daemonset_container_host_ipc
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -118,7 +118,7 @@ dashboard "kubernetes_daemonset_detail" {
       }
 
       edge {
-        base = edge.daemonset_to_pod
+        base = edge.daemonset_to_node
         args = {
           daemonset_uids = [self.input.daemonset_uid.value]
         }
@@ -132,9 +132,9 @@ dashboard "kubernetes_daemonset_detail" {
       }
 
       edge {
-        base = edge.pod_to_node
+        base = edge.node_to_pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          node_uids = with.nodes.rows[*].uid
         }
       }
     }
@@ -146,7 +146,7 @@ dashboard "kubernetes_daemonset_detail" {
       title = "Overview"
       type  = "line"
       width = 3
-      query = query.kubernetes_daemonset_overview
+      query = query.daemonset_overview
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -155,7 +155,7 @@ dashboard "kubernetes_daemonset_detail" {
     table {
       title = "Labels"
       width = 3
-      query = query.kubernetes_daemonset_labels
+      query = query.daemonset_labels
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -164,7 +164,7 @@ dashboard "kubernetes_daemonset_detail" {
     table {
       title = "Annotations"
       width = 6
-      query = query.kubernetes_daemonset_annotations
+      query = query.daemonset_annotations
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -176,7 +176,7 @@ dashboard "kubernetes_daemonset_detail" {
     chart {
       title = "DaemonSet Status"
       width = 4
-      query = query.kubernetes_daemonset_node_detail
+      query = query.daemonset_node_detail
       type  = "donut"
       args = {
         uid = self.input.daemonset_uid.value
@@ -196,7 +196,7 @@ dashboard "kubernetes_daemonset_detail" {
     flow {
       title = "DaemonSet Hierarchy"
       width = 8
-      query = query.kubernetes_daemonset_tree
+      query = query.daemonset_tree
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -208,7 +208,7 @@ dashboard "kubernetes_daemonset_detail" {
     table {
       title = "Pods"
       width = 6
-      query = query.kubernetes_daemonset_pods
+      query = query.daemonset_pods_detail
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -217,7 +217,7 @@ dashboard "kubernetes_daemonset_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+        href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
       }
 
     }
@@ -225,7 +225,7 @@ dashboard "kubernetes_daemonset_detail" {
     table {
       title = "Strategy"
       width = 6
-      query = query.kubernetes_daemonset_strategy
+      query = query.daemonset_strategy
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -235,7 +235,7 @@ dashboard "kubernetes_daemonset_detail" {
     table {
       title = "Conditions"
       width = 6
-      query = query.kubernetes_daemonset_conditions
+      query = query.daemonset_conditions
       args = {
         uid = self.input.daemonset_uid.value
       }
@@ -248,7 +248,7 @@ dashboard "kubernetes_daemonset_detail" {
 
 # Input queries
 
-query "kubernetes_daemonset_input" {
+query "daemonset_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -266,7 +266,7 @@ query "kubernetes_daemonset_input" {
 
 # Card queries
 
-query "kubernetes_daemonset_default_namespace" {
+query "daemonset_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -281,7 +281,7 @@ query "kubernetes_daemonset_default_namespace" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_container_host_network" {
+query "daemonset_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -296,7 +296,7 @@ query "kubernetes_daemonset_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_container_host_pid" {
+query "daemonset_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -311,7 +311,7 @@ query "kubernetes_daemonset_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_container_host_ipc" {
+query "daemonset_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -382,7 +382,7 @@ query "daemonset_namespaces" {
 
 # Other queries
 
-query "kubernetes_daemonset_overview" {
+query "daemonset_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -398,7 +398,7 @@ query "kubernetes_daemonset_overview" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_labels" {
+query "daemonset_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -421,7 +421,7 @@ query "kubernetes_daemonset_labels" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_annotations" {
+query "daemonset_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -444,7 +444,7 @@ query "kubernetes_daemonset_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_strategy" {
+query "daemonset_strategy" {
   sql = <<-EOQ
     select
       update_strategy ->> 'type' as "Type",
@@ -459,7 +459,7 @@ query "kubernetes_daemonset_strategy" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_conditions" {
+query "daemonset_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -480,7 +480,7 @@ query "kubernetes_daemonset_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_node_detail" {
+query "daemonset_node_detail" {
   sql = <<-EOQ
     select
       case when number_ready <> 0 then 'ready' end as label,
@@ -502,7 +502,7 @@ query "kubernetes_daemonset_node_detail" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_pods" {
+query "daemonset_pods_detail" {
   sql = <<-EOQ
     select
       pod.name as "Name",
@@ -521,7 +521,7 @@ query "kubernetes_daemonset_pods" {
   param "uid" {}
 }
 
-query "kubernetes_daemonset_tree" {
+query "daemonset_tree" {
   sql = <<-EOQ
 
     -- This daemonset

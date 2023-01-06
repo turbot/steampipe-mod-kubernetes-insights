@@ -1,4 +1,4 @@
-dashboard "kubernetes_deployment_host_access_report" {
+dashboard "deployment_host_access_report" {
 
   title         = "Kubernetes Deployment Host Access Report"
   documentation = file("./dashboards/deployment/docs/deployment_report_host_access.md")
@@ -11,22 +11,22 @@ dashboard "kubernetes_deployment_host_access_report" {
   container {
 
     card {
-      query = query.kubernetes_deployment_count
+      query = query.deployment_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_deployment_container_host_network_count
+      query = query.deployment_container_host_network_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_deployment_container_host_pid_count
+      query = query.deployment_container_host_pid_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_deployment_container_host_ipc_count
+      query = query.deployment_container_host_ipc_count
       width = 2
     }
 
@@ -38,15 +38,15 @@ dashboard "kubernetes_deployment_host_access_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
+      href = "${dashboard.deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_deployment_host_table
+    query = query.deployment_host_table
   }
 
 }
 
-query "kubernetes_deployment_host_table" {
+query "deployment_host_table" {
   sql = <<-EOQ
     select
       name as "Name",

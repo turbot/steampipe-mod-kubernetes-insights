@@ -1,4 +1,4 @@
-dashboard "kubernetes_cluster_detail" {
+dashboard "cluster_detail" {
 
   title         = "Kubernetes Cluster Detail"
   documentation = file("./dashboards/cluster/docs/cluster_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_cluster_detail" {
 
   input "cluster_context" {
     title = "Select a cluster:"
-    query = query.kubernetes_cluster_input
+    query = query.cluster_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_cluster_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cluster_namespaces_count
+      query = query.cluster_namespaces_count
       args = {
         context = self.input.cluster_context.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_cluster_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cluster_node_count
+      query = query.cluster_node_count
       args = {
         context = self.input.cluster_context.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_cluster_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cluster_persistent_volumes_count
+      query = query.cluster_persistent_volumes_count
       args = {
         context = self.input.cluster_context.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_cluster_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cluster_pod_security_policy_count
+      query = query.cluster_pod_security_policy_count
       args = {
         context = self.input.cluster_context.value
       }
@@ -49,7 +49,7 @@ dashboard "kubernetes_cluster_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cluster_role_binding_count
+      query = query.cluster_role_binding_count
       args = {
         context = self.input.cluster_context.value
       }
@@ -57,7 +57,7 @@ dashboard "kubernetes_cluster_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_cluster_role_count
+      query = query.cluster_role_count
       args = {
         context = self.input.cluster_context.value
       }
@@ -199,7 +199,7 @@ dashboard "kubernetes_cluster_detail" {
     table {
       title = "Namespaces"
       width = 6
-      query = query.kubernetes_cluster_namespaces_table
+      query = query.cluster_namespaces_table
       args = {
         context = self.input.cluster_context.value
       }
@@ -209,14 +209,14 @@ dashboard "kubernetes_cluster_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_namespace_detail.url_path}?input.namespace_uid={{.UID | @uri}}"
+        href = "${dashboard.namespace_detail.url_path}?input.namespace_uid={{.UID | @uri}}"
       }
     }
 
     table {
       title = "Nodes"
       width = 6
-      query = query.kubernetes_cluster_nodes_table
+      query = query.cluster_nodes_table
       args = {
         context = self.input.cluster_context.value
       }
@@ -226,14 +226,14 @@ dashboard "kubernetes_cluster_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_node_detail.url_path}?input.node_uid={{.UID | @uri}}"
+        href = "${dashboard.node_detail.url_path}?input.node_uid={{.UID | @uri}}"
       }
     }
 
     table {
       title = "Persistent Volumes"
       width = 6
-      query = query.kubernetes_cluster_persistent_volumes_table
+      query = query.cluster_persistent_volumes_table
       args = {
         context = self.input.cluster_context.value
       }
@@ -242,7 +242,7 @@ dashboard "kubernetes_cluster_detail" {
     table {
       title = "Pod Security Policies"
       width = 6
-      query = query.kubernetes_cluster_pod_security_policy_table
+      query = query.cluster_pod_security_policy_table
       args = {
         context = self.input.cluster_context.value
       }
@@ -251,7 +251,7 @@ dashboard "kubernetes_cluster_detail" {
     table {
       title = "Role Bindings"
       width = 6
-      query = query.kubernetes_cluster_role_binding_table
+      query = query.cluster_role_binding_table
       args = {
         context = self.input.cluster_context.value
       }
@@ -260,17 +260,17 @@ dashboard "kubernetes_cluster_detail" {
     table {
       title = "Roles"
       width = 6
-      query = query.kubernetes_cluster_role_table
+      query = query.cluster_role_table
       args = {
         context = self.input.cluster_context.value
       }
     }
   }
 }
- 
+
 # Input queries
 
-query "kubernetes_cluster_input" {
+query "cluster_input" {
   sql = <<-EOQ
     select
      distinct context_name as label,
@@ -284,7 +284,7 @@ query "kubernetes_cluster_input" {
 
 # Card queries
 
-query "kubernetes_cluster_namespaces_count" {
+query "cluster_namespaces_count" {
   sql = <<-EOQ
     select
       'Namespaces' as label,
@@ -298,7 +298,7 @@ query "kubernetes_cluster_namespaces_count" {
   param "context" {}
 }
 
-query "kubernetes_cluster_node_count" {
+query "cluster_node_count" {
   sql = <<-EOQ
     select
       'Nodes' as label,
@@ -312,7 +312,7 @@ query "kubernetes_cluster_node_count" {
   param "context" {}
 }
 
-query "kubernetes_cluster_persistent_volumes_count" {
+query "cluster_persistent_volumes_count" {
   sql = <<-EOQ
     select
       'Persistent Volumes' as label,
@@ -326,7 +326,7 @@ query "kubernetes_cluster_persistent_volumes_count" {
   param "context" {}
 }
 
-query "kubernetes_cluster_pod_security_policy_count" {
+query "cluster_pod_security_policy_count" {
   sql = <<-EOQ
     select
       'Pod Security Policies' as label,
@@ -340,7 +340,7 @@ query "kubernetes_cluster_pod_security_policy_count" {
   param "context" {}
 }
 
-query "kubernetes_cluster_role_binding_count" {
+query "cluster_role_binding_count" {
   sql = <<-EOQ
     select
       'Role Bindings' as label,
@@ -354,7 +354,7 @@ query "kubernetes_cluster_role_binding_count" {
   param "context" {}
 }
 
-query "kubernetes_cluster_role_count" {
+query "cluster_role_count" {
   sql = <<-EOQ
     select
       'Roles' as label,
@@ -438,7 +438,7 @@ query "cluster_roles" {
 
 # Other queries
 
-query "kubernetes_cluster_namespaces_table" {
+query "cluster_namespaces_table" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -455,7 +455,7 @@ query "kubernetes_cluster_namespaces_table" {
   param "context" {}
 }
 
-query "kubernetes_cluster_nodes_table" {
+query "cluster_nodes_table" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -472,7 +472,7 @@ query "kubernetes_cluster_nodes_table" {
   param "context" {}
 }
 
-query "kubernetes_cluster_persistent_volumes_table" {
+query "cluster_persistent_volumes_table" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -491,7 +491,7 @@ query "kubernetes_cluster_persistent_volumes_table" {
   param "context" {}
 }
 
-query "kubernetes_cluster_pod_security_policy_table" {
+query "cluster_pod_security_policy_table" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -512,7 +512,7 @@ query "kubernetes_cluster_pod_security_policy_table" {
   param "context" {}
 }
 
-query "kubernetes_cluster_role_binding_table" {
+query "cluster_role_binding_table" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -531,7 +531,7 @@ query "kubernetes_cluster_role_binding_table" {
   param "context" {}
 }
 
-query "kubernetes_cluster_role_table" {
+query "cluster_role_table" {
   sql = <<-EOQ
     select
       name as "Name",

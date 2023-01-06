@@ -1,4 +1,4 @@
-dashboard "kubernetes_daemonset_age_report" {
+dashboard "daemonset_age_report" {
 
   title         = "Kubernetes DaemonSet Age Report"
   documentation = file("./dashboards/daemonset/docs/daemonset_report_age.md")
@@ -11,38 +11,38 @@ dashboard "kubernetes_daemonset_age_report" {
   container {
 
     card {
-      query = query.kubernetes_daemonset_count
+      query = query.daemonset_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_daemonset_24_hours_count
+      query = query.daemonset_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_daemonset_30_days_count
+      query = query.daemonset_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_daemonset_30_90_days_count
+      query = query.daemonset_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_daemonset_90_365_days_count
+      query = query.daemonset_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_daemonset_1_year_count
+      query = query.daemonset_1_year_count
     }
   }
 
@@ -52,14 +52,14 @@ dashboard "kubernetes_daemonset_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_daemonset_detail.url_path}?input.daemonset_uid={{.UID | @uri}}"
+      href = "${dashboard.daemonset_detail.url_path}?input.daemonset_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_daemonset_age_table
+    query = query.daemonset_age_table
   }
 }
 
-query "kubernetes_daemonset_24_hours_count" {
+query "daemonset_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -71,7 +71,7 @@ query "kubernetes_daemonset_24_hours_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_30_days_count" {
+query "daemonset_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -84,7 +84,7 @@ query "kubernetes_daemonset_30_days_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_30_90_days_count" {
+query "daemonset_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +97,7 @@ query "kubernetes_daemonset_30_90_days_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_90_365_days_count" {
+query "daemonset_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -110,7 +110,7 @@ query "kubernetes_daemonset_90_365_days_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_1_year_count" {
+query "daemonset_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -122,7 +122,7 @@ query "kubernetes_daemonset_1_year_count" {
   EOQ
 }
 
-query "kubernetes_daemonset_age_table" {
+query "daemonset_age_table" {
   sql = <<-EOQ
     select
       name as "Name",

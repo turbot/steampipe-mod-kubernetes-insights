@@ -1,4 +1,4 @@
-dashboard "kubernetes_endpoint_detail" {
+dashboard "endpoint_detail" {
 
   title         = "Kubernetes Endpoint Detail"
   documentation = file("./dashboards/endpoint/docs/endpoint_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_endpoint_detail" {
 
   input "endpoint_uid" {
     title = "Select an Endpoint:"
-    query = query.kubernetes_endpoint_input
+    query = query.endpoint_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_endpoint_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_endpoint_subset_count
+      query = query.endpoint_subset_count
       args = {
         uid = self.input.endpoint_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_endpoint_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_endpoint_namespace
+      query = query.endpoint_namespace
       args = {
         uid = self.input.endpoint_uid.value
       }
@@ -116,7 +116,7 @@ dashboard "kubernetes_endpoint_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.kubernetes_endpoint_overview
+        query = query.endpoint_overview
         args = {
           uid = self.input.endpoint_uid.value
         }
@@ -125,7 +125,7 @@ dashboard "kubernetes_endpoint_detail" {
       table {
         title = "Labels"
         width = 6
-        query = query.kubernetes_endpoint_labels
+        query = query.endpoint_labels
         args = {
           uid = self.input.endpoint_uid.value
         }
@@ -138,7 +138,7 @@ dashboard "kubernetes_endpoint_detail" {
 
       table {
         title = "Annotations"
-        query = query.kubernetes_endpoint_annotations
+        query = query.endpoint_annotations
         args = {
           uid = self.input.endpoint_uid.value
         }
@@ -146,7 +146,7 @@ dashboard "kubernetes_endpoint_detail" {
 
       table {
         title = "Ports"
-        query = query.kubernetes_endpoint_ports
+        query = query.endpoint_ports
         args = {
           uid = self.input.endpoint_uid.value
         }
@@ -155,7 +155,7 @@ dashboard "kubernetes_endpoint_detail" {
 
       table {
         title = "Addresses"
-        query = query.kubernetes_endpoint_addresses
+        query = query.endpoint_addresses
         args = {
           uid = self.input.endpoint_uid.value
         }
@@ -170,7 +170,7 @@ dashboard "kubernetes_endpoint_detail" {
 
 # Input queries
 
-query "kubernetes_endpoint_input" {
+query "endpoint_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -187,7 +187,7 @@ query "kubernetes_endpoint_input" {
 
 # Card queries
 
-query "kubernetes_endpoint_namespace" {
+query "endpoint_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -202,7 +202,7 @@ query "kubernetes_endpoint_namespace" {
   param "uid" {}
 }
 
-query "kubernetes_endpoint_subset_count" {
+query "endpoint_subset_count" {
   sql = <<-EOQ
     select
       'Subsets' as label,
@@ -265,7 +265,7 @@ query "endpoint_pods" {
 
 # Other queries
 
-query "kubernetes_endpoint_overview" {
+query "endpoint_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -282,7 +282,7 @@ query "kubernetes_endpoint_overview" {
   param "uid" {}
 }
 
-query "kubernetes_endpoint_labels" {
+query "endpoint_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -305,7 +305,7 @@ query "kubernetes_endpoint_labels" {
   param "uid" {}
 }
 
-query "kubernetes_endpoint_annotations" {
+query "endpoint_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -328,7 +328,7 @@ query "kubernetes_endpoint_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_endpoint_ports" {
+query "endpoint_ports" {
   sql = <<-EOQ
     select
       p ->> 'name' as "Name",
@@ -345,7 +345,7 @@ query "kubernetes_endpoint_ports" {
   param "uid" {}
 }
 
-query "kubernetes_endpoint_addresses" {
+query "endpoint_addresses" {
   sql = <<-EOQ
     select
       a ->> 'ip' as "IP",

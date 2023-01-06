@@ -7,5 +7,6 @@ locals {
 category "job" {
   href  = "/kubernetes_insights.dashboard.kubernetes_job_detail?input.job_uid={{.properties.'UID' | @uri}}"
   icon  = local.kubernetes_job_icon
+  color = local.definition_color
   title = "Job"
 }

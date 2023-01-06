@@ -1,4 +1,4 @@
-dashboard "kubernetes_job_host_access_report" {
+dashboard "job_host_access_report" {
 
   title         = "Kubernetes Job Host Access Report"
   documentation = file("./dashboards/job/docs/job_report_host_access.md")
@@ -11,22 +11,22 @@ dashboard "kubernetes_job_host_access_report" {
   container {
 
     card {
-      query = query.kubernetes_job_count
+      query = query.job_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_job_container_host_network_count
+      query = query.job_container_host_network_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_job_container_host_pid_count
+      query = query.job_container_host_pid_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_job_container_host_ipc_count
+      query = query.job_container_host_ipc_count
       width = 2
     }
 
@@ -38,15 +38,15 @@ dashboard "kubernetes_job_host_access_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_job_detail.url_path}?input.job_uid={{.UID | @uri}}"
+      href = "${dashboard.job_detail.url_path}?input.job_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_job_host_table
+    query = query.job_host_table
   }
 
 }
 
-query "kubernetes_job_host_table" {
+query "job_host_table" {
   sql = <<-EOQ
     select
       name as "Name",

@@ -1,4 +1,4 @@
-dashboard "kubernetes_job_detail" {
+dashboard "job_detail" {
 
   title         = "Kubernetes Job Detail"
   documentation = file("./dashboards/job/docs/job_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_job_detail" {
 
   input "job_uid" {
     title = "Select a Job:"
-    query = query.kubernetes_job_input
+    query = query.job_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_job_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_job_default_namespace
+      query = query.job_default_namespace
       args = {
         uid = self.input.job_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_job_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_job_container_host_network
+      query = query.job_container_host_network
       args = {
         uid = self.input.job_uid.value
       }
@@ -33,7 +33,7 @@ dashboard "kubernetes_job_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_job_container_host_pid
+      query = query.job_container_host_pid
       args = {
         uid = self.input.job_uid.value
       }
@@ -41,7 +41,7 @@ dashboard "kubernetes_job_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_job_container_host_ipc
+      query = query.job_container_host_ipc
       args = {
         uid = self.input.job_uid.value
       }
@@ -151,9 +151,9 @@ dashboard "kubernetes_job_detail" {
       }
 
       edge {
-        base = edge.pod_to_node
+        base = edge.node_to_pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          node_uids = with.nodes.rows[*].uid
         }
       }
     }
@@ -165,7 +165,7 @@ dashboard "kubernetes_job_detail" {
       title = "Overview"
       type  = "line"
       width = 3
-      query = query.kubernetes_job_overview
+      query = query.job_overview
       args = {
         uid = self.input.job_uid.value
       }
@@ -174,7 +174,7 @@ dashboard "kubernetes_job_detail" {
     table {
       title = "Labels"
       width = 3
-      query = query.kubernetes_job_labels
+      query = query.job_labels
       args = {
         uid = self.input.job_uid.value
       }
@@ -183,7 +183,7 @@ dashboard "kubernetes_job_detail" {
     table {
       title = "Annotations"
       width = 6
-      query = query.kubernetes_job_annotations
+      query = query.job_annotations
       args = {
         uid = self.input.job_uid.value
       }
@@ -196,7 +196,7 @@ dashboard "kubernetes_job_detail" {
     chart {
       title = "Job Status"
       width = 4
-      query = query.kubernetes_job_pods_detail
+      query = query.job_status_detail
       type  = "donut"
       args = {
         uid = self.input.job_uid.value
@@ -215,7 +215,7 @@ dashboard "kubernetes_job_detail" {
     flow {
       title = "Job Hierarchy"
       width = 8
-      query = query.kubernetes_job_tree
+      query = query.job_tree
       args = {
         uid = self.input.job_uid.value
       }
@@ -227,7 +227,7 @@ dashboard "kubernetes_job_detail" {
     table {
       title = "Pods"
       width = 6
-      query = query.kubernetes_job_pods
+      query = query.job_pods_detail
       args = {
         uid = self.input.job_uid.value
       }
@@ -236,7 +236,7 @@ dashboard "kubernetes_job_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+        href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
       }
 
     }
@@ -244,7 +244,7 @@ dashboard "kubernetes_job_detail" {
     table {
       title = "Conditions"
       width = 6
-      query = query.kubernetes_job_conditions
+      query = query.job_conditions
       args = {
         uid = self.input.job_uid.value
       }
@@ -257,7 +257,7 @@ dashboard "kubernetes_job_detail" {
 
 # Input queries
 
-query "kubernetes_job_input" {
+query "job_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -275,7 +275,7 @@ query "kubernetes_job_input" {
 
 # Card queries
 
-query "kubernetes_job_default_namespace" {
+query "job_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
@@ -290,7 +290,7 @@ query "kubernetes_job_default_namespace" {
   param "uid" {}
 }
 
-query "kubernetes_job_container_host_network" {
+query "job_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -305,7 +305,7 @@ query "kubernetes_job_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_job_container_host_pid" {
+query "job_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -320,7 +320,7 @@ query "kubernetes_job_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_job_container_host_ipc" {
+query "job_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -409,7 +409,7 @@ query "job_containers" {
 
 # Other queries
 
-query "kubernetes_job_overview" {
+query "job_overview" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -425,7 +425,7 @@ query "kubernetes_job_overview" {
   param "uid" {}
 }
 
-query "kubernetes_job_labels" {
+query "job_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -448,7 +448,7 @@ query "kubernetes_job_labels" {
   param "uid" {}
 }
 
-query "kubernetes_job_annotations" {
+query "job_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -471,7 +471,7 @@ query "kubernetes_job_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_job_conditions" {
+query "job_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -492,7 +492,7 @@ query "kubernetes_job_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_job_pods_detail" {
+query "job_status_detail" {
   sql = <<-EOQ
     select
       case when succeeded <> 0 then 'succeeded' end as label,
@@ -514,7 +514,7 @@ query "kubernetes_job_pods_detail" {
   param "uid" {}
 }
 
-query "kubernetes_job_pods" {
+query "job_pods_detail" {
   sql = <<-EOQ
     select
       pod.name as "Name",
@@ -533,7 +533,7 @@ query "kubernetes_job_pods" {
   param "uid" {}
 }
 
-query "kubernetes_job_tree" {
+query "job_tree" {
   sql = <<-EOQ
 
     -- This job
