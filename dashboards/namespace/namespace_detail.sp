@@ -157,9 +157,9 @@ dashboard "namespace_detail" {
       }
 
       edge {
-        base = edge.cronjob_to_job
+        base = edge.namespace_to_job
         args = {
-          cronjob_uids = with.cronjobs.rows[*].uid
+          namespace_uids = [self.input.namespace_uid.value]
         }
       }
 
