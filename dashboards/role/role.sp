@@ -6,7 +6,7 @@ locals {
 
 category "role" {
   color = local.role_color
-  href  = "/kubernetes_insights.dashboard.kubernetes_role_detail?input.role_uid={{.properties.'UID' | @uri}}"
+  href  = "/kubernetes_insights.dashboard.role_detail?input.role_uid={{.properties.'UID' | @uri}}"
   icon  = "engineering"
   title = "Role"
 }
