@@ -5,8 +5,8 @@ locals {
 }
 
 category "cronjob" {
-  href  = "/kubernetes_insights.dashboard.kubernetes_cronjob_detail?input.cronjob_uid={{.properties.'UID' | @uri}}"
-  icon  = local.kubernetes_cronjob_icon
   color = local.definition_color
+  href  = "/kubernetes_insights.dashboard.cronjob_detail?input.cronjob_uid={{.properties.'UID' | @uri}}"
+  icon  = "schedule"
   title = "CronJob"
 }

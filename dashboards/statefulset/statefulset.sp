@@ -5,8 +5,8 @@ locals {
 }
 
 category "statefulset" {
-  href  = "/kubernetes_insights.dashboard.kubernetes_statefulset_detail?input.statefulset_uid={{.properties.'UID' | @uri}}"
-  icon  = local.kubernetes_statefulset_icon
   color = local.definition_color
+  href  = "/kubernetes_insights.dashboard.statefulset_detail?input.statefulset_uid={{.properties.'UID' | @uri}}"
+  icon  = "database"
   title = "StatefulSet"
 }

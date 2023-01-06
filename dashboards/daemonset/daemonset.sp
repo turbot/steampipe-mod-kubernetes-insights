@@ -5,8 +5,8 @@ locals {
 }
 
 category "daemonset" {
-  href  = "/kubernetes_insights.dashboard.kubernetes_daemonset_detail?input.daemonset_uid={{.properties.'UID' | @uri}}"
-  icon  = local.kubernetes_daemonset_icon
   color = local.definition_color
+  href  = "/kubernetes_insights.dashboard.daemonset_detail?input.daemonset_uid={{.properties.'UID' | @uri}}"
+  icon  = "copy_all"
   title = "DaemonSet"
 }
