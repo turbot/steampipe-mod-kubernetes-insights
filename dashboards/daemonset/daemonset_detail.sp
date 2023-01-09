@@ -118,9 +118,9 @@ dashboard "daemonset_detail" {
       }
 
       edge {
-        base = edge.daemonset_to_node
+        base = edge.container_to_node
         args = {
-          daemonset_uids = [self.input.daemonset_uid.value]
+          container_names = with.containers.rows[*].name
         }
       }
 
@@ -135,13 +135,6 @@ dashboard "daemonset_detail" {
         base = edge.pod_to_container
         args = {
           pod_uids = with.pods.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.node_to_pod
-        args = {
-          node_uids = with.nodes.rows[*].uid
         }
       }
     }

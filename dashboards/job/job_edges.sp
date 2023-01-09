@@ -29,8 +29,7 @@ edge "job_to_pod" {
       kubernetes_pod as p,
       jsonb_array_elements(p.owner_references) as pod_owner
     where
-      p.node_name = ''
-      and pod_owner ->> 'uid' = any($1);
+      pod_owner ->> 'uid' = any($1);
   EOQ
 
   param "job_uids" {}

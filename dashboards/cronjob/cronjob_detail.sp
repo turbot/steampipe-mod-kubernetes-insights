@@ -137,9 +137,9 @@ dashboard "cronjob_detail" {
       }
 
       edge {
-        base = edge.job_to_node
+        base = edge.container_to_node
         args = {
-          job_uids = with.jobs.rows[*].uid
+          container_names = with.containers.rows[*].name
         }
       }
 
@@ -154,13 +154,6 @@ dashboard "cronjob_detail" {
         base = edge.pod_to_container
         args = {
           pod_uids = with.pods.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.node_to_pod
-        args = {
-          node_uids = with.nodes.rows[*].uid
         }
       }
     }

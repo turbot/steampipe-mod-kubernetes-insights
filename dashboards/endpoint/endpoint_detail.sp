@@ -109,7 +109,7 @@ dashboard "endpoint_detail" {
       }
 
       edge {
-        base = edge.endpoint_to_node
+        base = edge.node_to_endpoint
         args = {
           endpoint_uids = [self.input.endpoint_uid.value]
         }

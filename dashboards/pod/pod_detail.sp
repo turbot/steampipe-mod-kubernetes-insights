@@ -210,34 +210,6 @@ dashboard "pod_detail" {
           statefulset_uids = with.statefulsets.rows[*].uid
         }
       }
-
-      edge {
-        base = edge.job_to_node
-        args = {
-          job_uids = with.jobs.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.replicaset_to_node
-        args = {
-          replicaset_uids = with.replicasets.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.daemonset_to_node
-        args = {
-          daemonset_uids = with.daemonsets.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.statefulset_to_node
-        args = {
-          statefulset_uids = with.statefulsets.rows[*].uid
-        }
-      }
     }
   }
 

@@ -33,23 +33,18 @@ dashboard "node_detail" {
 
   }
 
-  with "namespaces" {
-    query = query.node_namespaces
-    args  = [self.input.node_uid.value]
-  }
-
   with "pods" {
     query = query.node_pods
     args  = [self.input.node_uid.value]
   }
 
-  with "endpoints" {
-    query = query.node_endpoints
+  with "volumes" {
+    query = query.node_volumes
     args  = [self.input.node_uid.value]
   }
 
-  with "containers" {
-    query = query.node_containers
+  with "endpoints" {
+    query = query.node_endpoints
     args  = [self.input.node_uid.value]
   }
 
@@ -67,9 +62,9 @@ dashboard "node_detail" {
       }
 
       node {
-        base = node.namespace
+        base = node.volume
         args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          volume_names = with.volumes.rows[*].uid
         }
       }
 
@@ -87,27 +82,6 @@ dashboard "node_detail" {
         }
       }
 
-      node {
-        base = node.container
-        args = {
-          container_names = with.containers.rows[*].name
-        }
-      }
-
-      edge {
-        base = edge.namespace_to_endpoint
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.pod_to_container
-        args = {
-          pod_uids = with.pods.rows[*].uid
-        }
-      }
-
       edge {
         base = edge.node_to_pod
         args = {
@@ -116,9 +90,9 @@ dashboard "node_detail" {
       }
 
       edge {
-        base = edge.endpoint_to_node
+        base = edge.node_to_endpoint
         args = {
-          endpoint_uids = with.endpoints.rows[*].uid
+          node_uids = [self.input.node_uid.value]
         }
       }
     }
@@ -303,20 +277,6 @@ query "node_pods" {
   EOQ
 }
 
-query "node_containers" {
-  sql = <<-EOQ
-    select
-      container ->> 'name' || p.name as name
-    from
-      kubernetes_node as n,
-      kubernetes_pod as p,
-      jsonb_array_elements(p.containers) as container
-    where
-      n.name = p.node_name
-      and n.uid = $1;
-  EOQ
-}
-
 query "node_endpoints" {
   sql = <<-EOQ
     select
@@ -332,20 +292,15 @@ query "node_endpoints" {
   EOQ
 }
 
-query "node_namespaces" {
+query "node_volumes" {
   sql = <<-EOQ
     select
-      nm.uid as uid
+      v ->> 'Name' as volume_name
     from
-      kubernetes_namespace as nm,
-      kubernetes_node as n,
-      kubernetes_endpoint as e,
-      jsonb_array_elements(subsets) as s,
-      jsonb_array_elements(s -> 'addresses') as a
+      kubernetes_node,
+      jsonb_array_elements(volumes_attached) as v
     where
-      n.name = a ->> 'nodeName'
-      and nm.name = e.namespace
-      and n.uid = $1;
+      uid = $1;
   EOQ
 }
 

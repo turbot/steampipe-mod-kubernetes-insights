@@ -145,9 +145,16 @@ dashboard "deployment_detail" {
       }
 
       edge {
-        base = edge.replicaset_to_node
+        base = edge.replicaset_to_pod
         args = {
           replicaset_uids = with.replicasets.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.container_to_node
+        args = {
+          container_names = with.containers.rows[*].name
         }
       }
 
@@ -158,12 +165,6 @@ dashboard "deployment_detail" {
         }
       }
 
-      edge {
-        base = edge.node_to_pod
-        args = {
-          node_uids = with.nodes.rows[*].uid
-        }
-      }
     }
   }
 

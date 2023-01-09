@@ -85,6 +85,11 @@ dashboard "statefulset_detail" {
     args  = [self.input.statefulset_uid.value]
   }
 
+  with "services" {
+    query = query.statefulset_services
+    args  = [self.input.statefulset_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
@@ -95,6 +100,13 @@ dashboard "statefulset_detail" {
         base = node.statefulset
         args = {
           statefulset_uids = [self.input.statefulset_uid.value]
+        }
+      }
+
+      node {
+        base = node.service
+        args = {
+          service_uids = with.services.rows[*].uid
         }
       }
 
@@ -134,16 +146,23 @@ dashboard "statefulset_detail" {
       }
 
       edge {
-        base = edge.statefulset_to_node
+        base = edge.container_to_node
+        args = {
+          container_names = with.containers.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.statefulset_to_service
         args = {
           statefulset_uids = [self.input.statefulset_uid.value]
         }
       }
 
       edge {
-        base = edge.statefulset_to_pod
+        base = edge.service_to_pod
         args = {
-          statefulset_uids = [self.input.statefulset_uid.value]
+          service_uids = with.services.rows[*].uid
         }
       }
 
@@ -151,13 +170,6 @@ dashboard "statefulset_detail" {
         base = edge.pod_to_container
         args = {
           pod_uids = with.pods.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.node_to_pod
-        args = {
-          node_uids = with.nodes.rows[*].uid
         }
       }
     }
@@ -416,6 +428,19 @@ query "statefulset_namespaces" {
     where
       n.name = s.namespace
       and s.uid = $1;
+  EOQ
+}
+
+query "statefulset_services" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_stateful_set as st,
+      kubernetes_service as s
+    where
+      st.service_name = s.name
+      and st.uid = $1;
   EOQ
 }
 

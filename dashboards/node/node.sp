@@ -10,3 +10,9 @@ category "node" {
   href  = "/kubernetes_insights.dashboard.node_detail?input.node_uid={{.properties.'UID' | @uri}}"
   icon  = "computer"
 }
+
+category "volume" {
+  title = "Volume"
+  color = local.node_color
+  icon  = "hard_drive"
+}

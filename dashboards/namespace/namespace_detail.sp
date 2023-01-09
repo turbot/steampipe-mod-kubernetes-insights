@@ -164,13 +164,6 @@ dashboard "namespace_detail" {
       }
 
       edge {
-        base = edge.namespace_to_job
-        args = {
-          namespace_uids = [self.input.namespace_uid.value]
-        }
-      }
-
-      edge {
         base = edge.namespace_to_daemonset
         args = {
           namespace_uids = [self.input.namespace_uid.value]
