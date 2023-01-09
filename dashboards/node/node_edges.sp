@@ -35,3 +35,20 @@ edge "node_to_endpoint" {
 
   param "node_uids" {}
 }
+
+edge "node_to_volume" {
+  title = "volume"
+
+  sql = <<-EOQ
+     select
+      uid as from_id,
+      v ->> 'Name' as to_id
+    from
+      kubernetes_node,
+      jsonb_array_elements(volumes_attached) as v
+    where
+      uid = any($1);
+  EOQ
+
+  param "node_uids" {}
+}

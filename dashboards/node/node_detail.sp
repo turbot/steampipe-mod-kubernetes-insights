@@ -48,6 +48,11 @@ dashboard "node_detail" {
     args  = [self.input.node_uid.value]
   }
 
+  with "clusters" {
+    query = query.node_clusters
+    args  = [self.input.node_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
@@ -62,9 +67,16 @@ dashboard "node_detail" {
       }
 
       node {
+        base = node.cluster
+        args = {
+          cluster_names = with.clusters.rows[*].context_name
+        }
+      }
+
+      node {
         base = node.volume
         args = {
-          volume_names = with.volumes.rows[*].uid
+          volume_names = with.volumes.rows[*].volume_name
         }
       }
 
@@ -84,6 +96,20 @@ dashboard "node_detail" {
 
       edge {
         base = edge.node_to_pod
+        args = {
+          node_uids = [self.input.node_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.cluster_to_node
+        args = {
+          cluster_names = with.clusters.rows[*].context_name
+        }
+      }
+
+      edge {
+        base = edge.node_to_volume
         args = {
           node_uids = [self.input.node_uid.value]
         }
@@ -299,6 +325,17 @@ query "node_volumes" {
     from
       kubernetes_node,
       jsonb_array_elements(volumes_attached) as v
+    where
+      uid = $1;
+  EOQ
+}
+
+query "node_clusters" {
+  sql = <<-EOQ
+    select
+      context_name
+    from
+      kubernetes_node
     where
       uid = $1;
   EOQ
