@@ -139,7 +139,7 @@ dashboard "statefulset_detail" {
       }
 
       edge {
-        base = edge.namespace_to_statefulset
+        base = edge.namespace_to_service
         args = {
           namespace_uids = with.namespaces.rows[*].uid
         }
@@ -153,14 +153,14 @@ dashboard "statefulset_detail" {
       }
 
       edge {
-        base = edge.statefulset_to_service
+        base = edge.statefulset_to_pod
         args = {
           statefulset_uids = [self.input.statefulset_uid.value]
         }
       }
 
       edge {
-        base = edge.service_to_pod
+        base = edge.service_to_statefulset
         args = {
           service_uids = with.services.rows[*].uid
         }

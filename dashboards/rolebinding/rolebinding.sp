@@ -10,3 +10,9 @@ category "role_binding" {
   href  = "/kubernetes_insights.dashboard.role_binding_detail?input.role_binding_uid={{.properties.'UID' | @uri}}"
   icon  = "manage_accounts"
 }
+
+category "cluster_role_binding" {
+  title = "Cluster Role Binding"
+  color = local.role_color
+  icon  = "manage_accounts"
+}

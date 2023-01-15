@@ -10,3 +10,21 @@ category "container" {
   href  = "/kubernetes_insights.dashboard.container_detail?input.container_name={{.properties.'Name'+.properties.'POD Name' | @uri}}"
   icon  = "square"
 }
+
+category "init_container" {
+  title = "Init Container"
+  color = local.container_color
+  icon  = "square"
+}
+
+category "volume" {
+  title = "Volume"
+  color = local.persistent_volume_color
+  icon  = "hard_drive"
+}
+
+category "volume_mount_path" {
+  title = "Volume Mount Path"
+  color = local.persistent_volume_color
+  icon  = "hard_drive"
+}

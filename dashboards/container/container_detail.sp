@@ -76,6 +76,20 @@ dashboard "container_detail" {
       }
 
       node {
+        base = node.container_volume
+        args = {
+          container_names = [self.input.container_name.value]
+        }
+      }
+
+      node {
+        base = node.container_volume_mount_path
+        args = {
+          container_names = [self.input.container_name.value]
+        }
+      }
+
+      node {
         base = node.pod
         args = {
           pod_uids = with.pods.rows[*].uid
@@ -88,6 +102,21 @@ dashboard "container_detail" {
           pod_uids = with.pods.rows[*].uid
         }
       }
+
+      edge {
+        base = edge.container_to_container_volume
+        args = {
+          container_names = [self.input.container_name.value]
+        }
+      }
+
+      edge {
+        base = edge.container_volume_to_container_volume_mount_path
+        args = {
+          container_names = [self.input.container_name.value]
+        }
+      }
+
 
     }
   }
@@ -131,8 +160,19 @@ dashboard "container_detail" {
       }
 
       chart {
-        title = "Resources"
-        query = query.container_resources
+        title = "CPU Resources"
+        width = 6
+        query = query.container_cpu_resources
+        type  = "column"
+        args = {
+          name = self.input.container_name.value
+        }
+      }
+
+      chart {
+        title = "Memory Resources"
+        width = 6
+        query = query.container_memory_resources
         type  = "column"
         args = {
           name = self.input.container_name.value
@@ -325,7 +365,7 @@ query "container_ports" {
   param "name" {}
 }
 
-query "container_resources" {
+query "container_cpu_resources" {
   sql = <<-EOQ
     select
       'CPU Limit (m)' as label,
@@ -343,8 +383,14 @@ query "container_resources" {
       kubernetes_pod,
       jsonb_array_elements(containers) as c
     where
-      concat(c ->> 'name',name) = $1
-    union all
+      concat(c ->> 'name',name) = $1;
+  EOQ
+
+  param "name" {}
+}
+
+query "container_memory_resources" {
+  sql = <<-EOQ
     select
       'Memory Limit (Mi)' as label,
       REPLACE(c -> 'resources' -> 'limits' ->> 'memory','Mi','') as value
@@ -366,4 +412,3 @@ query "container_resources" {
 
   param "name" {}
 }
-

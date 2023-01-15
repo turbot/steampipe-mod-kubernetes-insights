@@ -74,7 +74,7 @@ dashboard "node_detail" {
       }
 
       node {
-        base = node.volume
+        base = node.node_volume
         args = {
           volume_names = with.volumes.rows[*].volume_name
         }
@@ -321,12 +321,13 @@ query "node_endpoints" {
 query "node_volumes" {
   sql = <<-EOQ
     select
-      v ->> 'Name' as volume_name
+      v ->> 'name' as volume_name
     from
       kubernetes_node,
       jsonb_array_elements(volumes_attached) as v
     where
-      uid = $1;
+      v ->> 'name' is not null
+      and uid = $1;
   EOQ
 }
 

@@ -75,7 +75,7 @@ dashboard "persistent_volume_detail" {
       }
 
       edge {
-        base = edge.pod_to_persistent_volume
+        base = edge.pod_to_persistent_volume_claim
         args = {
           pod_uids = with.pods.rows[*].uid
         }

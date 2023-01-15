@@ -62,15 +62,15 @@ edge "cluster_to_pod_security_policy" {
   param "cluster_names" {}
 }
 
-edge "cluster_to_role_binding" {
-  title = "role binding"
+edge "cluster_to_cluster_role_binding" {
+  title = "cluster role binding"
 
   sql = <<-EOQ
     select
       context_name as from_id,
       uid as to_id
     from
-      kubernetes_role_binding
+      kubernetes_cluster_role_binding
     where
       context_name = any($1);
   EOQ
@@ -78,15 +78,15 @@ edge "cluster_to_role_binding" {
   param "cluster_names" {}
 }
 
-edge "cluster_to_role" {
-  title = "role"
+edge "cluster_to_cluster_role" {
+  title = "cluster role"
 
   sql = <<-EOQ
     select
       context_name as from_id,
       uid as to_id
     from
-      kubernetes_role
+      kubernetes_cluster_role
     where
       context_name = any($1);
   EOQ

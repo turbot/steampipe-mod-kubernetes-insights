@@ -57,8 +57,28 @@ dashboard "namespace_detail" {
 
   }
 
+  with "clusters" {
+    query = query.namespace_clusters
+    args  = [self.input.namespace_uid.value]
+  }
+
+  with "roles" {
+    query = query.namespace_roles
+    args  = [self.input.namespace_uid.value]
+  }
+
+  with "role_bindings" {
+    query = query.namespace_role_bindings
+    args  = [self.input.namespace_uid.value]
+  }
+
   with "deployments" {
     query = query.namespace_deployments
+    args  = [self.input.namespace_uid.value]
+  }
+
+  with "replicasets" {
+    query = query.namespace_replicasets
     args  = [self.input.namespace_uid.value]
   }
 
@@ -101,6 +121,27 @@ dashboard "namespace_detail" {
       }
 
       node {
+        base = node.cluster
+        args = {
+          cluster_names = with.clusters.rows[*].name
+        }
+      }
+
+      node {
+        base = node.role
+        args = {
+          role_uids = with.roles.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.role_binding
+        args = {
+          role_binding_uids = with.role_bindings.rows[*].uid
+        }
+      }
+
+      node {
         base = node.statefulset
         args = {
           statefulset_uids = with.statefulsets.rows[*].uid
@@ -129,6 +170,13 @@ dashboard "namespace_detail" {
       }
 
       node {
+        base = node.replicaset
+        args = {
+          replicaset_uids = with.replicasets.rows[*].uid
+        }
+      }
+
+      node {
         base = node.daemonset
         args = {
           daemonset_uids = with.daemonsets.rows[*].uid
@@ -146,6 +194,27 @@ dashboard "namespace_detail" {
         base = edge.namespace_to_deployment
         args = {
           namespace_uids = [self.input.namespace_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.namespace_to_role
+        args = {
+          namespace_uids = [self.input.namespace_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.namespace_to_role_binding
+        args = {
+          namespace_uids = [self.input.namespace_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.cluster_to_namespace
+        args = {
+          cluster_names = with.clusters.rows[*].name
         }
       }
 
@@ -172,6 +241,13 @@ dashboard "namespace_detail" {
 
       edge {
         base = edge.namespace_to_statefulset
+        args = {
+          namespace_uids = [self.input.namespace_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.namespace_to_replicaset
         args = {
           namespace_uids = [self.input.namespace_uid.value]
         }
@@ -472,6 +548,43 @@ query "namespace_services" {
   EOQ
 }
 
+query "namespace_roles" {
+  sql = <<-EOQ
+    select
+      r.uid as uid
+    from
+      kubernetes_role as r,
+      kubernetes_namespace as n
+    where
+      r.namespace = n.name
+      and n.uid = $1;
+  EOQ
+}
+
+query "namespace_role_bindings" {
+  sql = <<-EOQ
+    select
+      b.uid as uid
+    from
+      kubernetes_role_binding as b,
+      kubernetes_namespace as n
+    where
+      b.namespace = n.name
+      and n.uid = $1;
+  EOQ
+}
+
+query "namespace_clusters" {
+  sql = <<-EOQ
+    select
+      context_name as name
+    from
+      kubernetes_namespace
+    where
+      uid = $1;
+  EOQ
+}
+
 query "namespace_deployments" {
   sql = <<-EOQ
     select
@@ -530,6 +643,19 @@ query "namespace_statefulsets" {
       s.uid as uid
     from
       kubernetes_stateful_set as s,
+      kubernetes_namespace as n
+    where
+      s.namespace = n.name
+      and n.uid = $1;
+  EOQ
+}
+
+query "namespace_replicasets" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_replicaset as s,
       kubernetes_namespace as n
     where
       s.namespace = n.name

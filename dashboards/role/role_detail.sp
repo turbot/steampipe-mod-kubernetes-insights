@@ -33,6 +33,26 @@ dashboard "role_detail" {
 
   }
 
+  # with "service_accounts" {
+  #   query = query.role_service_accounts
+  #   args  = [self.input.role_uid.value]
+  # }
+
+  # with "users" {
+  #   query = query.role_users
+  #   args  = [self.input.role_uid.value]
+  # }
+
+  # with "group" {
+  #   query = query.role_users
+  #   args  = [self.input.role_uid.value]
+  # }
+
+  with "namespaces" {
+    query = query.role_namespaces
+    args  = [self.input.role_uid.value]
+  }
+
   with "namespaces" {
     query = query.role_namespaces
     args  = [self.input.role_uid.value]

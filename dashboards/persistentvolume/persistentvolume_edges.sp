@@ -1,18 +1,17 @@
-edge "pod_to_persistent_volume" {
+edge "persistent_volume_claim_to_persistent_volume" {
   title = "persistent volume"
 
   sql = <<-EOQ
      select
-      p.uid as from_id,
+      c.uid as from_id,
       pv.uid as to_id
     from
-      kubernetes_pod as p,
-      jsonb_array_elements(volumes) as v
-      left join kubernetes_persistent_volume as pv
-      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
+      kubernetes_persistent_volume as pv
+      join kubernetes_persistent_volume_claim as c
+      on pv.name = c.volume_name
     where
-      p.uid = any($1);
+      c.uid = any($1);
   EOQ
 
-  param "pod_uids" {}
+  param "persistent_volume_claim_uids" {}
 }

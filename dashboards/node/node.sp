@@ -11,8 +11,3 @@ category "node" {
   icon  = "computer"
 }
 
-category "volume" {
-  title = "Volume"
-  color = local.node_color
-  icon  = "hard_drive"
-}

@@ -42,7 +42,7 @@ edge "node_to_volume" {
   sql = <<-EOQ
      select
       uid as from_id,
-      v ->> 'Name' as to_id
+      v ->> 'name' as to_id
     from
       kubernetes_node,
       jsonb_array_elements(volumes_attached) as v

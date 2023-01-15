@@ -16,6 +16,24 @@ edge "namespace_to_daemonset" {
   param "namespace_uids" {}
 }
 
+edge "namespace_to_role_binding" {
+  title = "role binding"
+
+  sql = <<-EOQ
+     select
+      n.uid as from_id,
+      b.uid as to_id
+    from
+      kubernetes_namespace as n,
+      kubernetes_role_binding as b
+    where
+      n.name = b.namespace
+      and n.uid = any($1);
+  EOQ
+
+  param "namespace_uids" {}
+}
+
 edge "namespace_to_deployment" {
   title = "deployment"
 
@@ -52,7 +70,7 @@ edge "namespace_to_cronjob" {
   param "namespace_uids" {}
 }
 
-edge "namespace_to_job" {
+edge "namespace_to_cronjob_job" {
   title = "job"
 
   sql = <<-EOQ
@@ -68,6 +86,42 @@ edge "namespace_to_job" {
       on n.name = j.namespace
       left join kubernetes_cronjob as c
       on n.name = c.namespace
+    where
+      n.uid = any($1);
+  EOQ
+
+  param "namespace_uids" {}
+}
+
+edge "namespace_to_job" {
+  title = "job"
+
+  sql = <<-EOQ
+     select
+      n.uid as from_id,
+      j.uid as to_id
+    from
+      kubernetes_namespace as n
+      left join kubernetes_job as j
+      on n.name = j.namespace
+    where
+      n.uid = any($1);
+  EOQ
+
+  param "namespace_uids" {}
+}
+
+edge "namespace_to_replicaset" {
+  title = "replicaset"
+
+  sql = <<-EOQ
+     select
+      n.uid as from_id,
+      r.uid as to_id
+    from
+      kubernetes_namespace as n
+      left join kubernetes_replicaset as r
+      on n.name = r.namespace
     where
       n.uid = any($1);
   EOQ

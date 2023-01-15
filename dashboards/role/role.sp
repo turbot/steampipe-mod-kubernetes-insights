@@ -10,3 +10,9 @@ category "role" {
   href  = "/kubernetes_insights.dashboard.role_detail?input.role_uid={{.properties.'UID' | @uri}}"
   icon  = "engineering"
 }
+
+category "cluster_role" {
+  title = "Cluster Role"
+  color = local.role_color
+  icon  = "engineering"
+}

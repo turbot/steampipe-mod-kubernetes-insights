@@ -123,7 +123,7 @@ dashboard "job_detail" {
       }
 
       edge {
-        base = edge.namespace_to_job
+        base = edge.namespace_to_cronjob_job
         args = {
           namespace_uids = with.namespaces.rows[*].uid
         }

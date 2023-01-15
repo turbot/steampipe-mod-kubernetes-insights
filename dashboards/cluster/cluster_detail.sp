@@ -85,12 +85,12 @@ dashboard "cluster_detail" {
     args  = [self.input.cluster_context.value]
   }
 
-  with "role_bindings" {
+  with "cluster_role_bindings" {
     query = query.cluster_role_bindings
     args  = [self.input.cluster_context.value]
   }
 
-  with "roles" {
+  with "cluster_roles" {
     query = query.cluster_roles
     args  = [self.input.cluster_context.value]
   }
@@ -137,16 +137,16 @@ dashboard "cluster_detail" {
       }
 
       node {
-        base = node.role
+        base = node.cluster_role
         args = {
-          role_uids = with.roles.rows[*].uid
+          cluster_role_uids = with.cluster_roles.rows[*].uid
         }
       }
 
       node {
-        base = node.role_binding
+        base = node.cluster_role_binding
         args = {
-          role_binding_uids = with.role_bindings.rows[*].uid
+          cluster_role_binding_uids = with.cluster_role_bindings.rows[*].uid
         }
       }
 
@@ -179,14 +179,14 @@ dashboard "cluster_detail" {
       }
 
       edge {
-        base = edge.cluster_to_role_binding
+        base = edge.cluster_to_cluster_role_binding
         args = {
           cluster_names = [self.input.cluster_context.value]
         }
       }
 
       edge {
-        base = edge.cluster_to_role
+        base = edge.cluster_to_cluster_role
         args = {
           cluster_names = [self.input.cluster_context.value]
         }
@@ -237,6 +237,13 @@ dashboard "cluster_detail" {
       args = {
         context = self.input.cluster_context.value
       }
+      column "UID" {
+        display = "none"
+      }
+
+      column "Name" {
+        href = "${dashboard.persistent_volume_detail.url_path}?input.persistent_volume_uid={{.UID | @uri}}"
+      }
     }
 
     table {
@@ -249,7 +256,7 @@ dashboard "cluster_detail" {
     }
 
     table {
-      title = "Role Bindings"
+      title = "Cluster Role Bindings"
       width = 6
       query = query.cluster_role_binding_table
       args = {
@@ -258,7 +265,7 @@ dashboard "cluster_detail" {
     }
 
     table {
-      title = "Roles"
+      title = "Cluster Roles"
       width = 6
       query = query.cluster_role_table
       args = {
@@ -343,10 +350,10 @@ query "cluster_pod_security_policy_count" {
 query "cluster_role_binding_count" {
   sql = <<-EOQ
     select
-      'Role Bindings' as label,
+      'Cluster Role Bindings' as label,
       count(*) as value
     from
-      kubernetes_role_binding
+      kubernetes_cluster_role_binding
     where
       context_name = $1;
   EOQ
@@ -357,10 +364,10 @@ query "cluster_role_binding_count" {
 query "cluster_role_count" {
   sql = <<-EOQ
     select
-      'Roles' as label,
+      'Cluster Roles' as label,
       count(*) as value
     from
-      kubernetes_role
+      kubernetes_cluster_role
     where
       context_name = $1;
   EOQ
@@ -419,7 +426,7 @@ query "cluster_role_bindings" {
     select
       uid
     from
-      kubernetes_role_binding
+      kubernetes_cluster_role_binding
     where
       context_name = $1;
   EOQ
@@ -430,7 +437,7 @@ query "cluster_roles" {
     select
       uid
     from
-      kubernetes_role
+      kubernetes_cluster_role
     where
       context_name = $1;
   EOQ
@@ -476,6 +483,7 @@ query "cluster_persistent_volumes_table" {
   sql = <<-EOQ
     select
       name as "Name",
+      uid as "UID",
       storage_class as "Storage Class",
       volume_mode as "Volume Mode",
       phase as "Phase",
@@ -516,12 +524,11 @@ query "cluster_role_binding_table" {
   sql = <<-EOQ
     select
       name as "Name",
-      namespace as "Namespace",
       role_name as "Role Name",
       role_kind as "Role Kind",
       creation_timestamp as "Create Time"
     from
-      kubernetes_role_binding
+      kubernetes_cluster_role_binding
     where
       context_name = $1
     order by
@@ -535,10 +542,9 @@ query "cluster_role_table" {
   sql = <<-EOQ
     select
       name as "Name",
-      namespace as "Namespace",
       creation_timestamp as "Create Time"
     from
-      kubernetes_role
+      kubernetes_cluster_role
     where
       context_name = $1
     order by
