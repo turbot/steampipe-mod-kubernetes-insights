@@ -10,11 +10,13 @@ node "service" {
         'Type', type,
         'Cluster IP', cluster_ip,
         'Creation Timestamp', creation_timestamp,
-        'Namespace', namespace,
-        'Context Name', context_name
+        'Port', p ->> 'port',
+        'Target Port', p ->> 'targetPort',
+        'Protocol', p ->> 'protocol'
       ) as properties
     from
-      kubernetes_service
+      kubernetes_service,
+      jsonb_array_elements(ports) as p
     where
       uid = any($1);
   EOQ

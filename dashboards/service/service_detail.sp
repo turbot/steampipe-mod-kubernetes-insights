@@ -33,8 +33,28 @@ dashboard "service_detail" {
 
   }
 
+  with "ingresses" {
+    query = query.service_ingresses
+    args  = [self.input.service_uid.value]
+  }
+
   with "pods" {
     query = query.service_pods
+    args  = [self.input.service_uid.value]
+  }
+
+  with "deployments" {
+    query = query.service_deployments
+    args  = [self.input.service_uid.value]
+  }
+
+  with "replicasets" {
+    query = query.service_replicasets
+    args  = [self.input.service_uid.value]
+  }
+
+  with "statefulsets" {
+    query = query.service_statefulsets
     args  = [self.input.service_uid.value]
   }
 
@@ -58,9 +78,58 @@ dashboard "service_detail" {
       }
 
       node {
+        base = node.ingress_rule
+        args = {
+          ingress_uids = with.ingresses.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.ingress_rule_path
+        args = {
+          ingress_uids = with.ingresses.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.ingress
+        args = {
+          ingress_uids = with.ingresses.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.deployment
+        args = {
+          deployment_uids = with.deployments.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.replicaset
+        args = {
+          replicaset_uids = with.replicasets.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.statefulset
+        args = {
+          statefulset_uids = with.statefulsets.rows[*].uid
+        }
+      }
+
+      node {
         base = node.pod
         args = {
           pod_uids = with.pods.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.ingress_load_balancer
+        args = {
+          ingress_uids = with.ingresses.rows[*].uid
         }
       }
 
@@ -72,16 +141,79 @@ dashboard "service_detail" {
       }
 
       edge {
-        base = edge.namespace_to_pod
+        base = edge.namespace_to_ingress_load_balancer
         args = {
           namespace_uids = with.namespaces.rows[*].uid
         }
       }
 
       edge {
-        base = edge.pod_to_service
+        base = edge.namespace_to_ingress_service
         args = {
-          pod_uids = with.pods.rows[*].uid
+          namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.ingress_load_balancer_to_ingress
+        args = {
+          ingress_uids = with.ingresses.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.ingress_rule_path_to_service
+        args = {
+          ingress_uids = with.ingresses.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.ingress_to_ingress_rule
+        args = {
+          ingress_uids = with.ingresses.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.ingress_rule_to_ingress_rule_path
+        args = {
+          ingress_uids = with.ingresses.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.service_to_deployment
+        args = {
+          service_uids = [self.input.service_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.deployment_to_replicaset
+        args = {
+          deployment_uids = with.deployments.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.service_to_statefulset
+        args = {
+          service_uids = [self.input.service_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.replicaset_to_pod
+        args = {
+          replicaset_uids = with.replicasets.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.statefulset_to_pod
+        args = {
+          statefulset_uids = with.statefulsets.rows[*].uid
         }
       }
     }
@@ -253,6 +385,65 @@ query "service_pods" {
       kubernetes_pod as p
      where
       p.selector_search = s.selector_query
+      and s.uid = $1;
+  EOQ
+}
+
+query "service_replicasets" {
+  sql = <<-EOQ
+    select
+      pod_owner ->> 'uid' as uid
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_service as s
+    where
+      s.uid = $1
+      and pod.selector_search = s.selector_query;
+  EOQ
+}
+
+query "service_statefulsets" {
+  sql = <<-EOQ
+    select
+      st.uid as uid
+    from
+      kubernetes_stateful_set as st,
+      kubernetes_service as s
+    where
+      st.service_name = s.name
+      and s.uid = $1;
+  EOQ
+}
+
+query "service_deployments" {
+  sql = <<-EOQ
+    select
+      rs_owner ->> 'uid' as uid
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_service as s
+    where
+      s.uid = $1
+      and pod_owner ->> 'uid' = rs.uid
+      and pod.selector_search = s.selector_query;
+  EOQ
+}
+
+query "service_ingresses" {
+  sql = <<-EOQ
+    select
+      i.uid
+    from
+      kubernetes_service as s,
+      kubernetes_ingress as i,
+      jsonb_array_elements(rules) as r,
+      jsonb_array_elements(r -> 'http' -> 'paths') as p
+    where
+      s.name = p -> 'backend' ->> 'serviceName'
       and s.uid = $1;
   EOQ
 }

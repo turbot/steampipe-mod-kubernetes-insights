@@ -237,13 +237,6 @@ dashboard "cluster_detail" {
       args = {
         context = self.input.cluster_context.value
       }
-      column "UID" {
-        display = "none"
-      }
-
-      column "Name" {
-        href = "${dashboard.persistent_volume_detail.url_path}?input.persistent_volume_uid={{.UID | @uri}}"
-      }
     }
 
     table {

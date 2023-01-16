@@ -16,3 +16,27 @@ category "cluster_role" {
   color = local.role_color
   icon  = "engineering"
 }
+
+category "rule" {
+  title = "Rule"
+  color = local.role_color
+  icon  = "rule_folder"
+}
+
+category "service_account" {
+  title = "Service Account"
+  color = local.role_color
+  icon  = "settings_account_box"
+}
+
+category "user" {
+  title = "User"
+  color = local.role_color
+  icon  = "person"
+}
+
+category "group" {
+  title = "Group"
+  color = local.role_color
+  icon  = "group"
+}

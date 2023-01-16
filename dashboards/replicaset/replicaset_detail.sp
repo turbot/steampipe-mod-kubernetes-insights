@@ -54,6 +54,11 @@ dashboard "replicaset_detail" {
     args  = [self.input.replicaset_uid.value]
   }
 
+  with "services" {
+    query = query.replicaset_services
+    args  = [self.input.replicaset_uid.value]
+  }
+
   with "namespaces" {
     query = query.replicaset_namespaces
     args  = [self.input.replicaset_uid.value]
@@ -95,6 +100,13 @@ dashboard "replicaset_detail" {
       }
 
       node {
+        base = node.service
+        args = {
+          service_uids = with.services.rows[*].uid
+        }
+      }
+
+      node {
         base = node.namespace
         args = {
           namespace_uids = with.namespaces.rows[*].uid
@@ -123,9 +135,23 @@ dashboard "replicaset_detail" {
       }
 
       edge {
-        base = edge.namespace_to_deployment
+        base = edge.namespace_to_deployment_service
+        args = {
+          deployment_uids = with.deployments.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.namespace_to_service
         args = {
           namespace_uids = with.namespaces.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.service_to_deployment
+        args = {
+          service_uids = with.services.rows[*].uid
         }
       }
 
@@ -389,6 +415,20 @@ query "replicaset_deployments" {
       jsonb_array_elements(r.owner_references) as owner
     where
       r.uid = $1;
+  EOQ
+}
+
+query "replicaset_services" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_service as s
+    where
+      pod_owner ->> 'uid' = $1
+      and pod.selector_search = s.selector_query;
   EOQ
 }
 

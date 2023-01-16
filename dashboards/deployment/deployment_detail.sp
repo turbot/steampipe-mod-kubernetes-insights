@@ -143,6 +143,13 @@ dashboard "deployment_detail" {
       }
 
       edge {
+        base = edge.namespace_to_deployment_service
+        args = {
+          deployment_uids = [self.input.deployment_uid.value]
+        }
+      }
+
+      edge {
         base = edge.service_to_deployment
         args = {
           service_uids = with.services.rows[*].uid

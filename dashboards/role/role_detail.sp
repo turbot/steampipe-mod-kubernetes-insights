@@ -33,23 +33,13 @@ dashboard "role_detail" {
 
   }
 
-  # with "service_accounts" {
-  #   query = query.role_service_accounts
-  #   args  = [self.input.role_uid.value]
-  # }
+  with "service_accounts" {
+    query = query.role_service_accounts
+    args  = [self.input.role_uid.value]
+  }
 
-  # with "users" {
-  #   query = query.role_users
-  #   args  = [self.input.role_uid.value]
-  # }
-
-  # with "group" {
-  #   query = query.role_users
-  #   args  = [self.input.role_uid.value]
-  # }
-
-  with "namespaces" {
-    query = query.role_namespaces
+  with "rules" {
+    query = query.role_rules
     args  = [self.input.role_uid.value]
   }
 
@@ -68,11 +58,22 @@ dashboard "role_detail" {
       title     = "Relationships"
       type      = "graph"
       direction = "TD"
+      base      = graph.role_resource_structure
+      args = {
+        role_uids = [self.input.role_uid.value]
+      }
 
       node {
         base = node.role
         args = {
           role_uids = [self.input.role_uid.value]
+        }
+      }
+
+      node {
+        base = node.service_account
+        args = {
+          service_account_uids = with.service_accounts.rows[*].uid
         }
       }
 
@@ -91,14 +92,21 @@ dashboard "role_detail" {
       }
 
       edge {
-        base = edge.role_to_rolebinding
+        base = edge.service_account_to_role_binding
+        args = {
+          service_account_uids = with.service_accounts.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.role_binding_to_role
         args = {
           role_uids = [self.input.role_uid.value]
         }
       }
 
       edge {
-        base = edge.namespace_to_role
+        base = edge.namespace_to_role_binding
         args = {
           namespace_uids = with.namespaces.rows[*].uid
         }
@@ -146,7 +154,7 @@ dashboard "role_detail" {
 
       table {
         title = "Rules"
-        query = query.role_rules
+        query = query.role_rules_detail
         args = {
           uid = self.input.role_uid.value
         }
@@ -219,6 +227,35 @@ query "role_namespaces" {
       kubernetes_role as r
     where
       n.name = r.namespace
+      and r.uid = $1;
+  EOQ
+}
+
+query "role_rules" {
+  sql = <<-EOQ
+    select
+      uid as uid
+    from
+      kubernetes_role,
+      jsonb_array_elements(rules) as r
+    where
+      uid = $1;
+  EOQ
+}
+
+query "role_service_accounts" {
+  sql = <<-EOQ
+    select
+      a.uid as uid
+    from
+      kubernetes_service_account as a,
+      kubernetes_role as r,
+      kubernetes_role_binding as b,
+      jsonb_array_elements(subjects) as s
+    where
+      b.role_name = r.name
+      and s ->> 'kind' = 'ServiceAccount'
+      and s ->> 'name' = a.name
       and r.uid = $1;
   EOQ
 }
@@ -301,7 +338,7 @@ query "role_annotations" {
   param "uid" {}
 }
 
-query "role_rules" {
+query "role_rules_detail" {
   sql = <<-EOQ
     select
       r -> 'verbs' as "Verbs",
