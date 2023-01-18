@@ -21,6 +21,7 @@ dashboard "replicaset_detail" {
       args = {
         uid = self.input.replicaset_uid.value
       }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
     }
 
     card {
@@ -49,33 +50,28 @@ dashboard "replicaset_detail" {
 
   }
 
-  with "deployments" {
-    query = query.replicaset_deployments
+  with "deployments_for_replicaset" {
+    query = query.deployments_for_replicaset
     args  = [self.input.replicaset_uid.value]
   }
 
-  with "services" {
-    query = query.replicaset_services
+  with "services_for_replicaset" {
+    query = query.services_for_replicaset
     args  = [self.input.replicaset_uid.value]
   }
 
-  with "namespaces" {
-    query = query.replicaset_namespaces
+  with "pods_for_replicaset" {
+    query = query.pods_for_replicaset
     args  = [self.input.replicaset_uid.value]
   }
 
-  with "pods" {
-    query = query.replicaset_pods
+  with "containers_for_replicaset" {
+    query = query.containers_for_replicaset
     args  = [self.input.replicaset_uid.value]
   }
 
-  with "containers" {
-    query = query.replicaset_containers
-    args  = [self.input.replicaset_uid.value]
-  }
-
-  with "nodes" {
-    query = query.replicaset_nodes
+  with "nodes_for_replicaset" {
+    query = query.nodes_for_replicaset
     args  = [self.input.replicaset_uid.value]
   }
 
@@ -95,77 +91,56 @@ dashboard "replicaset_detail" {
       node {
         base = node.deployment
         args = {
-          deployment_uids = with.deployments.rows[*].uid
+          deployment_uids = with.deployments_for_replicaset.rows[*].uid
         }
       }
 
       node {
         base = node.service
         args = {
-          service_uids = with.services.rows[*].uid
-        }
-      }
-
-      node {
-        base = node.namespace
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          service_uids = with.services_for_replicaset.rows[*].uid
         }
       }
 
       node {
         base = node.pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_replicaset.rows[*].uid
         }
       }
 
       node {
         base = node.node
         args = {
-          node_uids = with.nodes.rows[*].uid
+          node_uids = with.nodes_for_replicaset.rows[*].uid
         }
       }
 
       node {
         base = node.container
         args = {
-          container_names = with.containers.rows[*].name
-        }
-      }
-
-      edge {
-        base = edge.namespace_to_deployment_service
-        args = {
-          deployment_uids = with.deployments.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.namespace_to_service
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          container_names = with.containers_for_replicaset.rows[*].name
         }
       }
 
       edge {
         base = edge.service_to_deployment
         args = {
-          service_uids = with.services.rows[*].uid
+          service_uids = with.services_for_replicaset.rows[*].uid
         }
       }
 
       edge {
         base = edge.deployment_to_replicaset
         args = {
-          deployment_uids = with.deployments.rows[*].uid
+          deployment_uids = with.deployments_for_replicaset.rows[*].uid
         }
       }
 
       edge {
         base = edge.container_to_node
         args = {
-          container_names = with.containers.rows[*].name
+          container_names = with.containers_for_replicaset.rows[*].name
         }
       }
 
@@ -179,7 +154,7 @@ dashboard "replicaset_detail" {
       edge {
         base = edge.pod_to_container
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_replicaset.rows[*].uid
         }
       }
     }
@@ -194,6 +169,14 @@ dashboard "replicaset_detail" {
       query = query.replicaset_overview
       args = {
         uid = self.input.replicaset_uid.value
+      }
+
+      column "Namespace" {
+        href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+      }
+
+      column "Namespace UID" {
+        display = "none"
       }
     }
 
@@ -297,11 +280,14 @@ query "replicaset_default_namespace" {
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_replicaset
+      kubernetes_replicaset as r,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = r.namespace
+      and r.uid = $1;
   EOQ
 
   param "uid" {}
@@ -354,7 +340,7 @@ query "replicaset_container_host_ipc" {
 
 # With queries
 
-query "replicaset_containers" {
+query "containers_for_replicaset" {
   sql = <<-EOQ
     select
       container ->> 'name' || pod.name as name
@@ -367,7 +353,7 @@ query "replicaset_containers" {
   EOQ
 }
 
-query "replicaset_pods" {
+query "pods_for_replicaset" {
   sql = <<-EOQ
     select
       pod.uid as uid
@@ -379,7 +365,7 @@ query "replicaset_pods" {
   EOQ
 }
 
-query "replicaset_nodes" {
+query "nodes_for_replicaset" {
   sql = <<-EOQ
     select
       n.uid as uid
@@ -393,20 +379,7 @@ query "replicaset_nodes" {
   EOQ
 }
 
-query "replicaset_namespaces" {
-  sql = <<-EOQ
-    select
-      n.uid as uid
-    from
-      kubernetes_namespace as n,
-      kubernetes_replicaset as r
-    where
-      n.name = r.namespace
-      and r.uid = $1;
-  EOQ
-}
-
-query "replicaset_deployments" {
+query "deployments_for_replicaset" {
   sql = <<-EOQ
     select
       owner ->> 'uid' as uid
@@ -418,7 +391,7 @@ query "replicaset_deployments" {
   EOQ
 }
 
-query "replicaset_services" {
+query "services_for_replicaset" {
   sql = <<-EOQ
     select
       s.uid as uid
@@ -437,14 +410,18 @@ query "replicaset_services" {
 query "replicaset_overview" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      r.name as "Name",
+      r.uid as "UID",
+      r.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      r.context_name as "Context Name"
     from
-      kubernetes_replicaset
+      kubernetes_replicaset as r,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = r.namespace
+      and r.uid = $1;
   EOQ
 
   param "uid" {}

@@ -7,9 +7,11 @@ edge "service_to_statefulset" {
       st.uid as to_id
     from
       kubernetes_stateful_set as st,
-      kubernetes_service as s
+      kubernetes_service as s,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      st.service_name = s.name
+      (st.service_name = s.name or pod_owner ->> 'uid' = st.uid)
       and s.uid = any($1);
   EOQ
 
@@ -55,3 +57,4 @@ edge "service_to_pod" {
 
   param "service_uids" {}
 }
+

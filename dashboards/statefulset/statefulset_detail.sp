@@ -37,6 +37,7 @@ dashboard "statefulset_detail" {
       args = {
         uid = self.input.statefulset_uid.value
       }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
     }
 
     card {
@@ -65,28 +66,23 @@ dashboard "statefulset_detail" {
 
   }
 
-  with "namespaces" {
-    query = query.statefulset_namespaces
+  with "nodes_for_statefulset" {
+    query = query.nodes_for_statefulset
     args  = [self.input.statefulset_uid.value]
   }
 
-  with "nodes" {
-    query = query.statefulset_nodes
+  with "pods_for_statefulset" {
+    query = query.pods_for_statefulset
     args  = [self.input.statefulset_uid.value]
   }
 
-  with "pods" {
-    query = query.statefulset_pods
-    args  = [self.input.statefulset_uid.value]
-  }
-
-  with "containers" {
+  with "containers_for_statefulset" {
     query = query.statefulset_containers
     args  = [self.input.statefulset_uid.value]
   }
 
-  with "services" {
-    query = query.statefulset_services
+  with "services_for_statefulset" {
+    query = query.services_for_statefulset
     args  = [self.input.statefulset_uid.value]
   }
 
@@ -106,49 +102,35 @@ dashboard "statefulset_detail" {
       node {
         base = node.service
         args = {
-          service_uids = with.services.rows[*].uid
-        }
-      }
-
-      node {
-        base = node.namespace
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          service_uids = with.services_for_statefulset.rows[*].uid
         }
       }
 
       node {
         base = node.pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_statefulset.rows[*].uid
         }
       }
 
       node {
         base = node.node
         args = {
-          node_uids = with.nodes.rows[*].uid
+          node_uids = with.nodes_for_statefulset.rows[*].uid
         }
       }
 
       node {
         base = node.container
         args = {
-          container_names = with.containers.rows[*].name
-        }
-      }
-
-      edge {
-        base = edge.namespace_to_service
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          container_names = with.containers_for_statefulset.rows[*].name
         }
       }
 
       edge {
         base = edge.container_to_node
         args = {
-          container_names = with.containers.rows[*].name
+          container_names = with.containers_for_statefulset.rows[*].name
         }
       }
 
@@ -162,14 +144,14 @@ dashboard "statefulset_detail" {
       edge {
         base = edge.service_to_statefulset
         args = {
-          service_uids = with.services.rows[*].uid
+          service_uids = with.services_for_statefulset.rows[*].uid
         }
       }
 
       edge {
         base = edge.pod_to_container
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_statefulset.rows[*].uid
         }
       }
     }
@@ -184,6 +166,14 @@ dashboard "statefulset_detail" {
       query = query.statefulset_overview
       args = {
         uid = self.input.statefulset_uid.value
+      }
+
+      column "Namespace" {
+        href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+      }
+
+      column "Namespace UID" {
+        display = "none"
       }
     }
 
@@ -322,11 +312,14 @@ query "statefulset_default_namespace" {
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_stateful_set
+      kubernetes_stateful_set as s,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = s.namespace
+      and s.uid = $1;
   EOQ
 
   param "uid" {}
@@ -392,7 +385,7 @@ query "statefulset_containers" {
   EOQ
 }
 
-query "statefulset_pods" {
+query "pods_for_statefulset" {
   sql = <<-EOQ
     select
       pod.uid as uid
@@ -404,7 +397,7 @@ query "statefulset_pods" {
   EOQ
 }
 
-query "statefulset_nodes" {
+query "nodes_for_statefulset" {
   sql = <<-EOQ
     select
       n.uid as uid
@@ -418,20 +411,7 @@ query "statefulset_nodes" {
   EOQ
 }
 
-query "statefulset_namespaces" {
-  sql = <<-EOQ
-    select
-      n.uid as uid
-    from
-      kubernetes_namespace as n,
-      kubernetes_stateful_set as s
-    where
-      n.name = s.namespace
-      and s.uid = $1;
-  EOQ
-}
-
-query "statefulset_services" {
+query "services_for_statefulset" {
   sql = <<-EOQ
     select
       s.uid as uid
@@ -449,14 +429,18 @@ query "statefulset_services" {
 query "statefulset_overview" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      s.name as "Name",
+      s.uid as "UID",
+      s.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      s.context_name as "Context Name"
     from
-      kubernetes_stateful_set
+      kubernetes_stateful_set as s,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = s.namespace
+      and s.uid = $1;
   EOQ
 
   param "uid" {}

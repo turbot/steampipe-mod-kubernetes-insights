@@ -65,33 +65,33 @@ dashboard "cluster_detail" {
 
   }
 
-  with "namespaces" {
-    query = query.cluster_namespaces
+  with "namespaces_for_cluster" {
+    query = query.namespaces_for_cluster
     args  = [self.input.cluster_context.value]
   }
 
-  with "nodes" {
-    query = query.cluster_nodes
+  with "nodes_for_cluster" {
+    query = query.nodes_for_cluster
     args  = [self.input.cluster_context.value]
   }
 
-  with "persistent_volumes" {
-    query = query.cluster_persistent_volumes
+  with "persistent_volumes_for_cluster" {
+    query = query.persistent_volumes_for_cluster
     args  = [self.input.cluster_context.value]
   }
 
-  with "pod_security_policies" {
-    query = query.cluster_pod_security_policies
+  with "pod_security_policies_for_cluster" {
+    query = query.pod_security_policies_for_cluster
     args  = [self.input.cluster_context.value]
   }
 
-  with "cluster_role_bindings" {
-    query = query.cluster_role_bindings
+  with "cluster_role_bindings_for_cluster" {
+    query = query.cluster_role_bindings_for_cluster
     args  = [self.input.cluster_context.value]
   }
 
-  with "cluster_roles" {
-    query = query.cluster_roles
+  with "cluster_roles_for_cluster" {
+    query = query.cluster_roles_for_cluster
     args  = [self.input.cluster_context.value]
   }
 
@@ -111,42 +111,42 @@ dashboard "cluster_detail" {
       node {
         base = node.namespace
         args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          namespace_uids = with.namespaces_for_cluster.rows[*].uid
         }
       }
 
       node {
         base = node.node
         args = {
-          node_uids = with.nodes.rows[*].uid
+          node_uids = with.nodes_for_cluster.rows[*].uid
         }
       }
 
       node {
         base = node.persistent_volume
         args = {
-          persistent_volume_uids = with.persistent_volumes.rows[*].uid
+          persistent_volume_uids = with.persistent_volumes_for_cluster.rows[*].uid
         }
       }
 
       node {
         base = node.pod_security_policy
         args = {
-          pod_security_policy_uids = with.pod_security_policies.rows[*].uid
+          pod_security_policy_uids = with.pod_security_policies_for_cluster.rows[*].uid
         }
       }
 
       node {
         base = node.cluster_role
         args = {
-          cluster_role_uids = with.cluster_roles.rows[*].uid
+          cluster_role_uids = with.cluster_roles_for_cluster.rows[*].uid
         }
       }
 
       node {
         base = node.cluster_role_binding
         args = {
-          cluster_role_binding_uids = with.cluster_role_bindings.rows[*].uid
+          cluster_role_binding_uids = with.cluster_role_bindings_for_cluster.rows[*].uid
         }
       }
 
@@ -209,7 +209,7 @@ dashboard "cluster_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.namespace_detail.url_path}?input.namespace_uid={{.UID | @uri}}"
+        href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
       }
     }
 
@@ -226,7 +226,7 @@ dashboard "cluster_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.node_detail.url_path}?input.node_uid={{.UID | @uri}}"
+        href = "${dashboard.node_detail.url_path}?input.node_uid={{.'UID' | @uri}}"
       }
     }
 
@@ -370,7 +370,7 @@ query "cluster_role_count" {
 
 # With queries
 
-query "cluster_namespaces" {
+query "namespaces_for_cluster" {
   sql = <<-EOQ
     select
       uid
@@ -381,7 +381,7 @@ query "cluster_namespaces" {
   EOQ
 }
 
-query "cluster_nodes" {
+query "nodes_for_cluster" {
   sql = <<-EOQ
     select
       uid
@@ -392,7 +392,7 @@ query "cluster_nodes" {
   EOQ
 }
 
-query "cluster_persistent_volumes" {
+query "persistent_volumes_for_cluster" {
   sql = <<-EOQ
     select
       uid
@@ -403,7 +403,7 @@ query "cluster_persistent_volumes" {
   EOQ
 }
 
-query "cluster_pod_security_policies" {
+query "pod_security_policies_for_cluster" {
   sql = <<-EOQ
     select
       uid
@@ -414,7 +414,7 @@ query "cluster_pod_security_policies" {
   EOQ
 }
 
-query "cluster_role_bindings" {
+query "cluster_role_bindings_for_cluster" {
   sql = <<-EOQ
     select
       uid
@@ -425,7 +425,7 @@ query "cluster_role_bindings" {
   EOQ
 }
 
-query "cluster_roles" {
+query "cluster_roles_for_cluster" {
   sql = <<-EOQ
     select
       uid
@@ -442,6 +442,7 @@ query "cluster_namespaces_table" {
   sql = <<-EOQ
     select
       name as "Name",
+      uid as "UID",
       phase as "Phase",
       creation_timestamp as "Create Time"
     from
@@ -459,6 +460,7 @@ query "cluster_nodes_table" {
   sql = <<-EOQ
     select
       name as "Name",
+      uid as "UID",
       pod_cidr as "Pod CIDR",
       creation_timestamp as "Create Time"
     from

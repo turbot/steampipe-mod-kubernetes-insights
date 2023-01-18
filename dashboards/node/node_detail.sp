@@ -33,23 +33,23 @@ dashboard "node_detail" {
 
   }
 
-  with "pods" {
-    query = query.node_pods
+  with "pods_for_node" {
+    query = query.pods_for_node
     args  = [self.input.node_uid.value]
   }
 
-  with "volumes" {
-    query = query.node_volumes
+  with "volumes_for_node" {
+    query = query.volumes_for_node
     args  = [self.input.node_uid.value]
   }
 
-  with "endpoints" {
-    query = query.node_endpoints
+  with "endpoints_for_node" {
+    query = query.endpoints_for_node
     args  = [self.input.node_uid.value]
   }
 
-  with "clusters" {
-    query = query.node_clusters
+  with "clusters_for_node" {
+    query = query.clusters_for_node
     args  = [self.input.node_uid.value]
   }
 
@@ -69,28 +69,28 @@ dashboard "node_detail" {
       node {
         base = node.cluster
         args = {
-          cluster_names = with.clusters.rows[*].context_name
+          cluster_names = with.clusters_for_node.rows[*].context_name
         }
       }
 
       node {
         base = node.node_volume
         args = {
-          volume_names = with.volumes.rows[*].volume_name
+          volume_names = with.volumes_for_node.rows[*].volume_name
         }
       }
 
       node {
         base = node.endpoint
         args = {
-          endpoint_uids = with.endpoints.rows[*].uid
+          endpoint_uids = with.endpoints_for_node.rows[*].uid
         }
       }
 
       node {
         base = node.pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_node.rows[*].uid
         }
       }
 
@@ -104,7 +104,7 @@ dashboard "node_detail" {
       edge {
         base = edge.cluster_to_node
         args = {
-          cluster_names = with.clusters.rows[*].context_name
+          cluster_names = with.clusters_for_node.rows[*].context_name
         }
       }
 
@@ -290,7 +290,7 @@ query "node_containers_count" {
 
 # With queries
 
-query "node_pods" {
+query "pods_for_node" {
   sql = <<-EOQ
     select
       p.uid as uid
@@ -303,7 +303,7 @@ query "node_pods" {
   EOQ
 }
 
-query "node_endpoints" {
+query "endpoints_for_node" {
   sql = <<-EOQ
     select
       e.uid as uid
@@ -318,7 +318,7 @@ query "node_endpoints" {
   EOQ
 }
 
-query "node_volumes" {
+query "volumes_for_node" {
   sql = <<-EOQ
     select
       v ->> 'name' as volume_name
@@ -331,7 +331,7 @@ query "node_volumes" {
   EOQ
 }
 
-query "node_clusters" {
+query "clusters_for_node" {
   sql = <<-EOQ
     select
       context_name

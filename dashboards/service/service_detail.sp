@@ -29,40 +29,35 @@ dashboard "service_detail" {
       args = {
         uid = self.input.service_uid.value
       }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
     }
 
   }
 
-  with "ingresses" {
-    query = query.service_ingresses
+  with "ingresses_for_service" {
+    query = query.ingresses_for_service
     args  = [self.input.service_uid.value]
   }
 
-  with "pods" {
-    query = query.service_pods
+  with "pods_for_service" {
+    query = query.pods_for_service
     args  = [self.input.service_uid.value]
   }
 
-  with "deployments" {
-    query = query.service_deployments
+  with "deployments_for_service" {
+    query = query.deployments_for_service
     args  = [self.input.service_uid.value]
   }
 
-  with "replicasets" {
-    query = query.service_replicasets
+  with "replicasets_for_service" {
+    query = query.replicasets_for_service
     args  = [self.input.service_uid.value]
   }
 
-  with "statefulsets" {
-    query = query.service_statefulsets
+  with "statefulsets_for_service" {
+    query = query.statefulsets_for_service
     args  = [self.input.service_uid.value]
   }
-
-  with "namespaces" {
-    query = query.service_namespaces
-    args  = [self.input.service_uid.value]
-  }
-
 
   container {
     graph {
@@ -80,105 +75,84 @@ dashboard "service_detail" {
       node {
         base = node.ingress_rule
         args = {
-          ingress_uids = with.ingresses.rows[*].uid
+          ingress_uids = with.ingresses_for_service.rows[*].uid
         }
       }
 
       node {
         base = node.ingress_rule_path
         args = {
-          ingress_uids = with.ingresses.rows[*].uid
+          ingress_uids = with.ingresses_for_service.rows[*].uid
         }
       }
 
       node {
         base = node.ingress
         args = {
-          ingress_uids = with.ingresses.rows[*].uid
+          ingress_uids = with.ingresses_for_service.rows[*].uid
         }
       }
 
       node {
         base = node.deployment
         args = {
-          deployment_uids = with.deployments.rows[*].uid
+          deployment_uids = with.deployments_for_service.rows[*].uid
         }
       }
 
       node {
         base = node.replicaset
         args = {
-          replicaset_uids = with.replicasets.rows[*].uid
+          replicaset_uids = with.replicasets_for_service.rows[*].uid
         }
       }
 
       node {
         base = node.statefulset
         args = {
-          statefulset_uids = with.statefulsets.rows[*].uid
+          statefulset_uids = with.statefulsets_for_service.rows[*].uid
         }
       }
 
       node {
         base = node.pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_service.rows[*].uid
         }
       }
 
       node {
         base = node.ingress_load_balancer
         args = {
-          ingress_uids = with.ingresses.rows[*].uid
-        }
-      }
-
-      node {
-        base = node.namespace
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.namespace_to_ingress_load_balancer
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.namespace_to_ingress_service
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          ingress_uids = with.ingresses_for_service.rows[*].uid
         }
       }
 
       edge {
         base = edge.ingress_load_balancer_to_ingress
         args = {
-          ingress_uids = with.ingresses.rows[*].uid
+          ingress_uids = with.ingresses_for_service.rows[*].uid
         }
       }
 
       edge {
         base = edge.ingress_rule_path_to_service
         args = {
-          ingress_uids = with.ingresses.rows[*].uid
+          ingress_uids = with.ingresses_for_service.rows[*].uid
         }
       }
 
       edge {
         base = edge.ingress_to_ingress_rule
         args = {
-          ingress_uids = with.ingresses.rows[*].uid
+          ingress_uids = with.ingresses_for_service.rows[*].uid
         }
       }
 
       edge {
         base = edge.ingress_rule_to_ingress_rule_path
         args = {
-          ingress_uids = with.ingresses.rows[*].uid
+          ingress_uids = with.ingresses_for_service.rows[*].uid
         }
       }
 
@@ -192,7 +166,7 @@ dashboard "service_detail" {
       edge {
         base = edge.deployment_to_replicaset
         args = {
-          deployment_uids = with.deployments.rows[*].uid
+          deployment_uids = with.deployments_for_service.rows[*].uid
         }
       }
 
@@ -206,14 +180,14 @@ dashboard "service_detail" {
       edge {
         base = edge.replicaset_to_pod
         args = {
-          replicaset_uids = with.replicasets.rows[*].uid
+          replicaset_uids = with.replicasets_for_service.rows[*].uid
         }
       }
 
       edge {
         base = edge.statefulset_to_pod
         args = {
-          statefulset_uids = with.statefulsets.rows[*].uid
+          statefulset_uids = with.statefulsets_for_service.rows[*].uid
         }
       }
     }
@@ -232,6 +206,14 @@ dashboard "service_detail" {
         query = query.service_overview
         args = {
           uid = self.input.service_uid.value
+        }
+
+        column "Namespace" {
+          href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+        }
+
+        column "Namespace UID" {
+          display = "none"
         }
       }
 
@@ -352,31 +334,22 @@ query "service_default_namespace" {
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_service
+      kubernetes_service as s,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = s.namespace
+      and s.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
 # With queries
-query "service_namespaces" {
-  sql = <<-EOQ
-    select
-      n.uid as uid
-    from
-     kubernetes_service as s,
-      kubernetes_namespace as n
-    where
-      s.namespace = n.name
-      and s.uid = $1;
-  EOQ
-}
 
-query "service_pods" {
+query "pods_for_service" {
   sql = <<-EOQ
     select
       p.uid as uid
@@ -389,7 +362,7 @@ query "service_pods" {
   EOQ
 }
 
-query "service_replicasets" {
+query "replicasets_for_service" {
   sql = <<-EOQ
     select
       pod_owner ->> 'uid' as uid
@@ -403,7 +376,7 @@ query "service_replicasets" {
   EOQ
 }
 
-query "service_statefulsets" {
+query "statefulsets_for_service" {
   sql = <<-EOQ
     select
       st.uid as uid
@@ -412,11 +385,23 @@ query "service_statefulsets" {
       kubernetes_service as s
     where
       st.service_name = s.name
-      and s.uid = $1;
+      and s.uid = $1
+    union
+    select
+      distinct st.uid as uid
+    from
+      kubernetes_stateful_set as st,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_service as s
+    where
+      s.uid = $1
+      and pod_owner ->> 'uid' = st.uid
+      and pod.selector_search = s.selector_query;
   EOQ
 }
 
-query "service_deployments" {
+query "deployments_for_service" {
   sql = <<-EOQ
     select
       rs_owner ->> 'uid' as uid
@@ -433,7 +418,7 @@ query "service_deployments" {
   EOQ
 }
 
-query "service_ingresses" {
+query "ingresses_for_service" {
   sql = <<-EOQ
     select
       i.uid
@@ -453,14 +438,18 @@ query "service_ingresses" {
 query "service_overview" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      s.name as "Name",
+      s.uid as "UID",
+      s.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      s.context_name as "Context Name"
     from
-      kubernetes_service
+      kubernetes_service as s,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = s.namespace
+      and s.uid = $1;
   EOQ
 
   param "uid" {}

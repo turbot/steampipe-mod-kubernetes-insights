@@ -35,6 +35,24 @@ edge "pod_to_configmap" {
   param "pod_uids" {}
 }
 
+edge "pod_to_service_account" {
+  title = "service account"
+
+  sql = <<-EOQ
+     select
+      p.uid as from_id,
+      s.uid as to_id
+    from
+      kubernetes_service_account as s,
+      kubernetes_pod as p
+    where
+      p.service_account_name = s.name
+      and p.uid = any($1);
+  EOQ
+
+  param "pod_uids" {}
+}
+
 edge "pod_to_persistent_volume_claim" {
   title = "persistent volume claim"
 

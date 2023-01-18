@@ -57,53 +57,53 @@ dashboard "namespace_detail" {
 
   }
 
-  with "clusters" {
-    query = query.namespace_clusters
+  with "clusters_for_namespace" {
+    query = query.clusters_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "roles" {
-    query = query.namespace_roles
+  with "roles_for_namespace" {
+    query = query.roles_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "role_bindings" {
-    query = query.namespace_role_bindings
+  with "role_bindings_for_namespace" {
+    query = query.role_bindings_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "deployments" {
-    query = query.namespace_deployments
+  with "deployments_for_namespace" {
+    query = query.deployments_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "replicasets" {
-    query = query.namespace_replicasets
+  with "replicasets_for_namespace" {
+    query = query.replicasets_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "daemonsets" {
-    query = query.namespace_daemonsets
+  with "daemonsets_for_namespace" {
+    query = query.daemonsets_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "jobs" {
-    query = query.namespace_jobs
+  with "jobs_for_namespace" {
+    query = query.jobs_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "cronjobs" {
-    query = query.namespace_cronjobs
+  with "cronjobs_for_namespace" {
+    query = query.cronjobs_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "services" {
-    query = query.namespace_services
+  with "services_for_namespace" {
+    query = query.services_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
-  with "statefulsets" {
-    query = query.namespace_statefulsets
+  with "statefulsets_for_namespace" {
+    query = query.statefulsets_for_namespace
     args  = [self.input.namespace_uid.value]
   }
 
@@ -123,70 +123,70 @@ dashboard "namespace_detail" {
       node {
         base = node.cluster
         args = {
-          cluster_names = with.clusters.rows[*].name
+          cluster_names = with.clusters_for_namespace.rows[*].name
         }
       }
 
       node {
         base = node.role
         args = {
-          role_uids = with.roles.rows[*].uid
+          role_uids = with.roles_for_namespace.rows[*].uid
         }
       }
 
       node {
         base = node.role_binding
         args = {
-          role_binding_uids = with.role_bindings.rows[*].uid
+          role_binding_uids = with.role_bindings_for_namespace.rows[*].uid
         }
       }
 
       node {
         base = node.statefulset
         args = {
-          statefulset_uids = with.statefulsets.rows[*].uid
+          statefulset_uids = with.statefulsets_for_namespace.rows[*].uid
         }
       }
 
       node {
         base = node.service
         args = {
-          service_uids = with.services.rows[*].uid
+          service_uids = with.services_for_namespace.rows[*].uid
         }
       }
 
       node {
         base = node.cronjob
         args = {
-          cronjob_uids = with.cronjobs.rows[*].uid
+          cronjob_uids = with.cronjobs_for_namespace.rows[*].uid
         }
       }
 
       node {
         base = node.job
         args = {
-          job_uids = with.jobs.rows[*].uid
+          job_uids = with.jobs_for_namespace.rows[*].uid
         }
       }
 
       node {
         base = node.replicaset
         args = {
-          replicaset_uids = with.replicasets.rows[*].uid
+          replicaset_uids = with.replicasets_for_namespace.rows[*].uid
         }
       }
 
       node {
         base = node.daemonset
         args = {
-          daemonset_uids = with.daemonsets.rows[*].uid
+          daemonset_uids = with.daemonsets_for_namespace.rows[*].uid
         }
       }
 
       node {
         base = node.deployment
         args = {
-          deployment_uids = with.deployments.rows[*].uid
+          deployment_uids = with.deployments_for_namespace.rows[*].uid
         }
       }
 
@@ -214,7 +214,7 @@ dashboard "namespace_detail" {
       edge {
         base = edge.cluster_to_namespace
         args = {
-          cluster_names = with.clusters.rows[*].name
+          cluster_names = with.clusters_for_namespace.rows[*].name
         }
       }
 
@@ -535,7 +535,7 @@ query "namespace_replicaset_count" {
 
 # With queries
 
-query "namespace_services" {
+query "services_for_namespace" {
   sql = <<-EOQ
     select
       s.uid as uid
@@ -548,7 +548,7 @@ query "namespace_services" {
   EOQ
 }
 
-query "namespace_roles" {
+query "roles_for_namespace" {
   sql = <<-EOQ
     select
       r.uid as uid
@@ -561,7 +561,7 @@ query "namespace_roles" {
   EOQ
 }
 
-query "namespace_role_bindings" {
+query "role_bindings_for_namespace" {
   sql = <<-EOQ
     select
       b.uid as uid
@@ -574,7 +574,7 @@ query "namespace_role_bindings" {
   EOQ
 }
 
-query "namespace_clusters" {
+query "clusters_for_namespace" {
   sql = <<-EOQ
     select
       context_name as name
@@ -585,7 +585,7 @@ query "namespace_clusters" {
   EOQ
 }
 
-query "namespace_deployments" {
+query "deployments_for_namespace" {
   sql = <<-EOQ
     select
       d.uid as uid
@@ -598,7 +598,7 @@ query "namespace_deployments" {
   EOQ
 }
 
-query "namespace_daemonsets" {
+query "daemonsets_for_namespace" {
   sql = <<-EOQ
     select
       d.uid as uid
@@ -611,7 +611,7 @@ query "namespace_daemonsets" {
   EOQ
 }
 
-query "namespace_jobs" {
+query "jobs_for_namespace" {
   sql = <<-EOQ
     select
       j.uid as uid
@@ -624,7 +624,7 @@ query "namespace_jobs" {
   EOQ
 }
 
-query "namespace_cronjobs" {
+query "cronjobs_for_namespace" {
   sql = <<-EOQ
     select
       j.uid as uid
@@ -637,7 +637,7 @@ query "namespace_cronjobs" {
   EOQ
 }
 
-query "namespace_statefulsets" {
+query "statefulsets_for_namespace" {
   sql = <<-EOQ
     select
       s.uid as uid
@@ -650,7 +650,7 @@ query "namespace_statefulsets" {
   EOQ
 }
 
-query "namespace_replicasets" {
+query "replicasets_for_namespace" {
   sql = <<-EOQ
     select
       s.uid as uid

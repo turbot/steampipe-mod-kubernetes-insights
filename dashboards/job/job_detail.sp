@@ -21,6 +21,7 @@ dashboard "job_detail" {
       args = {
         uid = self.input.job_uid.value
       }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
     }
 
     card {
@@ -49,28 +50,23 @@ dashboard "job_detail" {
 
   }
 
-  with "cronjobs" {
-    query = query.job_cronjobs
+  with "cronjobs_for_job" {
+    query = query.cronjobs_for_job
     args  = [self.input.job_uid.value]
   }
 
-  with "namespaces" {
-    query = query.job_namespaces
+  with "pods_for_job" {
+    query = query.pods_for_job
     args  = [self.input.job_uid.value]
   }
 
-  with "pods" {
-    query = query.job_pods
+  with "nodes_for_job" {
+    query = query.nodes_for_job
     args  = [self.input.job_uid.value]
   }
 
-  with "nodes" {
-    query = query.job_nodes
-    args  = [self.input.job_uid.value]
-  }
-
-  with "containers" {
-    query = query.job_containers
+  with "containers_for_job" {
+    query = query.containers_for_job
     args  = [self.input.job_uid.value]
   }
 
@@ -83,7 +79,7 @@ dashboard "job_detail" {
       node {
         base = node.cronjob
         args = {
-          cronjob_uids = with.cronjobs.rows[*].uid
+          cronjob_uids = with.cronjobs_for_job.rows[*].uid
         }
       }
 
@@ -95,51 +91,37 @@ dashboard "job_detail" {
       }
 
       node {
-        base = node.namespace
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
-        }
-      }
-
-      node {
         base = node.pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_job.rows[*].uid
         }
       }
 
       node {
         base = node.node
         args = {
-          node_uids = with.nodes.rows[*].uid
+          node_uids = with.nodes_for_job.rows[*].uid
         }
       }
 
       node {
         base = node.container
         args = {
-          container_names = with.containers.rows[*].name
+          container_names = with.containers_for_job.rows[*].name
         }
       }
 
       edge {
-        base = edge.namespace_to_cronjob_job
+        base = edge.cronjob_to_job
         args = {
-          namespace_uids = with.namespaces.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.namespace_to_cronjob
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          cronjob_uids = with.cronjobs_for_job.rows[*].uid
         }
       }
 
       edge {
         base = edge.container_to_node
         args = {
-          container_names = with.containers.rows[*].name
+          container_names = with.containers_for_job.rows[*].name
         }
       }
 
@@ -153,7 +135,7 @@ dashboard "job_detail" {
       edge {
         base = edge.pod_to_container
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_job.rows[*].uid
         }
       }
     }
@@ -168,6 +150,14 @@ dashboard "job_detail" {
       query = query.job_overview
       args = {
         uid = self.input.job_uid.value
+      }
+
+      column "Namespace" {
+        href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+      }
+
+      column "Namespace UID" {
+        display = "none"
       }
     }
 
@@ -280,11 +270,14 @@ query "job_default_namespace" {
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_job
+      kubernetes_job as j,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = j.namespace
+      and j.uid = $1;
   EOQ
 
   param "uid" {}
@@ -337,7 +330,7 @@ query "job_container_host_ipc" {
 
 # With queries
 
-query "job_cronjobs" {
+query "cronjobs_for_job" {
   sql = <<-EOQ
     select
       owner ->> 'uid' as uid
@@ -349,20 +342,7 @@ query "job_cronjobs" {
   EOQ
 }
 
-query "job_namespaces" {
-  sql = <<-EOQ
-    select
-      n.uid as uid
-    from
-      kubernetes_namespace as n,
-      kubernetes_job as j
-    where
-      n.name = j.namespace
-      and j.uid = $1;
-  EOQ
-}
-
-query "job_pods" {
+query "pods_for_job" {
   sql = <<-EOQ
     select
       pod.uid as uid
@@ -376,7 +356,7 @@ query "job_pods" {
   EOQ
 }
 
-query "job_nodes" {
+query "nodes_for_job" {
   sql = <<-EOQ
     select
       n.uid as uid
@@ -392,7 +372,7 @@ query "job_nodes" {
   EOQ
 }
 
-query "job_containers" {
+query "containers_for_job" {
   sql = <<-EOQ
     select
       container ->> 'name' || pod.name as name
@@ -412,14 +392,18 @@ query "job_containers" {
 query "job_overview" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      j.name as "Name",
+      j.uid as "UID",
+      j.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      j.context_name as "Context Name"
     from
-      kubernetes_job
+      kubernetes_job as j,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = j.namespace
+      and j.uid = $1;
   EOQ
 
   param "uid" {}

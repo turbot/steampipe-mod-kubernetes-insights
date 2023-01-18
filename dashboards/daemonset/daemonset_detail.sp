@@ -21,6 +21,7 @@ dashboard "daemonset_detail" {
       args = {
         uid = self.input.daemonset_uid.value
       }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
     }
 
     card {
@@ -49,23 +50,18 @@ dashboard "daemonset_detail" {
 
   }
 
-  with "namespaces" {
-    query = query.daemonset_namespaces
+  with "nodes_for_daemonset" {
+    query = query.nodes_for_daemonset
     args  = [self.input.daemonset_uid.value]
   }
 
-  with "nodes" {
-    query = query.daemonset_nodes
+  with "pods_for_daemonset" {
+    query = query.pods_for_daemonset
     args  = [self.input.daemonset_uid.value]
   }
 
-  with "pods" {
-    query = query.daemonset_pods
-    args  = [self.input.daemonset_uid.value]
-  }
-
-  with "containers" {
-    query = query.daemonset_containers
+  with "containers_for_daemonset" {
+    query = query.containers_for_daemonset
     args  = [self.input.daemonset_uid.value]
   }
 
@@ -83,44 +79,30 @@ dashboard "daemonset_detail" {
       }
 
       node {
-        base = node.namespace
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
-        }
-      }
-
-      node {
         base = node.pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_daemonset.rows[*].uid
         }
       }
 
       node {
         base = node.node
         args = {
-          node_uids = with.nodes.rows[*].uid
+          node_uids = with.nodes_for_daemonset.rows[*].uid
         }
       }
 
       node {
         base = node.container
         args = {
-          container_names = with.containers.rows[*].name
-        }
-      }
-
-      edge {
-        base = edge.namespace_to_daemonset
-        args = {
-          namespace_uids = with.namespaces.rows[*].uid
+          container_names = with.containers_for_daemonset.rows[*].name
         }
       }
 
       edge {
         base = edge.container_to_node
         args = {
-          container_names = with.containers.rows[*].name
+          container_names = with.containers_for_daemonset.rows[*].name
         }
       }
 
@@ -134,7 +116,7 @@ dashboard "daemonset_detail" {
       edge {
         base = edge.pod_to_container
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_daemonset.rows[*].uid
         }
       }
     }
@@ -149,6 +131,14 @@ dashboard "daemonset_detail" {
       query = query.daemonset_overview
       args = {
         uid = self.input.daemonset_uid.value
+      }
+
+      column "Namespace" {
+        href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+      }
+
+      column "Namespace UID" {
+        display = "none"
       }
     }
 
@@ -271,11 +261,14 @@ query "daemonset_default_namespace" {
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_daemonset
+      kubernetes_daemonset as d,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = d.namespace
+      and d.uid = $1;
   EOQ
 
   param "uid" {}
@@ -328,7 +321,7 @@ query "daemonset_container_host_ipc" {
 
 # With queries
 
-query "daemonset_containers" {
+query "containers_for_daemonset" {
   sql = <<-EOQ
     select
       container ->> 'name' || pod.name as name
@@ -341,7 +334,7 @@ query "daemonset_containers" {
   EOQ
 }
 
-query "daemonset_pods" {
+query "pods_for_daemonset" {
   sql = <<-EOQ
     select
       pod.uid as uid
@@ -353,7 +346,7 @@ query "daemonset_pods" {
   EOQ
 }
 
-query "daemonset_nodes" {
+query "nodes_for_daemonset" {
   sql = <<-EOQ
     select
       n.uid as uid
@@ -367,32 +360,24 @@ query "daemonset_nodes" {
   EOQ
 }
 
-query "daemonset_namespaces" {
-  sql = <<-EOQ
-    select
-      n.uid as uid
-    from
-      kubernetes_namespace as n,
-      kubernetes_daemonset as d
-    where
-      n.name = d.namespace
-      and d.uid = $1;
-  EOQ
-}
 
 # Other queries
 
 query "daemonset_overview" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      d.name as "Name",
+      d.uid as "UID",
+      d.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      d.context_name as "Context Name"
     from
-      kubernetes_daemonset
+      kubernetes_daemonset as d,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = d.namespace
+      and d.uid = $1;
   EOQ
 
   param "uid" {}

@@ -57,8 +57,28 @@ dashboard "container_detail" {
 
   }
 
-  with "pods" {
-    query = query.container_pods
+  with "pods_for_container" {
+    query = query.pods_for_container
+    args  = [self.input.container_name.value]
+  }
+
+  with "persistent_volumes_for_container" {
+    query = query.persistent_volumes_for_container
+    args  = [self.input.container_name.value]
+  }
+
+  with "configmaps_for_container" {
+    query = query.configmaps_for_container
+    args  = [self.input.container_name.value]
+  }
+
+  with "secrets_for_container" {
+    query = query.secrets_for_container
+    args  = [self.input.container_name.value]
+  }
+
+  with "persistent_volume_claims_for_container" {
+    query = query.persistent_volume_claims_for_container
     args  = [self.input.container_name.value]
   }
 
@@ -76,14 +96,35 @@ dashboard "container_detail" {
       }
 
       node {
-        base = node.container_volume
+        base = node.configmap
         args = {
-          container_names = [self.input.container_name.value]
+          configmap_uids = with.configmaps_for_container.rows[*].uid
         }
       }
 
       node {
-        base = node.container_volume_mount_path
+        base = node.secret
+        args = {
+          secret_uids = with.secrets_for_container.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.persistent_volume_claim
+        args = {
+          persistent_volume_claim_uids = with.persistent_volume_claims_for_container.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.persistent_volume
+        args = {
+          persistent_volume_uids = with.persistent_volumes_for_container.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.container_volume
         args = {
           container_names = [self.input.container_name.value]
         }
@@ -92,14 +133,14 @@ dashboard "container_detail" {
       node {
         base = node.pod
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_container.rows[*].uid
         }
       }
 
       edge {
         base = edge.pod_to_container
         args = {
-          pod_uids = with.pods.rows[*].uid
+          pod_uids = with.pods_for_container.rows[*].uid
         }
       }
 
@@ -111,9 +152,30 @@ dashboard "container_detail" {
       }
 
       edge {
-        base = edge.container_volume_to_container_volume_mount_path
+        base = edge.container_volume_to_configmap
         args = {
-          container_names = [self.input.container_name.value]
+          pod_uids = with.pods_for_container.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.container_volume_to_secret
+        args = {
+          pod_uids = with.pods_for_container.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.container_volume_to_persistent_volume_claim
+        args = {
+          pod_uids = with.pods_for_container.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.persistent_volume_claim_to_persistent_volume
+        args = {
+          persistent_volume_claim_uids = with.persistent_volume_claims_for_container.rows[*].uid
         }
       }
 
@@ -297,7 +359,7 @@ query "container_immutable_root_filesystem" {
 
 # With queries
 
-query "container_pods" {
+query "pods_for_container" {
   sql = <<-EOQ
     select
       uid
@@ -306,6 +368,78 @@ query "container_pods" {
       jsonb_array_elements(containers) as c
     where
       concat(c ->> 'name',name) = $1;
+  EOQ
+}
+
+query "persistent_volumes_for_container" {
+  sql = <<-EOQ
+    select
+      distinct pv.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(containers) as c,
+      jsonb_array_elements(c -> 'volumeMounts') as vm,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_persistent_volume as pv
+      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
+    where
+      pv.uid is not null
+      and v ->> 'name' = vm ->> 'name'
+      and concat(c ->> 'name',p.name) = $1;
+  EOQ
+}
+
+query "persistent_volume_claims_for_container" {
+  sql = <<-EOQ
+    select
+      distinct vc.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(containers) as c,
+      jsonb_array_elements(c -> 'volumeMounts') as vm,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_persistent_volume_claim as vc
+      on v -> 'persistentVolumeClaim' ->> 'claimName' = vc.name
+    where
+      vc.uid is not null
+      and v ->> 'name' = vm ->> 'name'
+      and concat(c ->> 'name',p.name) = $1;
+  EOQ
+}
+
+query "configmaps_for_container" {
+  sql = <<-EOQ
+    select
+      cm.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(containers) as c,
+      jsonb_array_elements(c -> 'volumeMounts') as vm,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_config_map as cm
+      on v -> 'configMap' ->> 'name' = cm.name
+    where
+      cm.uid is not null
+      and v ->> 'name' = vm ->> 'name'
+      and concat(c ->> 'name',p.name) = $1;
+  EOQ
+}
+
+query "secrets_for_container" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(containers) as c,
+      jsonb_array_elements(c -> 'volumeMounts') as vm,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_secret as s
+      on v -> 'secret' ->> 'secretName' = s.name
+    where
+      s.uid is not null
+      and v ->> 'name' = vm ->> 'name'
+      and concat(c ->> 'name',p.name) = $1;
   EOQ
 }
 

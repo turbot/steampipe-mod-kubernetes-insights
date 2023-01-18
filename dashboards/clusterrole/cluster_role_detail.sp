@@ -1,15 +1,15 @@
-dashboard "role_detail" {
+dashboard "cluster_role_detail" {
 
-  title         = "Kubernetes Role Detail"
-  documentation = file("./dashboards/role/docs/role_detail.md")
+  title         = "Kubernetes Cluster Role Detail"
+  documentation = file("./dashboards/clusterrole/docs/cluster_role_detail.md")
 
-  tags = merge(local.role_common_tags, {
+  tags = merge(local.cluster_role_common_tags, {
     type = "Detail"
   })
 
-  input "role_uid" {
-    title = "Select a Role:"
-    query = query.role_input
+  input "cluster_role_uid" {
+    title = "Select a Cluster Role:"
+    query = query.cluster_role_input
     width = 4
   }
 
@@ -17,31 +17,21 @@ dashboard "role_detail" {
 
     card {
       width = 2
-      query = query.role_rules_count
+      query = query.cluster_role_rules_count
       args = {
-        uid = self.input.role_uid.value
+        uid = self.input.cluster_role_uid.value
       }
     }
-
-    card {
-      width = 2
-      query = query.role_default_namespace
-      args = {
-        uid = self.input.role_uid.value
-      }
-      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
-    }
-
   }
 
-  with "service_accounts_for_role" {
-    query = query.service_accounts_for_role
-    args  = [self.input.role_uid.value]
+  with "service_accounts_for_cluster_role" {
+    query = query.service_accounts_for_cluster_role
+    args  = [self.input.cluster_role_uid.value]
   }
 
-  with "role_bindings_for_role" {
-    query = query.role_bindings_for_role
-    args  = [self.input.role_uid.value]
+  with "cluster_role_bindings_for_cluster_role" {
+    query = query.cluster_role_bindings_for_cluster_role
+    args  = [self.input.cluster_role_uid.value]
   }
 
   container {
@@ -49,43 +39,43 @@ dashboard "role_detail" {
       title     = "Relationships"
       type      = "graph"
       direction = "TD"
-      base      = graph.role_resource_structure
+      base      = graph.cluster_role_resource_structure
       args = {
-        role_uids = [self.input.role_uid.value]
+        cluster_role_uids = [self.input.cluster_role_uid.value]
       }
 
       node {
-        base = node.role
+        base = node.cluster_role
         args = {
-          role_uids = [self.input.role_uid.value]
+          cluster_role_uids = [self.input.cluster_role_uid.value]
         }
       }
 
       node {
         base = node.service_account
         args = {
-          service_account_uids = with.service_accounts_for_role.rows[*].uid
+          service_account_uids = with.service_accounts_for_cluster_role.rows[*].uid
         }
       }
 
       node {
-        base = node.role_binding
+        base = node.cluster_role_binding
         args = {
-          role_binding_uids = with.role_bindings_for_role.rows[*].uid
+          cluster_role_binding_uids = with.cluster_role_bindings_for_cluster_role.rows[*].uid
         }
       }
 
       edge {
-        base = edge.service_account_to_role_binding
+        base = edge.service_account_to_cluster_role_binding
         args = {
-          service_account_uids = with.service_accounts_for_role.rows[*].uid
+          service_account_uids = with.service_accounts_for_cluster_role.rows[*].uid
         }
       }
 
       edge {
-        base = edge.role_binding_to_role
+        base = edge.cluster_role_binding_to_cluster_role
         args = {
-          role_uids = [self.input.role_uid.value]
+          cluster_role_uids = [self.input.cluster_role_uid.value]
         }
       }
     }
@@ -101,26 +91,18 @@ dashboard "role_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.role_overview
+        query = query.cluster_role_overview
         args = {
-          uid = self.input.role_uid.value
-        }
-
-        column "Namespace" {
-          href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
-        }
-
-        column "Namespace UID" {
-          display = "none"
+          uid = self.input.cluster_role_uid.value
         }
       }
 
       table {
         title = "Labels"
         width = 6
-        query = query.role_labels
+        query = query.cluster_role_labels
         args = {
-          uid = self.input.role_uid.value
+          uid = self.input.cluster_role_uid.value
         }
       }
     }
@@ -131,17 +113,17 @@ dashboard "role_detail" {
 
       table {
         title = "Annotations"
-        query = query.role_annotations
+        query = query.cluster_role_annotations
         args = {
-          uid = self.input.role_uid.value
+          uid = self.input.cluster_role_uid.value
         }
       }
 
       table {
         title = "Rules"
-        query = query.role_rules_detail
+        query = query.cluster_role_rules_detail
         args = {
-          uid = self.input.role_uid.value
+          uid = self.input.cluster_role_uid.value
         }
 
       }
@@ -154,7 +136,7 @@ dashboard "role_detail" {
 
 # Input queries
 
-query "role_input" {
+query "cluster_role_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -163,7 +145,7 @@ query "role_input" {
         'context_name', context_name
       ) as tags
     from
-      kubernetes_role
+      kubernetes_cluster_role
     order by
       title;
   EOQ
@@ -171,31 +153,13 @@ query "role_input" {
 
 # Card queries
 
-query "role_default_namespace" {
-  sql = <<-EOQ
-    select
-      'Namespace' as label,
-      initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type,
-      n.uid as "UID"
-    from
-      kubernetes_role as r,
-      kubernetes_namespace as n
-    where
-      n.name = r.namespace
-      and r.uid = $1;
-  EOQ
-
-  param "uid" {}
-}
-
-query "role_rules_count" {
+query "cluster_role_rules_count" {
   sql = <<-EOQ
     select
       'Rules' as label,
       count(r) as value
     from
-      kubernetes_role,
+      kubernetes_cluster_role,
       jsonb_array_elements(rules) as r
     where
       uid = $1;
@@ -206,14 +170,14 @@ query "role_rules_count" {
 
 # With queries
 
-query "service_accounts_for_role" {
+query "service_accounts_for_cluster_role" {
   sql = <<-EOQ
     select
       a.uid as uid
     from
       kubernetes_service_account as a,
-      kubernetes_role as r,
-      kubernetes_role_binding as b,
+      kubernetes_cluster_role as r,
+      kubernetes_cluster_role_binding as b,
       jsonb_array_elements(subjects) as s
     where
       b.role_name = r.name
@@ -223,13 +187,13 @@ query "service_accounts_for_role" {
   EOQ
 }
 
-query "role_bindings_for_role" {
+query "cluster_role_bindings_for_cluster_role" {
   sql = <<-EOQ
     select
       b.uid as uid
     from
-      kubernetes_role_binding as b,
-      kubernetes_role as r
+      kubernetes_cluster_role_binding as b,
+      kubernetes_cluster_role as r
     where
       r.name = b.role_name
       and r.uid = $1;
@@ -238,34 +202,30 @@ query "role_bindings_for_role" {
 
 # Other queries
 
-query "role_overview" {
+query "cluster_role_overview" {
   sql = <<-EOQ
     select
       r.name as "Name",
       r.uid as "UID",
       r.creation_timestamp as "Create Time",
       r.resource_version as "Resource Version",
-      n.uid as "Namespace UID",
-      n.name as "Namespace",
       r.context_name as "Context Name"
     from
-      kubernetes_role as r,
-      kubernetes_namespace as n
+      kubernetes_cluster_role as r
     where
-      n.name = r.namespace
-      and r.uid = $1;
+      uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "role_labels" {
+query "cluster_role_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
      labels::json as label
    from
-     kubernetes_role
+     kubernetes_cluster_role
    where
      uid = $1
    )
@@ -282,13 +242,13 @@ query "role_labels" {
   param "uid" {}
 }
 
-query "role_annotations" {
+query "cluster_role_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
      annotations::json as annotation
    from
-     kubernetes_role
+     kubernetes_cluster_role
    where
      uid = $1
    )
@@ -305,7 +265,7 @@ query "role_annotations" {
   param "uid" {}
 }
 
-query "role_rules_detail" {
+query "cluster_role_rules_detail" {
   sql = <<-EOQ
     select
       r -> 'verbs' as "Verbs",
@@ -313,7 +273,7 @@ query "role_rules_detail" {
       r -> 'resources' as "Resources",
       r -> 'resourceNames' as "Resource Names"
     from
-      kubernetes_role,
+      kubernetes_cluster_role,
       jsonb_array_elements(rules) as r
     where
       uid = $1;
