@@ -1,3 +1,5 @@
-This dashboard answers the following questions for each role:
+This dashboard answers the following questions for each service account:
 
-- How is my role configured?
+- What relationships does the service account have with other resources?
+- How is my service account configured?
+- What labels and annotations are applied?

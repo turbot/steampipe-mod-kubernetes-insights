@@ -8,7 +8,7 @@ dashboard "service_account_detail" {
   })
 
   input "service_account_uid" {
-    title = "Select a Service Account:"
+    title = "Select a service account:"
     query = query.service_account_input
     width = 4
   }
