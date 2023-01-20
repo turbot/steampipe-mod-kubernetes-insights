@@ -16,12 +16,6 @@ category "ingress_rule" {
   icon  = "rule_folder"
 }
 
-category "ingress_rule_path" {
-  title = "Path"
-  color = local.ingress_color
-  icon  = "arrow_forward_ios"
-}
-
 category "ingress_load_balancer" {
   title = "Load Balancer"
   color = local.ingress_color

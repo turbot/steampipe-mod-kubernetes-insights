@@ -80,13 +80,6 @@ dashboard "service_detail" {
       }
 
       node {
-        base = node.ingress_rule_path
-        args = {
-          ingress_uids = with.ingresses_for_service.rows[*].uid
-        }
-      }
-
-      node {
         base = node.ingress
         args = {
           ingress_uids = with.ingresses_for_service.rows[*].uid
@@ -136,13 +129,6 @@ dashboard "service_detail" {
       }
 
       edge {
-        base = edge.ingress_rule_path_to_service
-        args = {
-          ingress_uids = with.ingresses_for_service.rows[*].uid
-        }
-      }
-
-      edge {
         base = edge.ingress_to_ingress_rule
         args = {
           ingress_uids = with.ingresses_for_service.rows[*].uid
@@ -150,7 +136,7 @@ dashboard "service_detail" {
       }
 
       edge {
-        base = edge.ingress_rule_to_ingress_rule_path
+        base = edge.ingress_rule_to_service
         args = {
           ingress_uids = with.ingresses_for_service.rows[*].uid
         }
@@ -428,7 +414,7 @@ query "ingresses_for_service" {
       jsonb_array_elements(rules) as r,
       jsonb_array_elements(r -> 'http' -> 'paths') as p
     where
-      s.name = p -> 'backend' ->> 'serviceName'
+      s.name = p -> 'backend' -> 'service' ->> 'name'
       and s.uid = $1;
   EOQ
 }

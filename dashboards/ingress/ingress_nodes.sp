@@ -59,25 +59,3 @@ node "ingress_rule" {
   param "ingress_uids" {}
 }
 
-node "ingress_rule_path" {
-  category = category.ingress_rule_path
-
-  sql = <<-EOQ
-    select
-      i.uid || (r ->> 'host') || (p -> 'backend' ->> 'serviceName') as id,
-      'path' as title,
-      jsonb_build_object(
-        'Path', p ->> 'path',
-        'Path Type', p ->> 'pathType',
-        'Service Port', p -> 'backend' ->> 'servicePort'
-      ) as properties
-    from
-      kubernetes_ingress as i,
-      jsonb_array_elements(rules) as r,
-      jsonb_array_elements(r -> 'http' -> 'paths') as p
-    where
-      uid = any($1);
-  EOQ
-
-  param "ingress_uids" {}
-}
