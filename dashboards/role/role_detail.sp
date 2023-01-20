@@ -44,6 +44,19 @@ dashboard "role_detail" {
     args  = [self.input.role_uid.value]
   }
 
+  with "rules_for_role" {
+    sql = <<-EOQ
+      select
+        coalesce(rules, '[]'::jsonb) as rules
+      from
+        kubernetes_role
+      where
+        uid = $1;
+    EOQ
+
+    args = [self.input.role_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
@@ -82,12 +95,75 @@ dashboard "role_detail" {
         }
       }
 
+
       edge {
         base = edge.role_binding_to_role
         args = {
           role_uids = [self.input.role_uid.value]
         }
       }
+
+
+      node {
+        base = node.role_rule_verb
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+      # node {
+      #   base = node.role_rule_resource
+      #   args = {
+      #     rules = with.rules_for_role.rows[0].rules
+      #   }
+      # }
+
+      # node {
+      #   base = node.role_rule_resource_name
+      #   args = {
+      #     rules = with.rules_for_role.rows[0].rules
+      #   }
+      # }
+
+
+     edge {
+        base = edge.role_to_rule_verb
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+          uid   = self.input.role_uid.value
+        }
+      }
+
+      # edge {
+      #   base = edge.rule_verb_to_resource
+      #   args = {
+      #     rules = with.rules_for_role.rows[0].rules
+      #   }
+      # }
+
+      # edge {
+      #   base = edge.rule_resource_name_to_resource
+      #   args = {
+      #     rules = with.rules_for_role.rows[0].rules
+      #   }
+      # }
+
+
+      node {
+        base = node.role_rule_resource_with_name
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+      edge {
+        base = edge.role_rule_verb_to_resource_with_name
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+
     }
   }
 

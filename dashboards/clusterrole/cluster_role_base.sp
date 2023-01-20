@@ -1,28 +1,28 @@
 graph "cluster_role_resource_structure" {
   param "cluster_role_uids" {}
 
-  node "rule" {
-    category = category.rule
+  # node "rule" {
+  #   category = category.rule
 
-    sql = <<-EOQ
-      select
-        concat('rule', (r -> 'verbs')::text, (r -> 'apiGroups')::text, (r -> 'resources')::text, (r -> 'resourceNames')::text) as id,
-        'rule' as title,
-        jsonb_build_object(
-        'Verbs', r -> 'verbs',
-        'API Groups', r -> 'apiGroups',
-        'Resources', r -> 'resources',
-        'Resource Names', r -> 'resourceNames'
-      ) as properties
-      from
-        kubernetes_cluster_role,
-        jsonb_array_elements(rules) as r
-      where
-        uid = any($1);
-      EOQ
+  #   sql = <<-EOQ
+  #     select
+  #       concat('rule', (r -> 'verbs')::text, (r -> 'apiGroups')::text, (r -> 'resources')::text, (r -> 'resourceNames')::text) as id,
+  #       'rule' as title,
+  #       jsonb_build_object(
+  #       'Verbs', r -> 'verbs',
+  #       'API Groups', r -> 'apiGroups',
+  #       'Resources', r -> 'resources',
+  #       'Resource Names', r -> 'resourceNames'
+  #     ) as properties
+  #     from
+  #       kubernetes_cluster_role,
+  #       jsonb_array_elements(rules) as r
+  #     where
+  #       uid = any($1);
+  #     EOQ
 
-    args = [param.cluster_role_uids]
-  }
+  #   args = [param.cluster_role_uids]
+  # }
 
   node "user" {
     category = category.user
@@ -64,22 +64,22 @@ graph "cluster_role_resource_structure" {
     args = [param.cluster_role_uids]
   }
 
-  edge "cluster_role_to_rule" {
-    title = "rule"
+  # edge "cluster_role_to_rule" {
+  #   title = "rule"
 
-    sql = <<-EOQ
-        select
-        uid as from_id,
-        concat('rule', (r -> 'verbs')::text, (r -> 'apiGroups')::text, (r -> 'resources')::text, (r -> 'resourceNames')::text) as to_id
-      from
-        kubernetes_cluster_role,
-        jsonb_array_elements(rules) as r
-      where
-        uid = any($1);
-      EOQ
+  #   sql = <<-EOQ
+  #       select
+  #       uid as from_id,
+  #       concat('rule', (r -> 'verbs')::text, (r -> 'apiGroups')::text, (r -> 'resources')::text, (r -> 'resourceNames')::text) as to_id
+  #     from
+  #       kubernetes_cluster_role,
+  #       jsonb_array_elements(rules) as r
+  #     where
+  #       uid = any($1);
+  #     EOQ
 
-    args = [param.cluster_role_uids]
-  }
+  #   args = [param.cluster_role_uids]
+  # }
 
   edge "user_to_cluster_role_binding" {
     title = "cluster role binding"

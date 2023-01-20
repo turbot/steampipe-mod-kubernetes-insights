@@ -28,3 +28,22 @@ category "group" {
   color = local.role_color
   icon  = "group"
 }
+
+
+
+
+category "role_rule_verb" {
+  title = "Verb"
+  color = local.role_color
+  icon  = "electric_bolt"
+}
+category "role_rule_resource" {
+  title = "Resource"
+  color = local.role_color
+  icon  = "category"
+}
+category "role_rule_resource_name" {
+  title = "Resource Name"
+  color = local.role_color
+  icon  = "bookmark"
+}

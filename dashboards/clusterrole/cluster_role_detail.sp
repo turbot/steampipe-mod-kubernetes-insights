@@ -34,6 +34,19 @@ dashboard "cluster_role_detail" {
     args  = [self.input.cluster_role_uid.value]
   }
 
+  with "rules_for_role" {
+    sql = <<-EOQ
+      select
+        coalesce(rules, '[]'::jsonb) as rules
+      from
+        kubernetes_cluster_role
+      where
+        uid = $1;
+    EOQ
+
+    args = [self.input.cluster_role_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
@@ -78,7 +91,212 @@ dashboard "cluster_role_detail" {
           cluster_role_uids = [self.input.cluster_role_uid.value]
         }
       }
+
+
+      node {
+        base = node.role_rule_verb
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+      node {
+        base = node.role_rule_resource
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+      node {
+        base = node.role_rule_resource_name
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+
+     edge {
+        base = edge.role_to_rule_verb
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+          uid   = self.input.cluster_role_uid.value
+        }
+      }
+
+      edge {
+        base = edge.rule_verb_to_resource
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+      edge {
+        base = edge.rule_resource_name_to_resource
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
     }
+
+
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+      base      = graph.cluster_role_resource_structure
+      args = {
+        cluster_role_uids = [self.input.cluster_role_uid.value]
+      }
+
+      node {
+        base = node.cluster_role
+        args = {
+          cluster_role_uids = [self.input.cluster_role_uid.value]
+        }
+      }
+
+      node {
+        base = node.service_account
+        args = {
+          service_account_uids = with.service_accounts_for_cluster_role.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.cluster_role_binding
+        args = {
+          cluster_role_binding_uids = with.cluster_role_bindings_for_cluster_role.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.service_account_to_cluster_role_binding
+        args = {
+          service_account_uids = with.service_accounts_for_cluster_role.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.cluster_role_binding_to_cluster_role
+        args = {
+          cluster_role_uids = [self.input.cluster_role_uid.value]
+        }
+      }
+
+
+      node {
+        base = node.role_rule_verb
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+     edge {
+        base = edge.role_to_rule_verb
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+          uid   = self.input.cluster_role_uid.value
+        }
+      }
+
+      node {
+        base = node.role_rule_resource_with_name
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+      edge {
+        base = edge.role_rule_verb_to_resource_with_name
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+
+    }
+
+
+
+   graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+      base      = graph.cluster_role_resource_structure
+      args = {
+        cluster_role_uids = [self.input.cluster_role_uid.value]
+      }
+
+      node {
+        base = node.cluster_role
+        args = {
+          cluster_role_uids = [self.input.cluster_role_uid.value]
+        }
+      }
+
+      node {
+        base = node.service_account
+        args = {
+          service_account_uids = with.service_accounts_for_cluster_role.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.cluster_role_binding
+        args = {
+          cluster_role_binding_uids = with.cluster_role_bindings_for_cluster_role.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.service_account_to_cluster_role_binding
+        args = {
+          service_account_uids = with.service_accounts_for_cluster_role.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.cluster_role_binding_to_cluster_role
+        args = {
+          cluster_role_uids = [self.input.cluster_role_uid.value]
+        }
+      }
+
+
+    node {
+        base = node.role_rule_verb_and_resource
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+     edge {
+        base = edge.role_rule_to_verb_and_resource
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+          uid   = self.input.cluster_role_uid.value
+        }
+      }
+
+      node {
+        base = node.role_rule_resource_name
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+      edge {
+        base = edge.role_rule_verb_and_resource_to_resource_name
+        args = {
+          rules = with.rules_for_role.rows[0].rules
+        }
+      }
+
+
+    }
+
+
   }
 
   container {

@@ -41,4 +41,3 @@ node "cluster_role_binding" {
 
   param "cluster_role_binding_uids" {}
 }
-
