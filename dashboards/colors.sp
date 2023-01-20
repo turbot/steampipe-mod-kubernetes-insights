@@ -1,4 +1,8 @@
 locals {
+  cluster_color             = "orange"
+  cluster_role_color        = "red"
+  configmap_color           = "green"
+  ingress_color             = "red"
   node_color                = "orange"
   container_color           = "orange"
   role_color                = "red"

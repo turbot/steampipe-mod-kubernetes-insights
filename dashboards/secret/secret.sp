@@ -7,5 +7,5 @@ locals {
 category "secret" {
   title = "Secret"
   color = local.role_color
-  icon  = "manage_accounts"
+  icon  = "password"
 }

@@ -6,7 +6,7 @@ locals {
 
 category "service_account" {
   title = "Service Account"
-  color = local.role_color
+  color = local.container_color
   href  = "/kubernetes_insights.dashboard.service_account_detail?input.service_account_uid={{.properties.'UID' | @uri}}"
   icon  = "settings_account_box"
 }

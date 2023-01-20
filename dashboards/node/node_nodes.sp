@@ -21,7 +21,7 @@ node "node" {
 }
 
 node "node_volume" {
-  category = category.volume
+  category = category.node_volume
 
   sql = <<-EOQ
     select

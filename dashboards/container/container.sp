@@ -17,14 +17,9 @@ category "init_container" {
   icon  = "square"
 }
 
-category "volume" {
+category "container_volume" {
   title = "Volume"
-  color = local.persistent_volume_color
+  color = local.container_color
   icon  = "hard_drive"
 }
 
-category "volume_mount_path" {
-  title = "Volume Mount Path"
-  color = local.persistent_volume_color
-  icon  = "hard_drive"
-}

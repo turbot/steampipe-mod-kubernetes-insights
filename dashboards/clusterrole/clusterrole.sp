@@ -6,7 +6,7 @@ locals {
 
 category "cluster_role" {
   title = "Cluster Role"
-  color = local.role_color
+  color = local.cluster_role_color
   href  = "/kubernetes_insights.dashboard.cluster_role_detail?input.cluster_role_uid={{.properties.'UID' | @uri}}"
   icon  = "engineering"
 }

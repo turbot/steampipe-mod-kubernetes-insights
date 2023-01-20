@@ -6,6 +6,6 @@ locals {
 
 category "configmap" {
   title = "ConfigMap"
-  color = local.persistent_volume_color
-  icon  = "hard_drive"
+  color = local.configmap_color
+  icon  = "text_snippet"
 }

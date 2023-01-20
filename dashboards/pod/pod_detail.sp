@@ -121,6 +121,11 @@ dashboard "pod_detail" {
     args  = [self.input.pod_uid.value]
   }
 
+  with "deployments_for_pod" {
+    query = query.deployments_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
   with "service_accounts_for_pod" {
     query = query.service_accounts_for_pod
     args  = [self.input.pod_uid.value]
@@ -224,6 +229,13 @@ dashboard "pod_detail" {
       }
 
       node {
+        base = node.deployment
+        args = {
+          deployment_uids = with.deployments_for_pod.rows[*].uid
+        }
+      }
+
+      node {
         base = node.statefulset
         args = {
           statefulset_uids = with.statefulsets_for_pod.rows[*].uid
@@ -297,6 +309,13 @@ dashboard "pod_detail" {
         base = edge.replicaset_to_pod
         args = {
           replicaset_uids = with.replicasets_for_pod.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.deployment_to_replicaset
+        args = {
+          deployment_uids = with.deployments_for_pod.rows[*].uid
         }
       }
 
@@ -737,6 +756,21 @@ query "replicasets_for_pod" {
     where
       pod_owner ->> 'uid' = r.uid
       and p.uid = $1;
+  EOQ
+}
+
+query "deployments_for_pod" {
+  sql = <<-EOQ
+    select
+     rs_owner ->> 'uid' as uid
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      pod.uid = $1
+      and pod_owner ->> 'uid' = rs.uid;
   EOQ
 }
 

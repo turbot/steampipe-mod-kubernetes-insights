@@ -43,11 +43,11 @@ node "init_container" {
 }
 
 node "container_volume" {
-  category = category.volume
+  category = category.container_volume
 
   sql = <<-EOQ
     select
-      v ->> 'name' || (c ->> 'name') as id,
+      v ->> 'name' as id,
       v ->> 'name' as title,
       jsonb_build_object(
         'Name', v ->> 'name',
@@ -65,24 +65,3 @@ node "container_volume" {
   param "container_names" {}
 }
 
-node "container_volume_mount_path" {
-  category = category.volume_mount_path
-
-  sql = <<-EOQ
-    select
-      v ->> 'mountPath' || (c ->> 'name') as id,
-      v ->> 'mountPath' as title,
-      jsonb_build_object(
-        'Volume Name', v ->> 'name',
-        'Container Name', c ->> 'name'
-      ) as properties
-    from
-      kubernetes_pod,
-      jsonb_array_elements(containers) as c,
-      jsonb_array_elements(c -> 'volumeMounts') as v
-    where
-      concat(c ->> 'name',name) = any($1);
-  EOQ
-
-  param "container_names" {}
-}

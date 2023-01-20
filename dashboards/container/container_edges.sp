@@ -18,12 +18,12 @@ edge "container_to_node" {
 }
 
 edge "container_to_container_volume" {
-  title = "volume"
+  title = "mounts"
 
   sql = <<-EOQ
     select
       c ->> 'name' || pod.name as from_id,
-      v ->> 'name' || (c ->> 'name') as to_id
+      v ->> 'name' as to_id
     from
       kubernetes_pod as pod,
       jsonb_array_elements(containers) as c,
@@ -36,11 +36,15 @@ edge "container_to_container_volume" {
 }
 
 edge "container_volume_to_configmap" {
+  title = "configmap"
+
   sql = <<-EOQ
     select
-      v ->> 'name' || (c ->> 'name') as from_id,
+      v ->> 'name' as from_id,
       cm.uid as to_id,
-      vm ->> 'mountPath' as title
+      jsonb_build_object(
+        'Mount Path', vm ->> 'mountPath'
+      ) as properties
     from
       kubernetes_pod as p,
       jsonb_array_elements(containers) as c,
@@ -58,11 +62,15 @@ edge "container_volume_to_configmap" {
 }
 
 edge "container_volume_to_secret" {
+  title = "secret"
+
   sql = <<-EOQ
     select
-      v ->> 'name' || (c ->> 'name') as from_id,
+      v ->> 'name' as from_id,
       s.uid as to_id,
-      vm ->> 'mountPath' as title
+      jsonb_build_object(
+        'Mount Path', vm ->> 'mountPath'
+      ) as properties
     from
       kubernetes_pod as p,
       jsonb_array_elements(containers) as c,
@@ -80,11 +88,15 @@ edge "container_volume_to_secret" {
 }
 
 edge "container_volume_to_persistent_volume_claim" {
+  title = "persistent volume claim"
+
   sql = <<-EOQ
     select
-      v ->> 'name' || (c ->> 'name') as from_id,
+      v ->> 'name' as from_id,
       vc.uid as to_id,
-      vm ->> 'mountPath' as title
+      jsonb_build_object(
+        'Mount Path', vm ->> 'mountPath'
+      ) as properties
     from
       kubernetes_pod as p,
       jsonb_array_elements(containers) as c,

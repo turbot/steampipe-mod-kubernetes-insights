@@ -36,7 +36,7 @@ edge "pod_to_configmap" {
 }
 
 edge "pod_to_service_account" {
-  title = "service account"
+  title = "runs as"
 
   sql = <<-EOQ
      select
