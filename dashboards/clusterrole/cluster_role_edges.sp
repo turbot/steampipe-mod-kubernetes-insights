@@ -15,4 +15,3 @@ edge "cluster_role_binding_to_cluster_role" {
 
   param "cluster_role_uids" {}
 }
-

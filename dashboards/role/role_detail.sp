@@ -44,6 +44,11 @@ dashboard "role_detail" {
     args  = [self.input.role_uid.value]
   }
 
+  with "role_rules_for_cluster_role" {
+    query = query.role_rules_for_cluster_role
+    args  = [self.input.role_uid.value]
+  }
+
   container {
     graph {
       title     = "Relationships"
@@ -74,6 +79,37 @@ dashboard "role_detail" {
           role_binding_uids = with.role_bindings_for_role.rows[*].uid
         }
       }
+
+      node {
+        base = node.role_rule_verb_and_resource
+        args = {
+          rules = with.role_rules_for_cluster_role.rows[0].rules
+        }
+      }
+
+      node {
+        base = node.role_rule_resource_name
+        args = {
+          rules = with.role_rules_for_cluster_role.rows[0].rules
+        }
+      }
+
+      edge {
+        base = edge.role_rule_to_verb_and_resource
+        args = {
+          rules = with.role_rules_for_cluster_role.rows[0].rules
+          uid   = self.input.role_uid.value
+        }
+      }
+
+
+      edge {
+        base = edge.role_rule_verb_and_resource_to_resource_name
+        args = {
+          rules = with.role_rules_for_cluster_role.rows[0].rules
+        }
+      }
+
 
       edge {
         base = edge.service_account_to_role_binding
@@ -233,6 +269,17 @@ query "role_bindings_for_role" {
     where
       r.name = b.role_name
       and r.uid = $1;
+  EOQ
+}
+
+query "role_rules_for_cluster_role" {
+  sql = <<-EOQ
+    select
+      coalesce(rules, '[]'::jsonb) as rules
+    from
+      kubernetes_role
+    where
+      uid = $1;
   EOQ
 }
 
