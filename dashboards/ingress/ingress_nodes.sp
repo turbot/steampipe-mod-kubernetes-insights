@@ -24,7 +24,7 @@ node "ingress_load_balancer" {
 
   sql = <<-EOQ
     select
-      uid || l as id,
+      l::text as id,
       'Load Balancer' as title,
       jsonb_build_object(
         'IP', l ->> 'ip'
@@ -44,14 +44,18 @@ node "ingress_rule" {
 
   sql = <<-EOQ
     select
-      i.uid || (r ->> 'host') as id,
-      'rule' as title,
+      (r ->> 'host') || (p ->> 'path') as id,
+      (r ->> 'host') || (p ->> 'path') as title,
       jsonb_build_object(
-        'Host', r ->> 'host'
+        'Host', r ->> 'host',
+        'Path', p ->> 'path',
+        'Path Type', p ->> 'pathType',
+        'Service Port', p -> 'backend' -> 'service' -> 'port' ->> 'number'
       ) as properties
     from
       kubernetes_ingress as i,
-      jsonb_array_elements(rules) as r
+      jsonb_array_elements(rules) as r,
+      jsonb_array_elements(r -> 'http' -> 'paths') as p
     where
       uid = any($1);
   EOQ

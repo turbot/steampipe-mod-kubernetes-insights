@@ -96,11 +96,6 @@ dashboard "pod_detail" {
     args  = [self.input.pod_uid.value]
   }
 
-  with "nodes_for_pod" {
-    query = query.nodes_for_pod
-    args  = [self.input.pod_uid.value]
-  }
-
   with "daemonsets_for_pod" {
     query = query.daemonsets_for_pod
     args  = [self.input.pod_uid.value]
@@ -201,13 +196,6 @@ dashboard "pod_detail" {
       }
 
       node {
-        base = node.node
-        args = {
-          node_uids = with.nodes_for_pod.rows[*].uid
-        }
-      }
-
-      node {
         base = node.daemonset
         args = {
           daemonset_uids = with.daemonsets_for_pod.rows[*].uid
@@ -288,13 +276,6 @@ dashboard "pod_detail" {
         base = edge.pod_to_init_container
         args = {
           pod_uids = [self.input.pod_uid.value]
-        }
-      }
-
-      edge {
-        base = edge.node_to_pod
-        args = {
-          node_uids = with.nodes_for_pod.rows[*].uid
         }
       }
 
@@ -704,19 +685,6 @@ query "secrets_for_pod" {
   EOQ
 }
 
-query "nodes_for_pod" {
-  sql = <<-EOQ
-     select
-      n.uid as uid
-    from
-      kubernetes_pod as p,
-      kubernetes_node as n
-    where
-      n.name = p.node_name
-      and p.uid = $1;
-  EOQ
-}
-
 query "daemonsets_for_pod" {
   sql = <<-EOQ
     select
@@ -748,13 +716,12 @@ query "jobs_for_pod" {
 query "replicasets_for_pod" {
   sql = <<-EOQ
     select
-      r.uid as uid
+      pod_owner ->> 'uid' as uid
     from
-      kubernetes_replicaset as r,
       kubernetes_pod as p,
       jsonb_array_elements(p.owner_references) as pod_owner
     where
-      pod_owner ->> 'uid' = r.uid
+      pod_owner ->> 'kind' = 'ReplicaSet'
       and p.uid = $1;
   EOQ
 }

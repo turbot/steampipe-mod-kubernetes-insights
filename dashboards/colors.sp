@@ -1,10 +1,10 @@
 locals {
-  cluster_color             = "orange"
+  cluster_color             = "#f94d00"
   cluster_role_color        = "red"
   configmap_color           = "green"
   ingress_color             = "red"
-  node_color                = "orange"
-  container_color           = "orange"
+  node_color                = "#f94d00"
+  container_color           = "#f94d00"
   role_color                = "red"
   definition_color          = "blue"
   service_color             = "deeppink"

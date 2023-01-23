@@ -264,6 +264,14 @@ dashboard "cluster_detail" {
       args = {
         context = self.input.cluster_context.value
       }
+
+      column "UID" {
+        display = "none"
+      }
+
+      column "Name" {
+        href = "${dashboard.cluster_role_detail.url_path}?input.cluster_role_uid={{.'UID' | @uri}}"
+      }
     }
   }
 }
@@ -537,6 +545,7 @@ query "cluster_role_table" {
   sql = <<-EOQ
     select
       name as "Name",
+      uid as "UID",
       creation_timestamp as "Create Time"
     from
       kubernetes_cluster_role
