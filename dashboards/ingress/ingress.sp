@@ -7,7 +7,7 @@ locals {
 category "ingress" {
   title = "Ingress"
   color = local.ingress_color
-  icon  = "lan"
+  icon  = "place_item"
 }
 
 category "ingress_rule" {

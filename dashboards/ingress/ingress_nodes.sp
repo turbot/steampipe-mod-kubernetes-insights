@@ -25,10 +25,7 @@ node "ingress_load_balancer" {
   sql = <<-EOQ
     select
       l::text as id,
-      'Load Balancer' as title,
-      jsonb_build_object(
-        'IP', l ->> 'ip'
-      ) as properties
+      l ->> 'ip' as title
     from
       kubernetes_ingress,
       jsonb_array_elements(load_balancer) as l
