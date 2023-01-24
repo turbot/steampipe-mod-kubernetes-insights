@@ -20,12 +20,6 @@ dashboard "job_dashboard" {
     }
 
     card {
-      query = query.job_container_host_network_count
-      width = 2
-      href  = dashboard.job_host_access_report.url_path
-    }
-
-    card {
       query = query.job_container_host_pid_count
       width = 2
       href  = dashboard.job_host_access_report.url_path
@@ -34,6 +28,12 @@ dashboard "job_dashboard" {
     card {
       query = query.job_container_host_ipc_count
       width = 2
+      href  = dashboard.job_host_access_report.url_path
+    }
+
+    card {
+      query = query.job_container_host_network_count
+      width = 3
       href  = dashboard.job_host_access_report.url_path
     }
 

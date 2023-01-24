@@ -20,12 +20,6 @@ dashboard "daemonset_dashboard" {
     }
 
     card {
-      query = query.daemonset_container_host_network_count
-      width = 2
-      href  = dashboard.daemonset_host_access_report.url_path
-    }
-
-    card {
       query = query.daemonset_container_host_pid_count
       width = 2
       href  = dashboard.daemonset_host_access_report.url_path
@@ -37,6 +31,11 @@ dashboard "daemonset_dashboard" {
       href  = dashboard.daemonset_host_access_report.url_path
     }
 
+    card {
+      query = query.daemonset_container_host_network_count
+      width = 3
+      href  = dashboard.daemonset_host_access_report.url_path
+    }
   }
 
   container {

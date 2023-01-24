@@ -20,12 +20,6 @@ dashboard "replicaset_dashboard" {
     }
 
     card {
-      query = query.replicaset_container_host_network_count
-      width = 2
-      href  = dashboard.replicaset_host_access_report.url_path
-    }
-
-    card {
       query = query.replicaset_container_host_pid_count
       width = 2
       href  = dashboard.replicaset_host_access_report.url_path
@@ -34,6 +28,12 @@ dashboard "replicaset_dashboard" {
     card {
       query = query.replicaset_container_host_ipc_count
       width = 2
+      href  = dashboard.replicaset_host_access_report.url_path
+    }
+
+    card {
+      query = query.replicaset_container_host_network_count
+      width = 3
       href  = dashboard.replicaset_host_access_report.url_path
     }
 

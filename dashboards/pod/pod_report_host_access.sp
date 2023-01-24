@@ -16,11 +16,6 @@ dashboard "pod_host_access_report" {
     }
 
     card {
-      query = query.pod_container_host_network_count
-      width = 2
-    }
-
-    card {
       query = query.pod_container_host_pid_count
       width = 2
     }
@@ -30,6 +25,10 @@ dashboard "pod_host_access_report" {
       width = 2
     }
 
+    card {
+      query = query.pod_container_host_network_count
+      width = 3
+    }
   }
 
   table {

@@ -20,12 +20,6 @@ dashboard "statefulset_dashboard" {
     }
 
     card {
-      query = query.statefulset_container_host_network_count
-      width = 2
-      href  = dashboard.statefulset_host_access_report.url_path
-    }
-
-    card {
       query = query.statefulset_container_host_pid_count
       width = 2
       href  = dashboard.statefulset_host_access_report.url_path
@@ -34,6 +28,12 @@ dashboard "statefulset_dashboard" {
     card {
       query = query.statefulset_container_host_ipc_count
       width = 2
+      href  = dashboard.statefulset_host_access_report.url_path
+    }
+
+    card {
+      query = query.statefulset_container_host_network_count
+      width = 3
       href  = dashboard.statefulset_host_access_report.url_path
     }
 

@@ -33,6 +33,14 @@ dashboard "container_detail" {
 
     card {
       width = 2
+      query = query.container_immutable_root_filesystem
+      args = {
+        name = self.input.container_name.value
+      }
+    }
+
+    card {
+      width = 3
       query = query.container_liveness_probe
       args = {
         name = self.input.container_name.value
@@ -40,16 +48,8 @@ dashboard "container_detail" {
     }
 
     card {
-      width = 2
+      width = 3
       query = query.container_readiness_probe
-      args = {
-        name = self.input.container_name.value
-      }
-    }
-
-    card {
-      width = 2
-      query = query.container_immutable_root_filesystem
       args = {
         name = self.input.container_name.value
       }

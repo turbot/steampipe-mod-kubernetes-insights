@@ -17,15 +17,6 @@ dashboard "replicaset_detail" {
 
     card {
       width = 2
-      query = query.replicaset_default_namespace
-      args = {
-        uid = self.input.replicaset_uid.value
-      }
-      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
-    }
-
-    card {
-      width = 2
       query = query.replicaset_container_host_network
       args = {
         uid = self.input.replicaset_uid.value
@@ -46,6 +37,15 @@ dashboard "replicaset_detail" {
       args = {
         uid = self.input.replicaset_uid.value
       }
+    }
+
+    card {
+      width = 3
+      query = query.replicaset_default_namespace
+      args = {
+        uid = self.input.replicaset_uid.value
+      }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
     }
 
   }

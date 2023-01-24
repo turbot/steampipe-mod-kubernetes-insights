@@ -17,15 +17,6 @@ dashboard "deployment_detail" {
 
     card {
       width = 2
-      query = query.deployment_default_namespace
-      args = {
-        uid = self.input.deployment_uid.value
-      }
-      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
-    }
-
-    card {
-      width = 2
       query = query.deployment_replica
       args = {
         uid = self.input.deployment_uid.value
@@ -54,6 +45,15 @@ dashboard "deployment_detail" {
       args = {
         uid = self.input.deployment_uid.value
       }
+    }
+
+    card {
+      width = 3
+      query = query.deployment_default_namespace
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
     }
 
   }

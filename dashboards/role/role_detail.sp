@@ -24,7 +24,7 @@ dashboard "role_detail" {
     }
 
     card {
-      width = 2
+      width = 3
       query = query.role_default_namespace
       args = {
         uid = self.input.role_uid.value
