@@ -9,6 +9,7 @@ node "service_account" {
         'UID', uid,
         'Automount Service Account Token', automount_service_account_token,
         'Creation Timestamp', creation_timestamp,
+        'Namespace', namespace,
         'Context Name', context_name
       ) as properties
     from
