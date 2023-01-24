@@ -295,19 +295,19 @@ query "secrets_for_service_account" {
 query "service_account_overview" {
   sql = <<-EOQ
     select
-      r.name as "Name",
-      r.uid as "UID",
-      r.creation_timestamp as "Create Time",
-      r.resource_version as "Resource Version",
+      ksa.name as "Name",
+      ksa.uid as "UID",
+      ksa.creation_timestamp as "Create Time",
+      ksa.resource_version as "Resource Version",
       n.uid as "Namespace UID",
       n.name as "Namespace",
-      r.context_name as "Context Name"
+      ksa.context_name as "Context Name"
     from
-      kubernetes_service_account as r,
+      kubernetes_service_account as ksa,
       kubernetes_namespace as n
     where
-      n.name = r.namespace
-      and r.uid = $1;
+      n.name = ksa.namespace
+      and ksa.uid = $1;
   EOQ
 
   param "uid" {}

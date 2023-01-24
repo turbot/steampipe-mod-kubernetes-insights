@@ -276,7 +276,6 @@ query "container_input" {
 
 # Card queries
 
-
 query "container_privileged" {
   sql = <<-EOQ
     select
@@ -503,7 +502,7 @@ query "container_cpu_resources" {
   sql = <<-EOQ
     select
       'CPU Limit (m)' as label,
-      REPLACE(c -> 'resources' -> 'limits' ->> 'cpu','m','') as value
+      replace(c -> 'resources' -> 'limits' ->> 'cpu','m','') as value
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c
@@ -512,7 +511,7 @@ query "container_cpu_resources" {
     union all
     select
       'CPU Request (m)' as label,
-      REPLACE(c -> 'resources' -> 'requests' ->> 'cpu','m','') as value
+      replace(c -> 'resources' -> 'requests' ->> 'cpu','m','') as value
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c
@@ -527,7 +526,7 @@ query "container_memory_resources" {
   sql = <<-EOQ
     select
       'Memory Limit (Mi)' as label,
-      REPLACE(c -> 'resources' -> 'limits' ->> 'memory','Mi','') as value
+      replace(c -> 'resources' -> 'limits' ->> 'memory','Mi','') as value
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c
@@ -536,7 +535,7 @@ query "container_memory_resources" {
     union all
     select
       'Memory Request (Mi)' as label,
-      REPLACE(c -> 'resources' -> 'requests' ->> 'memory','Mi','') as value
+      replace(c -> 'resources' -> 'requests' ->> 'memory','Mi','') as value
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c

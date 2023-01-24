@@ -11,6 +11,7 @@ Dashboards can help answer questions like:
 - How many resources do I have?
 - How old are my resources?
 - What are the various configurations of my resources?
+- What are the relationships between closely connected resources like clusters, nodes, pods, deployments and jobs?
 
 Dashboards are available for 10+ resources, including Clusters, DaemonSets, Deployments, Nodes, Pods, Services, and more!
 

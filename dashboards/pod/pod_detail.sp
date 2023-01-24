@@ -937,8 +937,8 @@ query "pod_container_cpu_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
-      REPLACE(c -> 'resources' -> 'limits' ->> 'cpu','m','') as "CPU Limit (m)",
-      REPLACE(c -> 'resources' -> 'requests' ->> 'cpu','m','') as "CPU Request (m)"
+      replace(c -> 'resources' -> 'limits' ->> 'cpu','m','') as "CPU Limit (m)",
+      replace(c -> 'resources' -> 'requests' ->> 'cpu','m','') as "CPU Request (m)"
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c
@@ -955,8 +955,8 @@ query "pod_container_memory_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
-      REPLACE(c -> 'resources' -> 'limits' ->> 'memory','Mi','') as "Memory Limit (Mi)",
-      REPLACE(c -> 'resources' -> 'requests' ->> 'memory','Mi','') as "Memory Request (Mi)"
+      replace(c -> 'resources' -> 'limits' ->> 'memory','Mi','') as "Memory Limit (Mi)",
+      replace(c -> 'resources' -> 'requests' ->> 'memory','Mi','') as "Memory Request (Mi)"
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c
