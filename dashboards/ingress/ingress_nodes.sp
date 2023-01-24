@@ -41,8 +41,8 @@ node "ingress_rule" {
 
   sql = <<-EOQ
     select
-      (r ->> 'host') || (p ->> 'path') as id,
-      (r ->> 'host') || (p ->> 'path') as title,
+      concat ((r ->> 'host'),(p ->> 'path')) as id,
+      concat ((r ->> 'host'),(p ->> 'path')) as title,
       jsonb_build_object(
         'Host', r ->> 'host',
         'Path', p ->> 'path',
