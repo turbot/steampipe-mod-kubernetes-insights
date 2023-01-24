@@ -12,22 +12,22 @@ dashboard "replicaset_host_access_report" {
 
     card {
       query = query.replicaset_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.replicaset_container_host_network_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.replicaset_container_host_pid_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.replicaset_container_host_ipc_count
-      width = 2
+      width = 3
     }
 
   }

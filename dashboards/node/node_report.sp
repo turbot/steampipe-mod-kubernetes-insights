@@ -11,7 +11,7 @@ dashboard "node_report" {
 
     card {
       query = query.node_count
-      width = 2
+      width = 4
     }
 
   }

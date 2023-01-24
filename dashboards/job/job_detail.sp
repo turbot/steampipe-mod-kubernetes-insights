@@ -16,7 +16,7 @@ dashboard "job_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.job_default_namespace
       args = {
         uid = self.input.job_uid.value
@@ -25,7 +25,7 @@ dashboard "job_detail" {
     }
 
     card {
-      width = 2
+      width = 3
       query = query.job_container_host_network
       args = {
         uid = self.input.job_uid.value
@@ -33,7 +33,7 @@ dashboard "job_detail" {
     }
 
     card {
-      width = 2
+      width = 3
       query = query.job_container_host_pid
       args = {
         uid = self.input.job_uid.value
@@ -41,7 +41,7 @@ dashboard "job_detail" {
     }
 
     card {
-      width = 2
+      width = 3
       query = query.job_container_host_ipc
       args = {
         uid = self.input.job_uid.value
