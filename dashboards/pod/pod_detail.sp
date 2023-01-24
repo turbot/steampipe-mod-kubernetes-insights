@@ -758,12 +758,13 @@ query "statefulsets_for_pod" {
 query "service_accounts_for_pod" {
   sql = <<-EOQ
     select
-      s.uid as uid
+      distinct s.uid as uid
     from
       kubernetes_service_account as s,
       kubernetes_pod as p
     where
       p.service_account_name = s.name
+      and s.namespace in (select namespace from kubernetes_pod where uid = $1)
       and p.uid = $1;
   EOQ
 }
