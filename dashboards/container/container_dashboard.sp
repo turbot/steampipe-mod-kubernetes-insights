@@ -1,4 +1,4 @@
-dashboard "kubernetes_container_dashboard" {
+dashboard "container_dashboard" {
 
   title         = "Kubernetes Container Dashboard"
   documentation = file("./dashboards/container/docs/container_dashboard.md")
@@ -10,32 +10,32 @@ dashboard "kubernetes_container_dashboard" {
   container {
 
     card {
-      query = query.kubernetes_container_count
+      query = query.container_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_container_privileged_count
+      query = query.container_privileged_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_container_allow_privilege_escalation_count
+      query = query.container_allow_privilege_escalation_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_container_liveness_probe_count
+      query = query.container_liveness_probe_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_container_readiness_probe_count
+      query = query.container_readiness_probe_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_container_immutable_root_filesystem_count
+      query = query.container_immutable_root_filesystem_count
       width = 2
     }
 
@@ -47,7 +47,7 @@ dashboard "kubernetes_container_dashboard" {
 
     chart {
       title = "Privileged Status"
-      query = query.kubernetes_container_privileged_status
+      query = query.container_privileged_status
       type  = "donut"
       width = 4
 
@@ -63,7 +63,7 @@ dashboard "kubernetes_container_dashboard" {
 
     chart {
       title = "Privilege Escalation Status"
-      query = query.kubernetes_container_allow_privilege_escalation_status
+      query = query.container_allow_privilege_escalation_status
       type  = "donut"
       width = 4
 
@@ -79,7 +79,7 @@ dashboard "kubernetes_container_dashboard" {
 
     chart {
       title = "Liveness Probe Status"
-      query = query.kubernetes_container_liveness_probe_status
+      query = query.container_liveness_probe_status
       type  = "donut"
       width = 4
 
@@ -95,7 +95,7 @@ dashboard "kubernetes_container_dashboard" {
 
     chart {
       title = "Readiness Probe Status"
-      query = query.kubernetes_container_readiness_probe_status
+      query = query.container_readiness_probe_status
       type  = "donut"
       width = 4
 
@@ -111,7 +111,7 @@ dashboard "kubernetes_container_dashboard" {
 
     chart {
       title = "Immutable Root Filesystem Status"
-      query = query.kubernetes_container_immutable_root_filesystem_status
+      query = query.container_immutable_root_filesystem_status
       type  = "donut"
       width = 4
 
@@ -133,21 +133,21 @@ dashboard "kubernetes_container_dashboard" {
 
     chart {
       title = "Containers by Cluster"
-      query = query.kubernetes_container_by_context_name
+      query = query.container_by_context_name
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Containers by Namespace"
-      query = query.kubernetes_container_by_namespace
+      query = query.container_by_namespace
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Containers by Pod"
-      query = query.kubernetes_container_by_pod
+      query = query.container_by_pod
       type  = "column"
       width = 4
     }
@@ -158,7 +158,7 @@ dashboard "kubernetes_container_dashboard" {
 
 # Card Queries
 
-query "kubernetes_container_count" {
+query "container_count" {
   sql = <<-EOQ
     select
       count(c) as "Containers"
@@ -168,7 +168,7 @@ query "kubernetes_container_count" {
   EOQ
 }
 
-query "kubernetes_container_privileged_count" {
+query "container_privileged_count" {
   sql = <<-EOQ
     select
       count(c ->> 'name') as value,
@@ -182,7 +182,7 @@ query "kubernetes_container_privileged_count" {
   EOQ
 }
 
-query "kubernetes_container_allow_privilege_escalation_count" {
+query "container_allow_privilege_escalation_count" {
   sql = <<-EOQ
     select
       count(c ->> 'name') as value,
@@ -196,7 +196,7 @@ query "kubernetes_container_allow_privilege_escalation_count" {
   EOQ
 }
 
-query "kubernetes_container_liveness_probe_count" {
+query "container_liveness_probe_count" {
   sql = <<-EOQ
     select
       count(c ->> 'name') as value,
@@ -210,7 +210,7 @@ query "kubernetes_container_liveness_probe_count" {
   EOQ
 }
 
-query "kubernetes_container_readiness_probe_count" {
+query "container_readiness_probe_count" {
   sql = <<-EOQ
     select
       count(c ->> 'name') as value,
@@ -224,7 +224,7 @@ query "kubernetes_container_readiness_probe_count" {
   EOQ
 }
 
-query "kubernetes_container_immutable_root_filesystem_count" {
+query "container_immutable_root_filesystem_count" {
   sql = <<-EOQ
     select
       count(c ->> 'name') as value,
@@ -240,7 +240,7 @@ query "kubernetes_container_immutable_root_filesystem_count" {
 
 # Assessment Queries
 
-query "kubernetes_container_privileged_status" {
+query "container_privileged_status" {
   sql = <<-EOQ
     select
       case when c -> 'securityContext' ->> 'privileged' = 'true' then 'enabled' else 'disabled' end as status,
@@ -253,7 +253,7 @@ query "kubernetes_container_privileged_status" {
   EOQ
 }
 
-query "kubernetes_container_allow_privilege_escalation_status" {
+query "container_allow_privilege_escalation_status" {
   sql = <<-EOQ
     select
       case when c -> 'securityContext' ->> 'allowPrivilegeEscalation' = 'true' then 'enabled' else 'disabled' end as status,
@@ -266,7 +266,7 @@ query "kubernetes_container_allow_privilege_escalation_status" {
   EOQ
 }
 
-query "kubernetes_container_liveness_probe_status" {
+query "container_liveness_probe_status" {
   sql = <<-EOQ
     select
       case when c -> 'livenessProbe' is null then 'unavailable' else 'available' end as status,
@@ -279,7 +279,7 @@ query "kubernetes_container_liveness_probe_status" {
   EOQ
 }
 
-query "kubernetes_container_readiness_probe_status" {
+query "container_readiness_probe_status" {
   sql = <<-EOQ
     select
       case when c -> 'readinessProbe' is null then 'unavailable' else 'available' end as status,
@@ -292,7 +292,7 @@ query "kubernetes_container_readiness_probe_status" {
   EOQ
 }
 
-query "kubernetes_container_immutable_root_filesystem_status" {
+query "container_immutable_root_filesystem_status" {
   sql = <<-EOQ
     select
       case when c -> 'securityContext' ->> 'readOnlyRootFilesystem' = 'true' then 'used' else 'unused' end as status,
@@ -307,7 +307,7 @@ query "kubernetes_container_immutable_root_filesystem_status" {
 
 # Analysis Queries
 
-query "kubernetes_container_by_namespace" {
+query "container_by_namespace" {
   sql = <<-EOQ
     select
       namespace,
@@ -322,7 +322,7 @@ query "kubernetes_container_by_namespace" {
   EOQ
 }
 
-query "kubernetes_container_by_context_name" {
+query "container_by_context_name" {
   sql = <<-EOQ
     select
       context_name,
@@ -337,7 +337,7 @@ query "kubernetes_container_by_context_name" {
   EOQ
 }
 
-query "kubernetes_container_by_pod" {
+query "container_by_pod" {
   sql = <<-EOQ
     select
       name,

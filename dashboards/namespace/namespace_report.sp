@@ -1,4 +1,4 @@
-dashboard "kubernetes_namespace_report" {
+dashboard "namespace_report" {
 
   title         = "Kubernetes Namespace Report"
   documentation = file("./dashboards/namespace/docs/namespace_report.md")
@@ -10,8 +10,8 @@ dashboard "kubernetes_namespace_report" {
   container {
 
     card {
-      query = query.kubernetes_namespace_count
-      width = 2
+      query = query.namespace_count
+      width = 3
     }
 
   }
@@ -24,16 +24,16 @@ dashboard "kubernetes_namespace_report" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_namespace_detail.url_path}?input.namespace_uid={{.UID | @uri}}"
+        href = "${dashboard.namespace_detail.url_path}?input.namespace_uid={{.UID | @uri}}"
       }
 
-      query = query.kubernetes_namespace_table
+      query = query.namespace_table
     }
   }
 
 }
 
-query "kubernetes_namespace_count" {
+query "namespace_count" {
   sql = <<-EOQ
     select
       count(*) as "Namespaces"
@@ -42,7 +42,7 @@ query "kubernetes_namespace_count" {
   EOQ
 }
 
-query "kubernetes_namespace_table" {
+query "namespace_table" {
   sql = <<-EOQ
     select
       name as "Name",

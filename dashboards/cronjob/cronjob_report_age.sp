@@ -1,4 +1,4 @@
-dashboard "kubernetes_cronjob_age_report" {
+dashboard "cronjob_age_report" {
 
   title         = "Kubernetes CronJob Age Report"
   documentation = file("./dashboards/cronjob/docs/cronjob_report_age.md")
@@ -11,38 +11,38 @@ dashboard "kubernetes_cronjob_age_report" {
   container {
 
     card {
-      query = query.kubernetes_cronjob_count
+      query = query.cronjob_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_cronjob_24_hours_count
+      query = query.cronjob_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_cronjob_30_days_count
+      query = query.cronjob_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_cronjob_30_90_days_count
+      query = query.cronjob_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_cronjob_90_365_days_count
+      query = query.cronjob_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_cronjob_1_year_count
+      query = query.cronjob_1_year_count
     }
   }
   table {
@@ -52,14 +52,14 @@ dashboard "kubernetes_cronjob_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_cronjob_detail.url_path}?input.cronjob_uid={{.UID | @uri}}"
+      href = "${dashboard.cronjob_detail.url_path}?input.cronjob_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_cronjob_age_table
+    query = query.cronjob_age_table
   }
 }
 
-query "kubernetes_cronjob_24_hours_count" {
+query "cronjob_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -71,7 +71,7 @@ query "kubernetes_cronjob_24_hours_count" {
   EOQ
 }
 
-query "kubernetes_cronjob_30_days_count" {
+query "cronjob_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -84,7 +84,7 @@ query "kubernetes_cronjob_30_days_count" {
   EOQ
 }
 
-query "kubernetes_cronjob_30_90_days_count" {
+query "cronjob_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +97,7 @@ query "kubernetes_cronjob_30_90_days_count" {
   EOQ
 }
 
-query "kubernetes_cronjob_90_365_days_count" {
+query "cronjob_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -110,7 +110,7 @@ query "kubernetes_cronjob_90_365_days_count" {
   EOQ
 }
 
-query "kubernetes_cronjob_1_year_count" {
+query "cronjob_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -122,7 +122,7 @@ query "kubernetes_cronjob_1_year_count" {
   EOQ
 }
 
-query "kubernetes_cronjob_age_table" {
+query "cronjob_age_table" {
   sql = <<-EOQ
     select
       name as "Name",

@@ -1,0 +1,15 @@
+locals {
+  cluster_color             = "#f94d00"
+  cluster_role_color        = "red"
+  configmap_color           = "green"
+  ingress_color             = "red"
+  node_color                = "#f94d00"
+  container_color           = "#f94d00"
+  role_color                = "red"
+  definition_color          = "blue"
+  service_color             = "deeppink"
+  namespace_color           = "green"
+  endpoint_color            = "purple"
+  persistent_volume_color   = "green"
+  pod_security_policy_color = "red"
+}

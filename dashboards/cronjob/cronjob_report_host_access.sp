@@ -1,4 +1,4 @@
-dashboard "kubernetes_cronjob_host_access_report" {
+dashboard "cronjob_host_access_report" {
 
   title         = "Kubernetes CronJob Host Access Report"
   documentation = file("./dashboards/cronjob/docs/cronjob_report_host_access.md")
@@ -11,23 +11,23 @@ dashboard "kubernetes_cronjob_host_access_report" {
   container {
 
     card {
-      query = query.kubernetes_cronjob_count
-      width = 2
+      query = query.cronjob_count
+      width = 3
     }
 
     card {
-      query = query.kubernetes_cronjob_container_host_network_count
-      width = 2
+      query = query.cronjob_container_host_network_count
+      width = 3
     }
 
     card {
-      query = query.kubernetes_cronjob_container_host_pid_count
-      width = 2
+      query = query.cronjob_container_host_pid_count
+      width = 3
     }
 
     card {
-      query = query.kubernetes_cronjob_container_host_ipc_count
-      width = 2
+      query = query.cronjob_container_host_ipc_count
+      width = 3
     }
 
   }
@@ -38,15 +38,15 @@ dashboard "kubernetes_cronjob_host_access_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_cronjob_detail.url_path}?input.cronjob_uid={{.UID | @uri}}"
+      href = "${dashboard.cronjob_detail.url_path}?input.cronjob_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_cronjob_host_table
+    query = query.cronjob_host_table
   }
 
 }
 
-query "kubernetes_cronjob_host_table" {
+query "cronjob_host_table" {
   sql = <<-EOQ
     select
       name as "Name",

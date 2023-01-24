@@ -1,4 +1,4 @@
-dashboard "kubernetes_deployment_detail" {
+dashboard "deployment_detail" {
 
   title         = "Kubernetes Deployment Detail"
   documentation = file("./dashboards/deployment/docs/deployment_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_deployment_detail" {
 
   input "deployment_uid" {
     title = "Select a Deployment:"
-    query = query.kubernetes_deployment_input
+    query = query.deployment_input
     width = 4
   }
 
@@ -17,7 +17,16 @@ dashboard "kubernetes_deployment_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_deployment_default_namespace
+      query = query.deployment_default_namespace
+      args = {
+        uid = self.input.deployment_uid.value
+      }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
+    }
+
+    card {
+      width = 2
+      query = query.deployment_replica
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -25,7 +34,7 @@ dashboard "kubernetes_deployment_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_deployment_replica
+      query = query.deployment_container_host_network
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -33,7 +42,7 @@ dashboard "kubernetes_deployment_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_deployment_container_host_network
+      query = query.deployment_container_host_pid
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -41,20 +50,123 @@ dashboard "kubernetes_deployment_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_deployment_container_host_pid
+      query = query.deployment_container_host_ipc
       args = {
         uid = self.input.deployment_uid.value
       }
     }
 
-    card {
-      width = 2
-      query = query.kubernetes_deployment_container_host_ipc
-      args = {
-        uid = self.input.deployment_uid.value
-      }
-    }
+  }
 
+  with "replicasets_for_deployment" {
+    query = query.replicasets_for_deployment
+    args  = [self.input.deployment_uid.value]
+  }
+
+  with "services_for_deployment" {
+    query = query.services_for_deployment
+    args  = [self.input.deployment_uid.value]
+  }
+
+  with "pods_for_deployment" {
+    query = query.pods_for_deployment
+    args  = [self.input.deployment_uid.value]
+  }
+
+  with "containers_for_deployment" {
+    query = query.containers_for_deployment
+    args  = [self.input.deployment_uid.value]
+  }
+
+  with "nodes_for_deployment" {
+    query = query.nodes_for_deployment
+    args  = [self.input.deployment_uid.value]
+  }
+
+  container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      node {
+        base = node.replicaset
+        args = {
+          replicaset_uids = with.replicasets_for_deployment.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.service
+        args = {
+          service_uids = with.services_for_deployment.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.deployment
+        args = {
+          deployment_uids = [self.input.deployment_uid.value]
+        }
+      }
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = with.pods_for_deployment.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.node
+        args = {
+          node_uids = with.nodes_for_deployment.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.container
+        args = {
+          container_names = with.containers_for_deployment.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.service_to_deployment
+        args = {
+          service_uids = with.services_for_deployment.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.deployment_to_replicaset
+        args = {
+          deployment_uids = [self.input.deployment_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.replicaset_to_pod
+        args = {
+          replicaset_uids = with.replicasets_for_deployment.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.container_to_node
+        args = {
+          container_names = with.containers_for_deployment.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = with.pods_for_deployment.rows[*].uid
+        }
+      }
+
+    }
   }
 
   container {
@@ -63,16 +175,24 @@ dashboard "kubernetes_deployment_detail" {
       title = "Overview"
       type  = "line"
       width = 3
-      query = query.kubernetes_deployment_overview
+      query = query.deployment_overview
       args = {
         uid = self.input.deployment_uid.value
+      }
+
+      column "Namespace" {
+        href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+      }
+
+      column "Namespace UID" {
+        display = "none"
       }
     }
 
     table {
       title = "Labels"
       width = 3
-      query = query.kubernetes_deployment_labels
+      query = query.deployment_labels
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -81,7 +201,7 @@ dashboard "kubernetes_deployment_detail" {
     table {
       title = "Annotations"
       width = 6
-      query = query.kubernetes_deployment_annotations
+      query = query.deployment_annotations
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -93,7 +213,7 @@ dashboard "kubernetes_deployment_detail" {
     chart {
       title = "Replicas"
       width = 4
-      query = query.kubernetes_deployment_replicas_detail
+      query = query.deployment_replicas_detail
       type  = "donut"
       args = {
         uid = self.input.deployment_uid.value
@@ -104,12 +224,13 @@ dashboard "kubernetes_deployment_detail" {
     flow {
       title = "Deployment Hierarchy"
       width = 8
-      query = query.kubernetes_deployment_tree
+      query = query.deployment_tree
       args = {
         uid = self.input.deployment_uid.value
       }
     }
   }
+
   container {
     table {
       column "UID" {
@@ -118,7 +239,7 @@ dashboard "kubernetes_deployment_detail" {
 
       title = "ReplicaSet"
       width = 6
-      query = query.kubernetes_deployment_replicasets
+      query = query.deployment_replicasets_detail
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -127,14 +248,14 @@ dashboard "kubernetes_deployment_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
+        href = "${dashboard.replicaset_detail.url_path}?input.replicaset_uid={{.UID | @uri}}"
       }
     }
 
     table {
       title = "Pods"
       width = 6
-      query = query.kubernetes_deployment_pods
+      query = query.deployment_pods_detail
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -143,11 +264,10 @@ dashboard "kubernetes_deployment_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+        href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
       }
 
     }
-
 
   }
 
@@ -156,7 +276,7 @@ dashboard "kubernetes_deployment_detail" {
     table {
       title = "Strategy"
       width = 6
-      query = query.kubernetes_deployment_strategy
+      query = query.deployment_strategy
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -166,7 +286,7 @@ dashboard "kubernetes_deployment_detail" {
     table {
       title = "Conditions"
       width = 6
-      query = query.kubernetes_deployment_conditions
+      query = query.deployment_conditions
       args = {
         uid = self.input.deployment_uid.value
       }
@@ -177,7 +297,9 @@ dashboard "kubernetes_deployment_detail" {
 
 }
 
-query "kubernetes_deployment_input" {
+# Input queries
+
+query "deployment_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -193,22 +315,27 @@ query "kubernetes_deployment_input" {
   EOQ
 }
 
-query "kubernetes_deployment_default_namespace" {
+# Card queries
+
+query "deployment_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_deployment
+      kubernetes_deployment as d,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = d.namespace
+      and d.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_deployment_replica" {
+query "deployment_replica" {
   sql = <<-EOQ
     select
       replicas as value,
@@ -223,7 +350,7 @@ query "kubernetes_deployment_replica" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_container_host_network" {
+query "deployment_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -238,7 +365,7 @@ query "kubernetes_deployment_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_container_host_pid" {
+query "deployment_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -253,7 +380,7 @@ query "kubernetes_deployment_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_container_host_ipc" {
+query "deployment_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -268,23 +395,108 @@ query "kubernetes_deployment_container_host_ipc" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_overview" {
+# With queries
+
+query "containers_for_deployment" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      container ->> 'name' || pod.name as name
     from
-      kubernetes_deployment
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
     where
-      uid = $1;
+      rs_owner ->> 'uid' = $1
+      and pod_owner ->> 'uid' = rs.uid;
+  EOQ
+}
+
+query "pods_for_deployment" {
+  sql = <<-EOQ
+    select
+      pod.uid as uid
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      rs_owner ->> 'uid' = $1
+      and pod_owner ->> 'uid' = rs.uid;
+  EOQ
+}
+
+query "services_for_deployment" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_service as s
+    where
+      rs_owner ->> 'uid' = $1
+      and pod_owner ->> 'uid' = rs.uid
+      and pod.selector_search = s.selector_query;
+  EOQ
+}
+
+query "nodes_for_deployment" {
+  sql = <<-EOQ
+    select
+      n.uid as uid
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and rs_owner ->> 'uid' = $1
+      and pod_owner ->> 'uid' = rs.uid;
+  EOQ
+}
+
+query "replicasets_for_deployment" {
+  sql = <<-EOQ
+    select
+      uid
+    from
+      kubernetes_replicaset as r,
+      jsonb_array_elements(r.owner_references) as owner
+    where
+      owner ->> 'uid' = $1;
+  EOQ
+}
+
+# Other queries
+
+query "deployment_overview" {
+  sql = <<-EOQ
+    select
+      d.name as "Name",
+      d.uid as "UID",
+      d.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      d.context_name as "Context Name"
+    from
+      kubernetes_deployment as d,
+      kubernetes_namespace as n
+    where
+      n.name = d.namespace
+      and d.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_deployment_labels" {
+query "deployment_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -307,7 +519,7 @@ query "kubernetes_deployment_labels" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_annotations" {
+query "deployment_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -330,7 +542,7 @@ query "kubernetes_deployment_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_conditions" {
+query "deployment_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -351,7 +563,7 @@ query "kubernetes_deployment_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_strategy" {
+query "deployment_strategy" {
   sql = <<-EOQ
     select
       strategy ->> 'type' as "Type",
@@ -366,27 +578,11 @@ query "kubernetes_deployment_strategy" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_replicas_detail" {
+query "deployment_replicas_detail" {
   sql = <<-EOQ
     select
       case when available_replicas <> 0 then 'available replicas' end as label,
       case when available_replicas <> 0 then available_replicas end as value
-    from
-      kubernetes_deployment
-    where
-      uid = $1
-    union all
-    select
-      case when updated_replicas <> 0 then 'updated replicas' end as label,
-      case when updated_replicas <> 0 then updated_replicas end as value
-    from
-      kubernetes_deployment
-    where
-      uid = $1
-    union all
-    select
-      case when ready_replicas <> 0 then 'ready replicas' end as label,
-      case when ready_replicas <> 0 then ready_replicas end as value
     from
       kubernetes_deployment
     where
@@ -404,7 +600,7 @@ query "kubernetes_deployment_replicas_detail" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_replicasets" {
+query "deployment_replicasets_detail" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -423,7 +619,7 @@ query "kubernetes_deployment_replicasets" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_pods" {
+query "deployment_pods_detail" {
   sql = <<-EOQ
     select
       pod.name as "Name",
@@ -445,7 +641,7 @@ query "kubernetes_deployment_pods" {
   param "uid" {}
 }
 
-query "kubernetes_deployment_tree" {
+query "deployment_tree" {
   sql = <<-EOQ
 
     -- This deployment

@@ -1,4 +1,4 @@
-dashboard "kubernetes_daemonset_host_access_report" {
+dashboard "daemonset_host_access_report" {
 
   title         = "Kubernetes DaemonSet Host Access Report"
   documentation = file("./dashboards/daemonset/docs/daemonset_report_host_access.md")
@@ -11,23 +11,23 @@ dashboard "kubernetes_daemonset_host_access_report" {
   container {
 
     card {
-      query = query.kubernetes_daemonset_count
-      width = 2
+      query = query.daemonset_count
+      width = 3
     }
 
     card {
-      query = query.kubernetes_daemonset_container_host_network_count
-      width = 2
+      query = query.daemonset_container_host_network_count
+      width = 3
     }
 
     card {
-      query = query.kubernetes_daemonset_container_host_pid_count
-      width = 2
+      query = query.daemonset_container_host_pid_count
+      width = 3
     }
 
     card {
-      query = query.kubernetes_daemonset_container_host_ipc_count
-      width = 2
+      query = query.daemonset_container_host_ipc_count
+      width = 3
     }
 
   }
@@ -38,15 +38,15 @@ dashboard "kubernetes_daemonset_host_access_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_daemonset_detail.url_path}?input.daemonset_uid={{.UID | @uri}}"
+      href = "${dashboard.daemonset_detail.url_path}?input.daemonset_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_daemonset_host_table
+    query = query.daemonset_host_table
   }
 
 }
 
-query "kubernetes_daemonset_host_table" {
+query "daemonset_host_table" {
   sql = <<-EOQ
     select
       name as "Name",

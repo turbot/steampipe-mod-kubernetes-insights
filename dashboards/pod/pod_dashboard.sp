@@ -1,4 +1,4 @@
-dashboard "kubernetes_pod_dashboard" {
+dashboard "pod_dashboard" {
 
   title         = "Kubernetes Pod Dashboard"
   documentation = file("./dashboards/pod/docs/pod_dashboard.md")
@@ -10,36 +10,36 @@ dashboard "kubernetes_pod_dashboard" {
   container {
 
     card {
-      query = query.kubernetes_pod_count
+      query = query.pod_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_container_count
+      query = query.pod_container_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_default_namespace_count
+      query = query.pod_default_namespace_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_pod_container_host_network_count
+      query = query.pod_container_host_network_count
       width = 2
-      href  = dashboard.kubernetes_pod_host_access_report.url_path
+      href  = dashboard.pod_host_access_report.url_path
     }
 
     card {
-      query = query.kubernetes_pod_container_host_pid_count
+      query = query.pod_container_host_pid_count
       width = 2
-      href  = dashboard.kubernetes_pod_host_access_report.url_path
+      href  = dashboard.pod_host_access_report.url_path
     }
 
     card {
-      query = query.kubernetes_pod_container_host_ipc_count
+      query = query.pod_container_host_ipc_count
       width = 2
-      href  = dashboard.kubernetes_pod_host_access_report.url_path
+      href  = dashboard.pod_host_access_report.url_path
     }
 
   }
@@ -50,7 +50,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Default Namespace Status"
-      query = query.kubernetes_pod_default_namespace_status
+      query = query.pod_default_namespace_status
       type  = "donut"
       width = 3
 
@@ -66,7 +66,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host Network Access Status"
-      query = query.kubernetes_pod_container_host_network_status
+      query = query.pod_container_host_network_status
       type  = "donut"
       width = 3
 
@@ -82,7 +82,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host PID Sharing Status"
-      query = query.kubernetes_pod_container_host_pid_status
+      query = query.pod_container_host_pid_status
       type  = "donut"
       width = 3
 
@@ -98,7 +98,7 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Host IPC Sharing Status"
-      query = query.kubernetes_pod_container_host_ipc_status
+      query = query.pod_container_host_ipc_status
       type  = "donut"
       width = 3
 
@@ -120,21 +120,21 @@ dashboard "kubernetes_pod_dashboard" {
 
     chart {
       title = "Pods by Cluster"
-      query = query.kubernetes_pod_by_context_name
+      query = query.pod_by_context_name
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Pods by Namespace"
-      query = query.kubernetes_pod_by_namespace
+      query = query.pod_by_namespace
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Pods by Age"
-      query = query.kubernetes_pod_by_creation_month
+      query = query.pod_by_creation_month
       type  = "column"
       width = 4
     }
@@ -144,7 +144,7 @@ dashboard "kubernetes_pod_dashboard" {
 
 # Card Queries
 
-query "kubernetes_pod_count" {
+query "pod_count" {
   sql = <<-EOQ
     select
       count(*) as "Pods"
@@ -153,7 +153,7 @@ query "kubernetes_pod_count" {
   EOQ
 }
 
-query "kubernetes_pod_container_count" {
+query "pod_container_count" {
   sql = <<-EOQ
     select
       count(c) as value,
@@ -164,7 +164,7 @@ query "kubernetes_pod_container_count" {
   EOQ
 }
 
-query "kubernetes_pod_default_namespace_count" {
+query "pod_default_namespace_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -177,7 +177,7 @@ query "kubernetes_pod_default_namespace_count" {
   EOQ
 }
 
-query "kubernetes_pod_container_host_network_count" {
+query "pod_container_host_network_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -190,7 +190,7 @@ query "kubernetes_pod_container_host_network_count" {
   EOQ
 }
 
-query "kubernetes_pod_container_host_pid_count" {
+query "pod_container_host_pid_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -203,7 +203,7 @@ query "kubernetes_pod_container_host_pid_count" {
   EOQ
 }
 
-query "kubernetes_pod_container_host_ipc_count" {
+query "pod_container_host_ipc_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -218,7 +218,7 @@ query "kubernetes_pod_container_host_ipc_count" {
 
 # Assessment Queries
 
-query "kubernetes_pod_default_namespace_status" {
+query "pod_default_namespace_status" {
   sql = <<-EOQ
     select
       case when namespace = 'default' then 'used' else 'unused' end as status,
@@ -230,7 +230,7 @@ query "kubernetes_pod_default_namespace_status" {
   EOQ
 }
 
-query "kubernetes_pod_container_host_network_status" {
+query "pod_container_host_network_status" {
   sql = <<-EOQ
     select
       case when host_network then 'enabled' else 'disabled' end as status,
@@ -242,7 +242,7 @@ query "kubernetes_pod_container_host_network_status" {
   EOQ
 }
 
-query "kubernetes_pod_container_host_pid_status" {
+query "pod_container_host_pid_status" {
   sql = <<-EOQ
     select
       case when host_pid then 'enabled' else 'disabled' end as status,
@@ -254,7 +254,7 @@ query "kubernetes_pod_container_host_pid_status" {
   EOQ
 }
 
-query "kubernetes_pod_container_host_ipc_status" {
+query "pod_container_host_ipc_status" {
   sql = <<-EOQ
     select
       case when host_ipc then 'enabled' else 'disabled' end as status,
@@ -268,7 +268,7 @@ query "kubernetes_pod_container_host_ipc_status" {
 
 # Analysis Queries
 
-query "kubernetes_pod_by_namespace" {
+query "pod_by_namespace" {
   sql = <<-EOQ
     select
       namespace,
@@ -282,7 +282,7 @@ query "kubernetes_pod_by_namespace" {
   EOQ
 }
 
-query "kubernetes_pod_by_context_name" {
+query "pod_by_context_name" {
   sql = <<-EOQ
     select
       context_name,
@@ -296,7 +296,7 @@ query "kubernetes_pod_by_context_name" {
   EOQ
 }
 
-query "kubernetes_pod_by_creation_month" {
+query "pod_by_creation_month" {
   sql = <<-EOQ
     with pods as (
       select

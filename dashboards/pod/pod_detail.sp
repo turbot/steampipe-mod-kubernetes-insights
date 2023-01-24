@@ -1,4 +1,4 @@
-dashboard "kubernetes_pod_detail" {
+dashboard "pod_detail" {
 
   title         = "Kubernetes Pod Detail"
   documentation = file("./dashboards/pod/docs/pod_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_pod_detail" {
 
   input "pod_uid" {
     title = "Select a Pod:"
-    query = query.kubernetes_pod_input
+    query = query.pod_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_status
+      query = query.pod_status
       args = {
         uid = self.input.pod_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_container
+      query = query.pod_container
       args = {
         uid = self.input.pod_uid.value
       }
@@ -33,7 +33,16 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_default_namespace
+      query = query.pod_default_namespace
+      args = {
+        uid = self.input.pod_uid.value
+      }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
+    }
+
+    card {
+      width = 2
+      query = query.pod_container_host_network
       args = {
         uid = self.input.pod_uid.value
       }
@@ -41,7 +50,7 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_container_host_network
+      query = query.pod_container_host_pid
       args = {
         uid = self.input.pod_uid.value
       }
@@ -49,20 +58,270 @@ dashboard "kubernetes_pod_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_pod_container_host_pid
+      query = query.pod_container_host_ipc
       args = {
         uid = self.input.pod_uid.value
       }
     }
 
-    card {
-      width = 2
-      query = query.kubernetes_pod_container_host_ipc
-      args = {
-        uid = self.input.pod_uid.value
-      }
-    }
+  }
 
+  with "containers_for_pod" {
+    query = query.containers_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "init_containers_for_pod" {
+    query = query.init_containers_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "persistent_volumes_for_pod" {
+    query = query.persistent_volumes_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "configmaps_for_pod" {
+    query = query.configmaps_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "secrets_for_pod" {
+    query = query.secrets_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "persistent_volume_claims" {
+    query = query.pod_persistent_volume_claims
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "daemonsets_for_pod" {
+    query = query.daemonsets_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "jobs_for_pod" {
+    query = query.jobs_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "replicasets_for_pod" {
+    query = query.replicasets_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "statefulsets_for_pod" {
+    query = query.statefulsets_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "deployments_for_pod" {
+    query = query.deployments_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  with "service_accounts_for_pod" {
+    query = query.service_accounts_for_pod
+    args  = [self.input.pod_uid.value]
+  }
+
+  container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      node {
+        base = node.service_account
+        args = {
+          service_account_uids = with.service_accounts_for_pod.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.configmap
+        args = {
+          configmap_uids = with.configmaps_for_pod.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.secret
+        args = {
+          secret_uids = with.secrets_for_pod.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.container
+        args = {
+          container_names = with.containers_for_pod.rows[*].name
+        }
+      }
+
+      node {
+        base = node.init_container
+        args = {
+          init_container_names = with.init_containers_for_pod.rows[*].name
+        }
+      }
+
+      node {
+        base = node.container_volume
+        args = {
+          container_names = with.containers_for_pod.rows[*].name
+        }
+      }
+
+      node {
+        base = node.persistent_volume_claim
+        args = {
+          persistent_volume_claim_uids = with.persistent_volume_claims.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.persistent_volume
+        args = {
+          persistent_volume_uids = with.persistent_volumes_for_pod.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.daemonset
+        args = {
+          daemonset_uids = with.daemonsets_for_pod.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.job
+        args = {
+          job_uids = with.jobs_for_pod.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.replicaset
+        args = {
+          replicaset_uids = with.replicasets_for_pod.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.deployment
+        args = {
+          deployment_uids = with.deployments_for_pod.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.statefulset
+        args = {
+          statefulset_uids = with.statefulsets_for_pod.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.pod_to_service_account
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.container_volume_to_configmap
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.container_volume_to_secret
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.container_volume_to_persistent_volume_claim
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.persistent_volume_claim_to_persistent_volume
+        args = {
+          persistent_volume_claim_uids = with.persistent_volume_claims.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.pod_to_init_container
+        args = {
+          pod_uids = [self.input.pod_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.job_to_pod
+        args = {
+          job_uids = with.jobs_for_pod.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.replicaset_to_pod
+        args = {
+          replicaset_uids = with.replicasets_for_pod.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.deployment_to_replicaset
+        args = {
+          deployment_uids = with.deployments_for_pod.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.daemonset_to_pod
+        args = {
+          daemonset_uids = with.daemonsets_for_pod.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.statefulset_to_pod
+        args = {
+          statefulset_uids = with.statefulsets_for_pod.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.container_to_container_volume
+        args = {
+          container_names = with.containers_for_pod.rows[*].name
+        }
+      }
+
+    }
   }
 
   container {
@@ -73,16 +332,24 @@ dashboard "kubernetes_pod_detail" {
         title = "Overview"
         type  = "line"
         width = 3
-        query = query.kubernetes_pod_overview
+        query = query.pod_overview
         args = {
           uid = self.input.pod_uid.value
+        }
+
+        column "Namespace" {
+          href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+        }
+
+        column "Namespace UID" {
+          display = "none"
         }
       }
 
       table {
         title = "Labels"
         width = 3
-        query = query.kubernetes_pod_labels
+        query = query.pod_labels
         args = {
           uid = self.input.pod_uid.value
         }
@@ -91,7 +358,7 @@ dashboard "kubernetes_pod_detail" {
       table {
         title = "Annotations"
         width = 6
-        query = query.kubernetes_pod_annotations
+        query = query.pod_annotations
         args = {
           uid = self.input.pod_uid.value
         }
@@ -103,7 +370,7 @@ dashboard "kubernetes_pod_detail" {
       table {
         title = "Configuration"
         width = 6
-        query = query.kubernetes_pod_configuration
+        query = query.pod_configuration
         args = {
           uid = self.input.pod_uid.value
         }
@@ -113,7 +380,7 @@ dashboard "kubernetes_pod_detail" {
         }
 
         column "Node Name" {
-          href = "${dashboard.kubernetes_node_detail.url_path}?input.node_uid={{.UID | @uri}}"
+          href = "${dashboard.node_detail.url_path}?input.node_uid={{.UID | @uri}}"
         }
 
       }
@@ -121,7 +388,7 @@ dashboard "kubernetes_pod_detail" {
       table {
         title = "Containers"
         width = 6
-        query = query.kubernetes_pod_container_basic_detail
+        query = query.pod_container_basic_detail
         args = {
           uid = self.input.pod_uid.value
         }
@@ -131,7 +398,7 @@ dashboard "kubernetes_pod_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_container_detail.url_path}?input.container_name={{.'Container Value' | @uri}}"
+          href = "${dashboard.container_detail.url_path}?input.container_name={{.'Container Value' | @uri}}"
         }
       }
     }
@@ -142,7 +409,7 @@ dashboard "kubernetes_pod_detail" {
     chart {
       title    = "Containers CPU Analysis"
       width    = 6
-      query    = query.kubernetes_pod_container_cpu_detail
+      query    = query.pod_container_cpu_detail
       grouping = "compare"
       type     = "column"
       args = {
@@ -154,7 +421,7 @@ dashboard "kubernetes_pod_detail" {
     chart {
       title    = "Containers Memory Analysis"
       width    = 6
-      query    = query.kubernetes_pod_container_memory_detail
+      query    = query.pod_container_memory_detail
       grouping = "compare"
       type     = "column"
       args = {
@@ -166,7 +433,7 @@ dashboard "kubernetes_pod_detail" {
     table {
       title = "Init Containers"
       width = 6
-      query = query.kubernetes_pod_init_containers
+      query = query.pod_init_containers_detail
       args = {
         uid = self.input.pod_uid.value
       }
@@ -176,7 +443,7 @@ dashboard "kubernetes_pod_detail" {
     table {
       title = "Volumes"
       width = 6
-      query = query.kubernetes_pod_volumes
+      query = query.pod_volumes
       args = {
         uid = self.input.pod_uid.value
       }
@@ -186,7 +453,7 @@ dashboard "kubernetes_pod_detail" {
     table {
       title = "Conditions"
       width = 6
-      query = query.kubernetes_pod_conditions
+      query = query.pod_conditions
       args = {
         uid = self.input.pod_uid.value
       }
@@ -197,7 +464,9 @@ dashboard "kubernetes_pod_detail" {
 
 }
 
-query "kubernetes_pod_input" {
+# Input queries
+
+query "pod_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -213,7 +482,9 @@ query "kubernetes_pod_input" {
   EOQ
 }
 
-query "kubernetes_pod_status" {
+# Card queries
+
+query "pod_status" {
   sql = <<-EOQ
     select
       phase as "Phase"
@@ -226,7 +497,7 @@ query "kubernetes_pod_status" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container" {
+query "pod_container" {
   sql = <<-EOQ
     select
       count(c) as value,
@@ -241,22 +512,25 @@ query "kubernetes_pod_container" {
   param "uid" {}
 }
 
-query "kubernetes_pod_default_namespace" {
+query "pod_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_pod
+      kubernetes_pod as p,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = p.namespace
+      and p.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_pod_container_host_network" {
+query "pod_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -271,7 +545,7 @@ query "kubernetes_pod_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_host_pid" {
+query "pod_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -286,7 +560,7 @@ query "kubernetes_pod_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_host_ipc" {
+query "pod_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -301,23 +575,223 @@ query "kubernetes_pod_container_host_ipc" {
   param "uid" {}
 }
 
-query "kubernetes_pod_overview" {
+# With queries
+
+query "containers_for_pod" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      container ->> 'name' || p.name as name
     from
-      kubernetes_pod
+      kubernetes_pod as p,
+      jsonb_array_elements(p.containers) as container
     where
-      uid = $1;
+      p.uid = $1;
+  EOQ
+}
+
+query "init_containers_for_pod" {
+  sql = <<-EOQ
+    select
+      container ->> 'name' || p.name as name
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(p.init_containers) as container
+    where
+      p.uid = $1;
+  EOQ
+}
+
+query "persistent_volumes_for_pod" {
+  sql = <<-EOQ
+    select
+      distinct pv.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_persistent_volume as pv
+      on v -> 'persistentVolumeClaim' ->> 'claimName' = pv.claim_ref ->> 'name'
+    where
+      pv.uid is not null
+      and v ->> 'name' in
+      (select
+        v ->> 'name'
+      from kubernetes_pod,
+      jsonb_array_elements(containers) as c,
+      jsonb_array_elements(c -> 'volumeMounts') as v)
+      and p.uid = $1;
+  EOQ
+}
+
+query "pod_persistent_volume_claims" {
+  sql = <<-EOQ
+    select
+      distinct c.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_persistent_volume_claim as c
+      on v -> 'persistentVolumeClaim' ->> 'claimName' = c.name
+    where
+      c.uid is not null
+      and v ->> 'name' in
+      (select
+        v ->> 'name'
+      from kubernetes_pod,
+      jsonb_array_elements(containers) as c,
+      jsonb_array_elements(c -> 'volumeMounts') as v)
+      and p.uid = $1;
+  EOQ
+}
+
+query "configmaps_for_pod" {
+  sql = <<-EOQ
+    select
+      c.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_config_map as c
+      on v -> 'configMap' ->> 'name' = c.name
+    where
+      c.uid is not null
+      and v ->> 'name' in
+      (select
+        v ->> 'name'
+      from kubernetes_pod,
+      jsonb_array_elements(containers) as c,
+      jsonb_array_elements(c -> 'volumeMounts') as v)
+      and p.uid = $1;
+  EOQ
+}
+
+query "secrets_for_pod" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(volumes) as v
+      left join kubernetes_secret as s
+      on v -> 'secret' ->> 'secretName' = s.name
+    where
+      s.uid is not null
+      and v ->> 'name' in
+      (select
+        v ->> 'name'
+      from kubernetes_pod,
+      jsonb_array_elements(containers) as c,
+      jsonb_array_elements(c -> 'volumeMounts') as v)
+      and p.uid = $1;
+  EOQ
+}
+
+query "daemonsets_for_pod" {
+  sql = <<-EOQ
+    select
+      d.uid as uid
+    from
+      kubernetes_daemonset as d,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = d.uid
+      and p.uid = $1;
+  EOQ
+}
+
+query "jobs_for_pod" {
+  sql = <<-EOQ
+    select
+      j.uid as uid
+    from
+      kubernetes_job as j,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = j.uid
+      and p.uid = $1;
+  EOQ
+}
+
+query "replicasets_for_pod" {
+  sql = <<-EOQ
+    select
+      pod_owner ->> 'uid' as uid
+    from
+      kubernetes_pod as p,
+      jsonb_array_elements(p.owner_references) as pod_owner
+    where
+      pod_owner ->> 'kind' = 'ReplicaSet'
+      and p.uid = $1;
+  EOQ
+}
+
+query "deployments_for_pod" {
+  sql = <<-EOQ
+    select
+     rs_owner ->> 'uid' as uid
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      pod.uid = $1
+      and pod_owner ->> 'uid' = rs.uid;
+  EOQ
+}
+
+query "statefulsets_for_pod" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_stateful_set as s,
+      kubernetes_pod as p,
+      jsonb_array_elements(p.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = s.uid
+      and p.uid = $1;
+  EOQ
+}
+
+query "service_accounts_for_pod" {
+  sql = <<-EOQ
+    select
+      distinct s.uid as uid
+    from
+      kubernetes_service_account as s,
+      kubernetes_pod as p
+    where
+      p.service_account_name = s.name
+      and s.namespace in (select namespace from kubernetes_pod where uid = $1)
+      and p.uid = $1;
+  EOQ
+}
+
+# Other queries
+
+query "pod_overview" {
+  sql = <<-EOQ
+    select
+      p.name as "Name",
+      p.uid as "UID",
+      p.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      p.context_name as "Context Name"
+    from
+      kubernetes_pod as p,
+      kubernetes_namespace as n
+    where
+      n.name = p.namespace
+      and p.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_pod_labels" {
+query "pod_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -340,7 +814,7 @@ query "kubernetes_pod_labels" {
   param "uid" {}
 }
 
-query "kubernetes_pod_annotations" {
+query "pod_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -363,7 +837,7 @@ query "kubernetes_pod_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_pod_conditions" {
+query "pod_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -382,7 +856,7 @@ query "kubernetes_pod_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_pod_configuration" {
+query "pod_configuration" {
   sql = <<-EOQ
     select
       p.node_name as "Node Name",
@@ -402,7 +876,7 @@ query "kubernetes_pod_configuration" {
   param "uid" {}
 }
 
-query "kubernetes_pod_init_containers" {
+query "pod_init_containers_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
@@ -422,7 +896,7 @@ query "kubernetes_pod_init_containers" {
   param "uid" {}
 }
 
-query "kubernetes_pod_volumes" {
+query "pod_volumes" {
   sql = <<-EOQ
     select
       v ->> 'name' as "Name",
@@ -440,7 +914,7 @@ query "kubernetes_pod_volumes" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_basic_detail" {
+query "pod_container_basic_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
@@ -459,12 +933,12 @@ query "kubernetes_pod_container_basic_detail" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_cpu_detail" {
+query "pod_container_cpu_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
-      REPLACE(c -> 'resources' -> 'limits' ->> 'cpu','m','') as "CPU Limit (m)",
-      REPLACE(c -> 'resources' -> 'requests' ->> 'cpu','m','') as "CPU Request (m)"
+      replace(c -> 'resources' -> 'limits' ->> 'cpu','m','') as "CPU Limit (m)",
+      replace(c -> 'resources' -> 'requests' ->> 'cpu','m','') as "CPU Request (m)"
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c
@@ -477,12 +951,12 @@ query "kubernetes_pod_container_cpu_detail" {
   param "uid" {}
 }
 
-query "kubernetes_pod_container_memory_detail" {
+query "pod_container_memory_detail" {
   sql = <<-EOQ
     select
       c ->> 'name' as "Name",
-      REPLACE(c -> 'resources' -> 'limits' ->> 'memory','Mi','') as "Memory Limit (Mi)",
-      REPLACE(c -> 'resources' -> 'requests' ->> 'memory','Mi','') as "Memory Request (Mi)"
+      replace(c -> 'resources' -> 'limits' ->> 'memory','Mi','') as "Memory Limit (Mi)",
+      replace(c -> 'resources' -> 'requests' ->> 'memory','Mi','') as "Memory Request (Mi)"
     from
       kubernetes_pod,
       jsonb_array_elements(containers) as c

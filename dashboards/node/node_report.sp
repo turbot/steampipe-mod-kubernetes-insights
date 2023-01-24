@@ -1,4 +1,4 @@
-dashboard "kubernetes_node_report" {
+dashboard "node_report" {
 
   title         = "Kubernetes Node Report"
   documentation = file("./dashboards/node/docs/node_report.md")
@@ -10,8 +10,8 @@ dashboard "kubernetes_node_report" {
   container {
 
     card {
-      query = query.kubernetes_node_count
-      width = 2
+      query = query.node_count
+      width = 3
     }
 
   }
@@ -24,16 +24,16 @@ dashboard "kubernetes_node_report" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_node_detail.url_path}?input.node_uid={{.UID | @uri}}"
+        href = "${dashboard.node_detail.url_path}?input.node_uid={{.UID | @uri}}"
       }
 
-      query = query.kubernetes_node_table
+      query = query.node_table
     }
   }
 
 }
 
-query "kubernetes_node_count" {
+query "node_count" {
   sql = <<-EOQ
     select
       count(*) as "Nodes"
@@ -42,7 +42,7 @@ query "kubernetes_node_count" {
   EOQ
 }
 
-query "kubernetes_node_table" {
+query "node_table" {
   sql = <<-EOQ
     select
       name as "Name",

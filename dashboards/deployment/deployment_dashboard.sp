@@ -1,4 +1,4 @@
-dashboard "kubernetes_deployment_dashboard" {
+dashboard "deployment_dashboard" {
 
   title         = "Kubernetes Deployment Dashboard"
   documentation = file("./dashboards/deployment/docs/deployment_dashboard.md")
@@ -10,37 +10,37 @@ dashboard "kubernetes_deployment_dashboard" {
   container {
 
     card {
-      query = query.kubernetes_deployment_count
+      query = query.deployment_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_deployment_default_namespace_count
+      query = query.deployment_default_namespace_count
       width = 2
     }
 
     card {
-      query = query.kubernetes_deployment_replica_count
+      query = query.deployment_replica_count
       width = 2
-      href  = dashboard.kubernetes_deployment_ha_report.url_path
+      href  = dashboard.deployment_ha_report.url_path
     }
 
     card {
-      query = query.kubernetes_deployment_container_host_network_count
+      query = query.deployment_container_host_network_count
       width = 2
-      href  = dashboard.kubernetes_deployment_host_access_report.url_path
+      href  = dashboard.deployment_host_access_report.url_path
     }
 
     card {
-      query = query.kubernetes_deployment_container_host_pid_count
+      query = query.deployment_container_host_pid_count
       width = 2
-      href  = dashboard.kubernetes_deployment_host_access_report.url_path
+      href  = dashboard.deployment_host_access_report.url_path
     }
 
     card {
-      query = query.kubernetes_deployment_container_host_ipc_count
+      query = query.deployment_container_host_ipc_count
       width = 2
-      href  = dashboard.kubernetes_deployment_host_access_report.url_path
+      href  = dashboard.deployment_host_access_report.url_path
     }
 
   }
@@ -51,7 +51,7 @@ dashboard "kubernetes_deployment_dashboard" {
 
     chart {
       title = "Default Namespace Status"
-      query = query.kubernetes_deployment_default_namespace_status
+      query = query.deployment_default_namespace_status
       type  = "donut"
       width = 4
 
@@ -67,7 +67,7 @@ dashboard "kubernetes_deployment_dashboard" {
 
     chart {
       title = "Replicas HA Status"
-      query = query.kubernetes_deployment_container_replica_status
+      query = query.deployment_container_replica_status
       type  = "donut"
       width = 4
 
@@ -83,7 +83,7 @@ dashboard "kubernetes_deployment_dashboard" {
 
     chart {
       title = "Host Network Access Status"
-      query = query.kubernetes_deployment_container_host_network_status
+      query = query.deployment_container_host_network_status
       type  = "donut"
       width = 4
 
@@ -99,7 +99,7 @@ dashboard "kubernetes_deployment_dashboard" {
 
     chart {
       title = "Host PID Sharing Status"
-      query = query.kubernetes_deployment_container_host_pid_status
+      query = query.deployment_container_host_pid_status
       type  = "donut"
       width = 4
 
@@ -115,7 +115,7 @@ dashboard "kubernetes_deployment_dashboard" {
 
     chart {
       title = "Host IPC Sharing Status"
-      query = query.kubernetes_deployment_container_host_ipc_status
+      query = query.deployment_container_host_ipc_status
       type  = "donut"
       width = 4
 
@@ -137,21 +137,21 @@ dashboard "kubernetes_deployment_dashboard" {
 
     chart {
       title = "Deployments by Cluster"
-      query = query.kubernetes_deployment_by_context_name
+      query = query.deployment_by_context_name
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Deployments by Namespace"
-      query = query.kubernetes_deployment_by_namespace
+      query = query.deployment_by_namespace
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Deployments by Age"
-      query = query.kubernetes_deployment_by_creation_month
+      query = query.deployment_by_creation_month
       type  = "column"
       width = 4
     }
@@ -161,7 +161,7 @@ dashboard "kubernetes_deployment_dashboard" {
 
 # Card Queries
 
-query "kubernetes_deployment_count" {
+query "deployment_count" {
   sql = <<-EOQ
     select
       count(*) as "Deployments"
@@ -170,7 +170,7 @@ query "kubernetes_deployment_count" {
   EOQ
 }
 
-query "kubernetes_deployment_default_namespace_count" {
+query "deployment_default_namespace_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -183,7 +183,7 @@ query "kubernetes_deployment_default_namespace_count" {
   EOQ
 }
 
-query "kubernetes_deployment_replica_count" {
+query "deployment_replica_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -196,7 +196,7 @@ query "kubernetes_deployment_replica_count" {
   EOQ
 }
 
-query "kubernetes_deployment_container_host_network_count" {
+query "deployment_container_host_network_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -209,7 +209,7 @@ query "kubernetes_deployment_container_host_network_count" {
   EOQ
 }
 
-query "kubernetes_deployment_container_host_pid_count" {
+query "deployment_container_host_pid_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -222,7 +222,7 @@ query "kubernetes_deployment_container_host_pid_count" {
   EOQ
 }
 
-query "kubernetes_deployment_container_host_ipc_count" {
+query "deployment_container_host_ipc_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -237,7 +237,7 @@ query "kubernetes_deployment_container_host_ipc_count" {
 
 # Assessment Queries
 
-query "kubernetes_deployment_default_namespace_status" {
+query "deployment_default_namespace_status" {
   sql = <<-EOQ
     select
       case when namespace = 'default' then 'used' else 'unused' end as status,
@@ -249,7 +249,7 @@ query "kubernetes_deployment_default_namespace_status" {
   EOQ
 }
 
-query "kubernetes_deployment_container_host_network_status" {
+query "deployment_container_host_network_status" {
   sql = <<-EOQ
     select
       case when template -> 'spec' ->> 'hostNetwork' = 'true' then 'enabled' else 'disabled' end as status,
@@ -261,7 +261,7 @@ query "kubernetes_deployment_container_host_network_status" {
   EOQ
 }
 
-query "kubernetes_deployment_container_host_pid_status" {
+query "deployment_container_host_pid_status" {
   sql = <<-EOQ
     select
       case when template -> 'spec' ->> 'hostPID' = 'true' then 'enabled' else 'disabled' end as status,
@@ -273,7 +273,7 @@ query "kubernetes_deployment_container_host_pid_status" {
   EOQ
 }
 
-query "kubernetes_deployment_container_host_ipc_status" {
+query "deployment_container_host_ipc_status" {
   sql = <<-EOQ
     select
       case when template -> 'spec' ->> 'hostIPC' = 'true' then 'enabled' else 'disabled' end as status,
@@ -285,7 +285,7 @@ query "kubernetes_deployment_container_host_ipc_status" {
   EOQ
 }
 
-query "kubernetes_deployment_container_replica_status" {
+query "deployment_container_replica_status" {
   sql = <<-EOQ
     select
       case when replicas < '3' then 'non-HA' else 'HA' end as status,
@@ -299,7 +299,7 @@ query "kubernetes_deployment_container_replica_status" {
 
 # Analysis Queries
 
-query "kubernetes_deployment_by_namespace" {
+query "deployment_by_namespace" {
   sql = <<-EOQ
     select
       namespace,
@@ -313,7 +313,7 @@ query "kubernetes_deployment_by_namespace" {
   EOQ
 }
 
-query "kubernetes_deployment_by_context_name" {
+query "deployment_by_context_name" {
   sql = <<-EOQ
     select
       context_name,
@@ -327,7 +327,7 @@ query "kubernetes_deployment_by_context_name" {
   EOQ
 }
 
-query "kubernetes_deployment_by_creation_month" {
+query "deployment_by_creation_month" {
   sql = <<-EOQ
     with deployments as (
       select

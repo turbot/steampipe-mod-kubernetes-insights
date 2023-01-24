@@ -1,4 +1,4 @@
-dashboard "kubernetes_job_detail" {
+dashboard "job_detail" {
 
   title         = "Kubernetes Job Detail"
   documentation = file("./dashboards/job/docs/job_detail.md")
@@ -9,44 +9,136 @@ dashboard "kubernetes_job_detail" {
 
   input "job_uid" {
     title = "Select a Job:"
-    query = query.kubernetes_job_input
+    query = query.job_input
     width = 4
   }
 
   container {
 
     card {
-      width = 2
-      query = query.kubernetes_job_default_namespace
+      width = 3
+      query = query.job_default_namespace
+      args = {
+        uid = self.input.job_uid.value
+      }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
+    }
+
+    card {
+      width = 3
+      query = query.job_container_host_network
       args = {
         uid = self.input.job_uid.value
       }
     }
 
     card {
-      width = 2
-      query = query.kubernetes_job_container_host_network
+      width = 3
+      query = query.job_container_host_pid
       args = {
         uid = self.input.job_uid.value
       }
     }
 
     card {
-      width = 2
-      query = query.kubernetes_job_container_host_pid
+      width = 3
+      query = query.job_container_host_ipc
       args = {
         uid = self.input.job_uid.value
       }
     }
 
-    card {
-      width = 2
-      query = query.kubernetes_job_container_host_ipc
-      args = {
-        uid = self.input.job_uid.value
+  }
+
+  with "cronjobs_for_job" {
+    query = query.cronjobs_for_job
+    args  = [self.input.job_uid.value]
+  }
+
+  with "pods_for_job" {
+    query = query.pods_for_job
+    args  = [self.input.job_uid.value]
+  }
+
+  with "nodes_for_job" {
+    query = query.nodes_for_job
+    args  = [self.input.job_uid.value]
+  }
+
+  with "containers_for_job" {
+    query = query.containers_for_job
+    args  = [self.input.job_uid.value]
+  }
+
+  container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      node {
+        base = node.cronjob
+        args = {
+          cronjob_uids = with.cronjobs_for_job.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.job
+        args = {
+          job_uids = [self.input.job_uid.value]
+        }
+      }
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = with.pods_for_job.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.node
+        args = {
+          node_uids = with.nodes_for_job.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.container
+        args = {
+          container_names = with.containers_for_job.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.cronjob_to_job
+        args = {
+          cronjob_uids = with.cronjobs_for_job.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.container_to_node
+        args = {
+          container_names = with.containers_for_job.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.job_to_pod
+        args = {
+          job_uids = [self.input.job_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = with.pods_for_job.rows[*].uid
+        }
       }
     }
-
   }
 
   container {
@@ -55,16 +147,24 @@ dashboard "kubernetes_job_detail" {
       title = "Overview"
       type  = "line"
       width = 3
-      query = query.kubernetes_job_overview
+      query = query.job_overview
       args = {
         uid = self.input.job_uid.value
+      }
+
+      column "Namespace" {
+        href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+      }
+
+      column "Namespace UID" {
+        display = "none"
       }
     }
 
     table {
       title = "Labels"
       width = 3
-      query = query.kubernetes_job_labels
+      query = query.job_labels
       args = {
         uid = self.input.job_uid.value
       }
@@ -73,7 +173,7 @@ dashboard "kubernetes_job_detail" {
     table {
       title = "Annotations"
       width = 6
-      query = query.kubernetes_job_annotations
+      query = query.job_annotations
       args = {
         uid = self.input.job_uid.value
       }
@@ -86,7 +186,7 @@ dashboard "kubernetes_job_detail" {
     chart {
       title = "Job Status"
       width = 4
-      query = query.kubernetes_job_pods_detail
+      query = query.job_status_detail
       type  = "donut"
       args = {
         uid = self.input.job_uid.value
@@ -105,7 +205,7 @@ dashboard "kubernetes_job_detail" {
     flow {
       title = "Job Hierarchy"
       width = 8
-      query = query.kubernetes_job_tree
+      query = query.job_tree
       args = {
         uid = self.input.job_uid.value
       }
@@ -117,7 +217,7 @@ dashboard "kubernetes_job_detail" {
     table {
       title = "Pods"
       width = 6
-      query = query.kubernetes_job_pods
+      query = query.job_pods_detail
       args = {
         uid = self.input.job_uid.value
       }
@@ -126,7 +226,7 @@ dashboard "kubernetes_job_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+        href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
       }
 
     }
@@ -134,7 +234,7 @@ dashboard "kubernetes_job_detail" {
     table {
       title = "Conditions"
       width = 6
-      query = query.kubernetes_job_conditions
+      query = query.job_conditions
       args = {
         uid = self.input.job_uid.value
       }
@@ -145,7 +245,9 @@ dashboard "kubernetes_job_detail" {
 
 }
 
-query "kubernetes_job_input" {
+# Input queries
+
+query "job_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -161,22 +263,27 @@ query "kubernetes_job_input" {
   EOQ
 }
 
-query "kubernetes_job_default_namespace" {
+# Card queries
+
+query "job_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_job
+      kubernetes_job as j,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = j.namespace
+      and j.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_job_container_host_network" {
+query "job_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -191,7 +298,7 @@ query "kubernetes_job_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_job_container_host_pid" {
+query "job_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -206,7 +313,7 @@ query "kubernetes_job_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_job_container_host_ipc" {
+query "job_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -221,23 +328,88 @@ query "kubernetes_job_container_host_ipc" {
   param "uid" {}
 }
 
-query "kubernetes_job_overview" {
+# With queries
+
+query "cronjobs_for_job" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      owner ->> 'uid' as uid
     from
-      kubernetes_job
+      kubernetes_job as j,
+      jsonb_array_elements(j.owner_references) as owner
     where
       uid = $1;
+  EOQ
+}
+
+query "pods_for_job" {
+  sql = <<-EOQ
+    select
+      pod.uid as uid
+    from
+      kubernetes_job as j,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      j.uid = $1
+      and pod_owner ->> 'uid' = j.uid;
+  EOQ
+}
+
+query "nodes_for_job" {
+  sql = <<-EOQ
+    select
+      n.uid as uid
+    from
+      kubernetes_job as j,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and pod_owner ->> 'uid' = j.uid
+      and j.uid = $1;
+  EOQ
+}
+
+query "containers_for_job" {
+  sql = <<-EOQ
+    select
+      container ->> 'name' || pod.name as name
+    from
+      kubernetes_job as j,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
+    where
+      j.uid = $1
+      and pod_owner ->> 'uid' = j.uid;
+  EOQ
+}
+
+# Other queries
+
+query "job_overview" {
+  sql = <<-EOQ
+    select
+      j.name as "Name",
+      j.uid as "UID",
+      j.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      j.context_name as "Context Name"
+    from
+      kubernetes_job as j,
+      kubernetes_namespace as n
+    where
+      n.name = j.namespace
+      and j.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_job_labels" {
+query "job_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -260,7 +432,7 @@ query "kubernetes_job_labels" {
   param "uid" {}
 }
 
-query "kubernetes_job_annotations" {
+query "job_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -283,7 +455,7 @@ query "kubernetes_job_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_job_conditions" {
+query "job_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -304,7 +476,7 @@ query "kubernetes_job_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_job_pods_detail" {
+query "job_status_detail" {
   sql = <<-EOQ
     select
       case when succeeded <> 0 then 'succeeded' end as label,
@@ -326,7 +498,7 @@ query "kubernetes_job_pods_detail" {
   param "uid" {}
 }
 
-query "kubernetes_job_pods" {
+query "job_pods_detail" {
   sql = <<-EOQ
     select
       pod.name as "Name",
@@ -345,7 +517,7 @@ query "kubernetes_job_pods" {
   param "uid" {}
 }
 
-query "kubernetes_job_tree" {
+query "job_tree" {
   sql = <<-EOQ
 
     -- This job
