@@ -1,4 +1,4 @@
-dashboard "kubernetes_deployment_age_report" {
+dashboard "deployment_age_report" {
 
   title         = "Kubernetes Deployment Age Report"
   documentation = file("./dashboards/deployment/docs/deployment_report_age.md")
@@ -11,38 +11,38 @@ dashboard "kubernetes_deployment_age_report" {
   container {
 
     card {
-      query = query.kubernetes_deployment_count
+      query = query.deployment_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_deployment_24_hours_count
+      query = query.deployment_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_deployment_30_days_count
+      query = query.deployment_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_deployment_30_90_days_count
+      query = query.deployment_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_deployment_90_365_days_count
+      query = query.deployment_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_deployment_1_year_count
+      query = query.deployment_1_year_count
     }
   }
   table {
@@ -52,14 +52,14 @@ dashboard "kubernetes_deployment_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
+      href = "${dashboard.deployment_detail.url_path}?input.deployment_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_deployment_age_table
+    query = query.deployment_age_table
   }
 }
 
-query "kubernetes_deployment_24_hours_count" {
+query "deployment_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -71,7 +71,7 @@ query "kubernetes_deployment_24_hours_count" {
   EOQ
 }
 
-query "kubernetes_deployment_30_days_count" {
+query "deployment_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -84,7 +84,7 @@ query "kubernetes_deployment_30_days_count" {
   EOQ
 }
 
-query "kubernetes_deployment_30_90_days_count" {
+query "deployment_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +97,7 @@ query "kubernetes_deployment_30_90_days_count" {
   EOQ
 }
 
-query "kubernetes_deployment_90_365_days_count" {
+query "deployment_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -110,7 +110,7 @@ query "kubernetes_deployment_90_365_days_count" {
   EOQ
 }
 
-query "kubernetes_deployment_1_year_count" {
+query "deployment_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -122,7 +122,7 @@ query "kubernetes_deployment_1_year_count" {
   EOQ
 }
 
-query "kubernetes_deployment_age_table" {
+query "deployment_age_table" {
   sql = <<-EOQ
     select
       name as "Name",

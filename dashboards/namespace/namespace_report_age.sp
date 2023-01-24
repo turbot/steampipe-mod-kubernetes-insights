@@ -1,4 +1,4 @@
-dashboard "kubernetes_namespace_age_report" {
+dashboard "namespace_age_report" {
 
   title         = "Kubernetes Namespace Age Report"
   documentation = file("./dashboards/namespace/docs/namespace_report_age.md")
@@ -11,38 +11,38 @@ dashboard "kubernetes_namespace_age_report" {
   container {
 
     card {
-      query = query.kubernetes_namespace_count
+      query = query.namespace_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_namespace_24_hours_count
+      query = query.namespace_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_namespace_30_days_count
+      query = query.namespace_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_namespace_30_90_days_count
+      query = query.namespace_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_namespace_90_365_days_count
+      query = query.namespace_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_namespace_1_year_count
+      query = query.namespace_1_year_count
     }
   }
   table {
@@ -52,14 +52,14 @@ dashboard "kubernetes_namespace_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_namespace_detail.url_path}?input.namespace_uid={{.UID | @uri}}"
+      href = "${dashboard.namespace_detail.url_path}?input.namespace_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_namespace_age_table
+    query = query.namespace_age_table
   }
 }
 
-query "kubernetes_namespace_24_hours_count" {
+query "namespace_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -71,7 +71,7 @@ query "kubernetes_namespace_24_hours_count" {
   EOQ
 }
 
-query "kubernetes_namespace_30_days_count" {
+query "namespace_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -84,7 +84,7 @@ query "kubernetes_namespace_30_days_count" {
   EOQ
 }
 
-query "kubernetes_namespace_30_90_days_count" {
+query "namespace_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +97,7 @@ query "kubernetes_namespace_30_90_days_count" {
   EOQ
 }
 
-query "kubernetes_namespace_90_365_days_count" {
+query "namespace_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -110,7 +110,7 @@ query "kubernetes_namespace_90_365_days_count" {
   EOQ
 }
 
-query "kubernetes_namespace_1_year_count" {
+query "namespace_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -122,7 +122,7 @@ query "kubernetes_namespace_1_year_count" {
   EOQ
 }
 
-query "kubernetes_namespace_age_table" {
+query "namespace_age_table" {
   sql = <<-EOQ
     select
       name as "Name",

@@ -1,4 +1,4 @@
-dashboard "kubernetes_statefulset_detail" {
+dashboard "statefulset_detail" {
 
   title         = "Kubernetes StatefulSet Detail"
   documentation = file("./dashboards/statefulset/docs/statefulset_detail.md")
@@ -9,7 +9,7 @@ dashboard "kubernetes_statefulset_detail" {
 
   input "statefulset_uid" {
     title = "Select a StatefulSet:"
-    query = query.kubernetes_statefulset_input
+    query = query.statefulset_input
     width = 4
   }
 
@@ -17,7 +17,7 @@ dashboard "kubernetes_statefulset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_statefulset_service_name
+      query = query.statefulset_service_name
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -25,7 +25,7 @@ dashboard "kubernetes_statefulset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_statefulset_replicas
+      query = query.statefulset_replicas
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -33,7 +33,16 @@ dashboard "kubernetes_statefulset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_statefulset_default_namespace
+      query = query.statefulset_default_namespace
+      args = {
+        uid = self.input.statefulset_uid.value
+      }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
+    }
+
+    card {
+      width = 2
+      query = query.statefulset_container_host_network
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -41,7 +50,7 @@ dashboard "kubernetes_statefulset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_statefulset_container_host_network
+      query = query.statefulset_container_host_pid
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -49,20 +58,103 @@ dashboard "kubernetes_statefulset_detail" {
 
     card {
       width = 2
-      query = query.kubernetes_statefulset_container_host_pid
+      query = query.statefulset_container_host_ipc
       args = {
         uid = self.input.statefulset_uid.value
       }
     }
 
-    card {
-      width = 2
-      query = query.kubernetes_statefulset_container_host_ipc
-      args = {
-        uid = self.input.statefulset_uid.value
+  }
+
+  with "nodes_for_statefulset" {
+    query = query.nodes_for_statefulset
+    args  = [self.input.statefulset_uid.value]
+  }
+
+  with "pods_for_statefulset" {
+    query = query.pods_for_statefulset
+    args  = [self.input.statefulset_uid.value]
+  }
+
+  with "containers_for_statefulset" {
+    query = query.statefulset_containers
+    args  = [self.input.statefulset_uid.value]
+  }
+
+  with "services_for_statefulset" {
+    query = query.services_for_statefulset
+    args  = [self.input.statefulset_uid.value]
+  }
+
+  container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      node {
+        base = node.statefulset
+        args = {
+          statefulset_uids = [self.input.statefulset_uid.value]
+        }
+      }
+
+      node {
+        base = node.service
+        args = {
+          service_uids = with.services_for_statefulset.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = with.pods_for_statefulset.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.node
+        args = {
+          node_uids = with.nodes_for_statefulset.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.container
+        args = {
+          container_names = with.containers_for_statefulset.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.container_to_node
+        args = {
+          container_names = with.containers_for_statefulset.rows[*].name
+        }
+      }
+
+      edge {
+        base = edge.statefulset_to_pod
+        args = {
+          statefulset_uids = [self.input.statefulset_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.service_to_statefulset
+        args = {
+          service_uids = with.services_for_statefulset.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.pod_to_container
+        args = {
+          pod_uids = with.pods_for_statefulset.rows[*].uid
+        }
       }
     }
-
   }
 
   container {
@@ -71,16 +163,24 @@ dashboard "kubernetes_statefulset_detail" {
       title = "Overview"
       type  = "line"
       width = 3
-      query = query.kubernetes_statefulset_overview
+      query = query.statefulset_overview
       args = {
         uid = self.input.statefulset_uid.value
+      }
+
+      column "Namespace" {
+        href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+      }
+
+      column "Namespace UID" {
+        display = "none"
       }
     }
 
     table {
       title = "Labels"
       width = 3
-      query = query.kubernetes_statefulset_labels
+      query = query.statefulset_labels
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -89,7 +189,7 @@ dashboard "kubernetes_statefulset_detail" {
     table {
       title = "Annotations"
       width = 6
-      query = query.kubernetes_statefulset_annotations
+      query = query.statefulset_annotations
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -101,7 +201,7 @@ dashboard "kubernetes_statefulset_detail" {
     chart {
       title = "Replicas"
       width = 4
-      query = query.kubernetes_statefulset_replicas_detail
+      query = query.statefulset_replicas_detail
       type  = "donut"
       args = {
         uid = self.input.statefulset_uid.value
@@ -112,7 +212,7 @@ dashboard "kubernetes_statefulset_detail" {
     flow {
       title = "StatefulSet Hierarchy"
       width = 8
-      query = query.kubernetes_statefulset_tree
+      query = query.statefulset_tree
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -121,7 +221,7 @@ dashboard "kubernetes_statefulset_detail" {
     table {
       title = "Pods"
       width = 6
-      query = query.kubernetes_statefulset_pods
+      query = query.statefulset_pods_detail
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -130,7 +230,7 @@ dashboard "kubernetes_statefulset_detail" {
       }
 
       column "Name" {
-        href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+        href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
       }
 
     }
@@ -138,7 +238,7 @@ dashboard "kubernetes_statefulset_detail" {
     table {
       title = "Update Strategy"
       width = 6
-      query = query.kubernetes_statefulset_strategy
+      query = query.statefulset_strategy
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -148,7 +248,7 @@ dashboard "kubernetes_statefulset_detail" {
     table {
       title = "Conditions"
       width = 6
-      query = query.kubernetes_statefulset_conditions
+      query = query.statefulset_conditions
       args = {
         uid = self.input.statefulset_uid.value
       }
@@ -159,7 +259,9 @@ dashboard "kubernetes_statefulset_detail" {
 
 }
 
-query "kubernetes_statefulset_input" {
+# Input queries
+
+query "statefulset_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -175,7 +277,9 @@ query "kubernetes_statefulset_input" {
   EOQ
 }
 
-query "kubernetes_statefulset_service_name" {
+# Card queries
+
+query "statefulset_service_name" {
   sql = <<-EOQ
     select
       'Service Name' as label,
@@ -189,7 +293,7 @@ query "kubernetes_statefulset_service_name" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_replicas" {
+query "statefulset_replicas" {
   sql = <<-EOQ
     select
       'Replicas' as label,
@@ -203,22 +307,25 @@ query "kubernetes_statefulset_replicas" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_default_namespace" {
+query "statefulset_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_stateful_set
+      kubernetes_stateful_set as s,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = s.namespace
+      and s.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_statefulset_container_host_network" {
+query "statefulset_container_host_network" {
   sql = <<-EOQ
     select
       'Host Network Access' as label,
@@ -233,7 +340,7 @@ query "kubernetes_statefulset_container_host_network" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_container_host_pid" {
+query "statefulset_container_host_pid" {
   sql = <<-EOQ
     select
       'Host PID Sharing' as label,
@@ -248,7 +355,7 @@ query "kubernetes_statefulset_container_host_pid" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_container_host_ipc" {
+query "statefulset_container_host_ipc" {
   sql = <<-EOQ
     select
       'Host IPC Sharing' as label,
@@ -263,23 +370,83 @@ query "kubernetes_statefulset_container_host_ipc" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_overview" {
+# With queries
+
+query "statefulset_containers" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      container ->> 'name' || pod.name as name
     from
-      kubernetes_stateful_set
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      jsonb_array_elements(pod.containers) as container
     where
-      uid = $1;
+      pod_owner ->> 'uid' = $1;
+  EOQ
+}
+
+query "pods_for_statefulset" {
+  sql = <<-EOQ
+    select
+      pod.uid as uid
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner
+    where
+      pod_owner ->> 'uid' = $1;
+  EOQ
+}
+
+query "nodes_for_statefulset" {
+  sql = <<-EOQ
+    select
+      n.uid as uid
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_node as n
+    where
+      n.name = pod.node_name
+      and pod_owner ->> 'uid' = $1;
+  EOQ
+}
+
+query "services_for_statefulset" {
+  sql = <<-EOQ
+    select
+      s.uid as uid
+    from
+      kubernetes_stateful_set as st,
+      kubernetes_service as s
+    where
+      st.service_name = s.name
+      and st.uid = $1;
+  EOQ
+}
+
+# Other queries
+
+query "statefulset_overview" {
+  sql = <<-EOQ
+    select
+      s.name as "Name",
+      s.uid as "UID",
+      s.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      s.context_name as "Context Name"
+    from
+      kubernetes_stateful_set as s,
+      kubernetes_namespace as n
+    where
+      n.name = s.namespace
+      and s.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_statefulset_labels" {
+query "statefulset_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -302,7 +469,7 @@ query "kubernetes_statefulset_labels" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_annotations" {
+query "statefulset_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -325,7 +492,7 @@ query "kubernetes_statefulset_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_strategy" {
+query "statefulset_strategy" {
   sql = <<-EOQ
     select
       update_strategy ->> 'type' as "Type",
@@ -339,7 +506,7 @@ query "kubernetes_statefulset_strategy" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_conditions" {
+query "statefulset_conditions" {
   sql = <<-EOQ
     select
       c ->> 'lastTransitionTime' as "Last Transition Time",
@@ -359,7 +526,7 @@ query "kubernetes_statefulset_conditions" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_replicas_detail" {
+query "statefulset_replicas_detail" {
   sql = <<-EOQ
     select
       case when current_replicas <> 0 then 'current replicas' end as label,
@@ -397,7 +564,7 @@ query "kubernetes_statefulset_replicas_detail" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_pods" {
+query "statefulset_pods_detail" {
   sql = <<-EOQ
     select
       pod.name as "Name",
@@ -416,10 +583,10 @@ query "kubernetes_statefulset_pods" {
   param "uid" {}
 }
 
-query "kubernetes_statefulset_tree" {
+query "statefulset_tree" {
   sql = <<-EOQ
 
-    -- This job
+    -- This statefulset
     select
       null as from_id,
       uid as id,

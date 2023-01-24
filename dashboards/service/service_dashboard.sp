@@ -1,4 +1,4 @@
-dashboard "kubernetes_service_dashboard" {
+dashboard "service_dashboard" {
 
   title         = "Kubernetes Service Dashboard"
   documentation = file("./dashboards/service/docs/service_dashboard.md")
@@ -10,13 +10,13 @@ dashboard "kubernetes_service_dashboard" {
   container {
 
     card {
-      query = query.kubernetes_service_count
-      width = 2
+      query = query.service_count
+      width = 3
     }
 
     card {
-      query = query.kubernetes_service_default_namespace_count
-      width = 2
+      query = query.service_default_namespace_count
+      width = 3
     }
 
   }
@@ -27,7 +27,7 @@ dashboard "kubernetes_service_dashboard" {
 
     chart {
       title = "Default Namespace Status"
-      query = query.kubernetes_service_default_namespace_status
+      query = query.service_default_namespace_status
       type  = "donut"
       width = 3
 
@@ -49,21 +49,21 @@ dashboard "kubernetes_service_dashboard" {
 
     chart {
       title = "Services by Cluster"
-      query = query.kubernetes_service_by_context_name
+      query = query.service_by_context_name
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Services by Namespace"
-      query = query.kubernetes_service_by_namespace
+      query = query.service_by_namespace
       type  = "column"
       width = 4
     }
 
     chart {
       title = "Services by Age"
-      query = query.kubernetes_service_by_creation_month
+      query = query.service_by_creation_month
       type  = "column"
       width = 4
     }
@@ -73,7 +73,7 @@ dashboard "kubernetes_service_dashboard" {
 
 # Card Queries
 
-query "kubernetes_service_count" {
+query "service_count" {
   sql = <<-EOQ
     select
       count(*) as "Services"
@@ -82,7 +82,7 @@ query "kubernetes_service_count" {
   EOQ
 }
 
-query "kubernetes_service_default_namespace_count" {
+query "service_default_namespace_count" {
   sql = <<-EOQ
     select
       count(name) as value,
@@ -97,7 +97,7 @@ query "kubernetes_service_default_namespace_count" {
 
 # Assessment Queries
 
-query "kubernetes_service_default_namespace_status" {
+query "service_default_namespace_status" {
   sql = <<-EOQ
     select
       case when namespace = 'default' then 'used' else 'unused' end as status,
@@ -111,7 +111,7 @@ query "kubernetes_service_default_namespace_status" {
 
 # Analysis Queries
 
-query "kubernetes_service_by_namespace" {
+query "service_by_namespace" {
   sql = <<-EOQ
     select
       namespace,
@@ -125,7 +125,7 @@ query "kubernetes_service_by_namespace" {
   EOQ
 }
 
-query "kubernetes_service_by_context_name" {
+query "service_by_context_name" {
   sql = <<-EOQ
     select
       context_name,
@@ -139,7 +139,7 @@ query "kubernetes_service_by_context_name" {
   EOQ
 }
 
-query "kubernetes_service_by_creation_month" {
+query "service_by_creation_month" {
   sql = <<-EOQ
     with services as (
       select

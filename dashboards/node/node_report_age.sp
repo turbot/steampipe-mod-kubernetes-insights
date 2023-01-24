@@ -1,4 +1,4 @@
-dashboard "kubernetes_node_age_report" {
+dashboard "node_age_report" {
 
   title         = "Kubernetes Node Age Report"
   documentation = file("./dashboards/node/docs/node_report_age.md")
@@ -11,38 +11,38 @@ dashboard "kubernetes_node_age_report" {
   container {
 
     card {
-      query = query.kubernetes_node_count
+      query = query.node_count
       width = 2
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_node_24_hours_count
+      query = query.node_24_hours_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_node_30_days_count
+      query = query.node_30_days_count
     }
 
     card {
       type  = "info"
       width = 2
-      query = query.kubernetes_node_30_90_days_count
+      query = query.node_30_90_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_node_90_365_days_count
+      query = query.node_90_365_days_count
     }
 
     card {
       width = 2
       type  = "info"
-      query = query.kubernetes_node_1_year_count
+      query = query.node_1_year_count
     }
   }
   table {
@@ -52,14 +52,14 @@ dashboard "kubernetes_node_age_report" {
     }
 
     column "Name" {
-      href = "${dashboard.kubernetes_node_detail.url_path}?input.node_uid={{.UID | @uri}}"
+      href = "${dashboard.node_detail.url_path}?input.node_uid={{.UID | @uri}}"
     }
 
-    query = query.kubernetes_node_age_table
+    query = query.node_age_table
   }
 }
 
-query "kubernetes_node_24_hours_count" {
+query "node_24_hours_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -71,7 +71,7 @@ query "kubernetes_node_24_hours_count" {
   EOQ
 }
 
-query "kubernetes_node_30_days_count" {
+query "node_30_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -84,7 +84,7 @@ query "kubernetes_node_30_days_count" {
   EOQ
 }
 
-query "kubernetes_node_30_90_days_count" {
+query "node_30_90_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -97,7 +97,7 @@ query "kubernetes_node_30_90_days_count" {
   EOQ
 }
 
-query "kubernetes_node_90_365_days_count" {
+query "node_90_365_days_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -110,7 +110,7 @@ query "kubernetes_node_90_365_days_count" {
   EOQ
 }
 
-query "kubernetes_node_1_year_count" {
+query "node_1_year_count" {
   sql = <<-EOQ
     select
       count(*) as value,
@@ -122,7 +122,7 @@ query "kubernetes_node_1_year_count" {
   EOQ
 }
 
-query "kubernetes_node_age_table" {
+query "node_age_table" {
   sql = <<-EOQ
     select
       name as "Name",

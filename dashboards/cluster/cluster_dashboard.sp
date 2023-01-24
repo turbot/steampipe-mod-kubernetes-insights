@@ -1,4 +1,4 @@
-dashboard "kubernetes_cluster_dashboard" {
+dashboard "cluster_dashboard" {
 
   title         = "Kubernetes Cluster Dashboard"
   documentation = file("./dashboards/cluster/docs/cluster_dashboard.md")
@@ -11,85 +11,85 @@ dashboard "kubernetes_cluster_dashboard" {
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_count
+      query = query.cluster_count
       width = 2
-      href  = dashboard.kubernetes_cluster_detail.url_path
+      href  = dashboard.cluster_detail.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_namespace_count
+      query = query.cluster_namespace_count
       width = 2
-      href  = dashboard.kubernetes_namespace_report.url_path
+      href  = dashboard.namespace_report.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_nodes_count
+      query = query.cluster_nodes_count
       width = 2
-      href  = dashboard.kubernetes_node_report.url_path
+      href  = dashboard.node_report.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_services_count
+      query = query.cluster_services_count
       width = 2
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_pods_count
+      query = query.cluster_pods_count
       width = 2
-      href  = dashboard.kubernetes_pod_dashboard.url_path
+      href  = dashboard.pod_dashboard.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_containers_count
+      query = query.cluster_containers_count
       width = 2
-      href  = dashboard.kubernetes_container_dashboard.url_path
+      href  = dashboard.container_dashboard.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_deployments_count
+      query = query.cluster_deployments_count
       width = 2
-      href  = dashboard.kubernetes_deployment_dashboard.url_path
+      href  = dashboard.deployment_dashboard.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_repliasets_count
+      query = query.cluster_repliasets_count
       width = 2
-      href  = dashboard.kubernetes_replicaset_dashboard.url_path
+      href  = dashboard.replicaset_dashboard.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_daemonsets_count
+      query = query.cluster_daemonsets_count
       width = 2
-      href  = dashboard.kubernetes_daemonset_dashboard.url_path
+      href  = dashboard.daemonset_dashboard.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_statefulsets_count
+      query = query.cluster_statefulsets_count
       width = 2
-      href  = dashboard.kubernetes_statefulset_dashboard.url_path
+      href  = dashboard.statefulset_dashboard.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_cronjobs_count
+      query = query.cluster_cronjobs_count
       width = 2
-      href  = dashboard.kubernetes_cronjob_dashboard.url_path
+      href  = dashboard.cronjob_dashboard.url_path
     }
 
     card {
       type  = "info"
-      query = query.kubernetes_cluster_jobs_count
+      query = query.cluster_jobs_count
       width = 2
-      href  = dashboard.kubernetes_job_dashboard.url_path
+      href  = dashboard.job_dashboard.url_path
     }
 
   }
@@ -100,56 +100,56 @@ dashboard "kubernetes_cluster_dashboard" {
 
     chart {
       title = "Namespaces by Cluster"
-      query = query.kubernetes_namespace_by_context
+      query = query.namespace_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Nodes by Cluster"
-      query = query.kubernetes_node_by_context
+      query = query.node_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Services by Cluster"
-      query = query.kubernetes_service_by_context
+      query = query.service_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Pods by Cluster"
-      query = query.kubernetes_pod_by_context
+      query = query.pod_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Containers by Cluster"
-      query = query.kubernetes_container_by_context
+      query = query.container_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Deployments by Cluster"
-      query = query.kubernetes_deployment_by_context
+      query = query.deployment_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "ReplicaSets by Cluster"
-      query = query.kubernetes_replicaset_by_context
+      query = query.replicaset_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "DaemonSets by Cluster"
-      query = query.kubernetes_daemonset_by_context
+      query = query.daemonset_by_context
       type  = "column"
       width = 3
     }
@@ -157,21 +157,21 @@ dashboard "kubernetes_cluster_dashboard" {
 
     chart {
       title = "StatefulSets by Cluster"
-      query = query.kubernetes_statefulset_by_context
+      query = query.statefulset_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "CronJobs by Cluster"
-      query = query.kubernetes_cronjob_by_context
+      query = query.cronjob_by_context
       type  = "column"
       width = 3
     }
 
     chart {
       title = "Jobs by Cluster"
-      query = query.kubernetes_job_by_context
+      query = query.job_by_context
       type  = "column"
       width = 3
     }
@@ -183,7 +183,7 @@ dashboard "kubernetes_cluster_dashboard" {
 
 # Card Queries
 
-query "kubernetes_cluster_count" {
+query "cluster_count" {
   sql = <<-EOQ
     select
       count(distinct context_name) as "Clusters"
@@ -192,7 +192,7 @@ query "kubernetes_cluster_count" {
   EOQ
 }
 
-query "kubernetes_cluster_namespace_count" {
+query "cluster_namespace_count" {
   sql = <<-EOQ
     select
       count(*) as "Namespaces"
@@ -201,7 +201,7 @@ query "kubernetes_cluster_namespace_count" {
   EOQ
 }
 
-query "kubernetes_cluster_services_count" {
+query "cluster_services_count" {
   sql = <<-EOQ
     select
       count(*) as "Services"
@@ -210,7 +210,7 @@ query "kubernetes_cluster_services_count" {
   EOQ
 }
 
-query "kubernetes_cluster_statefulsets_count" {
+query "cluster_statefulsets_count" {
   sql = <<-EOQ
     select
       count(*) as "StatefulSets"
@@ -219,7 +219,7 @@ query "kubernetes_cluster_statefulsets_count" {
   EOQ
 }
 
-query "kubernetes_cluster_pods_count" {
+query "cluster_pods_count" {
   sql = <<-EOQ
     select
       count(*) as "Pods"
@@ -228,7 +228,7 @@ query "kubernetes_cluster_pods_count" {
   EOQ
 }
 
-query "kubernetes_cluster_nodes_count" {
+query "cluster_nodes_count" {
   sql = <<-EOQ
     select
       count(*) as "Nodes"
@@ -237,7 +237,7 @@ query "kubernetes_cluster_nodes_count" {
   EOQ
 }
 
-query "kubernetes_cluster_daemonsets_count" {
+query "cluster_daemonsets_count" {
   sql = <<-EOQ
     select
       count(*) as "DaemonSets"
@@ -246,7 +246,7 @@ query "kubernetes_cluster_daemonsets_count" {
   EOQ
 }
 
-query "kubernetes_cluster_deployments_count" {
+query "cluster_deployments_count" {
   sql = <<-EOQ
     select
       count(*) as "Deployments"
@@ -255,7 +255,7 @@ query "kubernetes_cluster_deployments_count" {
   EOQ
 }
 
-query "kubernetes_cluster_cronjobs_count" {
+query "cluster_cronjobs_count" {
   sql = <<-EOQ
     select
       count(*) as "CronJobs"
@@ -264,7 +264,7 @@ query "kubernetes_cluster_cronjobs_count" {
   EOQ
 }
 
-query "kubernetes_cluster_jobs_count" {
+query "cluster_jobs_count" {
   sql = <<-EOQ
     select
       count(*) as "Jobs"
@@ -273,7 +273,7 @@ query "kubernetes_cluster_jobs_count" {
   EOQ
 }
 
-query "kubernetes_cluster_repliasets_count" {
+query "cluster_repliasets_count" {
   sql = <<-EOQ
     select
       count(*) as "ReplicaSets"
@@ -282,7 +282,7 @@ query "kubernetes_cluster_repliasets_count" {
   EOQ
 }
 
-query "kubernetes_cluster_containers_count" {
+query "cluster_containers_count" {
   sql = <<-EOQ
     select
       count(c) as "Containers"
@@ -294,7 +294,7 @@ query "kubernetes_cluster_containers_count" {
 
 # Analysis Queries
 
-query "kubernetes_namespace_by_context" {
+query "namespace_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -308,7 +308,7 @@ query "kubernetes_namespace_by_context" {
   EOQ
 }
 
-query "kubernetes_service_by_context" {
+query "service_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -322,7 +322,7 @@ query "kubernetes_service_by_context" {
   EOQ
 }
 
-query "kubernetes_statefulset_by_context" {
+query "statefulset_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -336,7 +336,7 @@ query "kubernetes_statefulset_by_context" {
   EOQ
 }
 
-query "kubernetes_pod_by_context" {
+query "pod_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -350,7 +350,7 @@ query "kubernetes_pod_by_context" {
   EOQ
 }
 
-query "kubernetes_node_by_context" {
+query "node_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -364,7 +364,7 @@ query "kubernetes_node_by_context" {
   EOQ
 }
 
-query "kubernetes_daemonset_by_context" {
+query "daemonset_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -378,7 +378,7 @@ query "kubernetes_daemonset_by_context" {
   EOQ
 }
 
-query "kubernetes_deployment_by_context" {
+query "deployment_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -392,7 +392,7 @@ query "kubernetes_deployment_by_context" {
   EOQ
 }
 
-query "kubernetes_replicaset_by_context" {
+query "replicaset_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -406,7 +406,7 @@ query "kubernetes_replicaset_by_context" {
   EOQ
 }
 
-query "kubernetes_cronjob_by_context" {
+query "cronjob_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -420,7 +420,7 @@ query "kubernetes_cronjob_by_context" {
   EOQ
 }
 
-query "kubernetes_job_by_context" {
+query "job_by_context" {
   sql = <<-EOQ
     select
       context_name,
@@ -434,7 +434,7 @@ query "kubernetes_job_by_context" {
   EOQ
 }
 
-query "kubernetes_container_by_context" {
+query "container_by_context" {
   sql = <<-EOQ
     select
       context_name,

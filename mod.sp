@@ -8,16 +8,15 @@ mod "kubernetes_insights" {
   categories    = ["kubernetes", "dashboard", "public cloud"]
 
   opengraph {
-    title        = "Steampipe Mod for Kubernetes Insights"
-    description  = "Create dashboards and reports for your Kubernetes resources using Steampipe."
-    image        = "/images/mods/turbot/kubernetes-insights-social-graphic.png"
+    title       = "Steampipe Mod for Kubernetes Insights"
+    description = "Create dashboards and reports for your Kubernetes resources using Steampipe."
+    image       = "/images/mods/turbot/kubernetes-insights-social-graphic.png"
   }
 
   require {
-    steampipe = "0.13.1"
+    steampipe = "0.18.1"
     plugin "kubernetes" {
-      version = "0.7.0"
+      version = "0.15.0"
     }
   }
-
 }

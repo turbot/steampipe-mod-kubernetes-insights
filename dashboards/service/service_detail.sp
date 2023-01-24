@@ -1,4 +1,4 @@
-dashboard "kubernetes_service_detail" {
+dashboard "service_detail" {
 
   title         = "Kubernetes Service Detail"
   documentation = file("./dashboards/service/docs/service_detail.md")
@@ -9,28 +9,174 @@ dashboard "kubernetes_service_detail" {
 
   input "service_uid" {
     title = "Select a Service:"
-    query = query.kubernetes_service_input
+    query = query.service_input
     width = 4
   }
 
   container {
 
     card {
-      width = 2
-      query = query.kubernetes_service_type
+      width = 3
+      query = query.service_type
       args = {
         uid = self.input.service_uid.value
       }
     }
 
     card {
-      width = 2
-      query = query.kubernetes_service_default_namespace
+      width = 3
+      query = query.service_default_namespace
       args = {
         uid = self.input.service_uid.value
       }
+      href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
     }
 
+  }
+
+  with "ingresses_for_service" {
+    query = query.ingresses_for_service
+    args  = [self.input.service_uid.value]
+  }
+
+  with "pods_for_service" {
+    query = query.pods_for_service
+    args  = [self.input.service_uid.value]
+  }
+
+  with "deployments_for_service" {
+    query = query.deployments_for_service
+    args  = [self.input.service_uid.value]
+  }
+
+  with "replicasets_for_service" {
+    query = query.replicasets_for_service
+    args  = [self.input.service_uid.value]
+  }
+
+  with "statefulsets_for_service" {
+    query = query.statefulsets_for_service
+    args  = [self.input.service_uid.value]
+  }
+
+  container {
+    graph {
+      title     = "Relationships"
+      type      = "graph"
+      direction = "TD"
+
+      node {
+        base = node.service
+        args = {
+          service_uids = [self.input.service_uid.value]
+        }
+      }
+
+      node {
+        base = node.ingress_rule
+        args = {
+          ingress_uids = with.ingresses_for_service.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.ingress
+        args = {
+          ingress_uids = with.ingresses_for_service.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.deployment
+        args = {
+          deployment_uids = with.deployments_for_service.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.replicaset
+        args = {
+          replicaset_uids = with.replicasets_for_service.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.statefulset
+        args = {
+          statefulset_uids = with.statefulsets_for_service.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.pod
+        args = {
+          pod_uids = with.pods_for_service.rows[*].uid
+        }
+      }
+
+      node {
+        base = node.ingress_load_balancer
+        args = {
+          ingress_uids = with.ingresses_for_service.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.ingress_load_balancer_to_ingress
+        args = {
+          ingress_uids = with.ingresses_for_service.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.ingress_to_ingress_rule
+        args = {
+          ingress_uids = with.ingresses_for_service.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.ingress_rule_to_service
+        args = {
+          ingress_uids = with.ingresses_for_service.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.service_to_deployment
+        args = {
+          service_uids = [self.input.service_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.deployment_to_replicaset
+        args = {
+          deployment_uids = with.deployments_for_service.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.service_to_statefulset
+        args = {
+          service_uids = [self.input.service_uid.value]
+        }
+      }
+
+      edge {
+        base = edge.replicaset_to_pod
+        args = {
+          replicaset_uids = with.replicasets_for_service.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.statefulset_to_pod
+        args = {
+          statefulset_uids = with.statefulsets_for_service.rows[*].uid
+        }
+      }
+    }
   }
 
   container {
@@ -43,16 +189,24 @@ dashboard "kubernetes_service_detail" {
         title = "Overview"
         type  = "line"
         width = 6
-        query = query.kubernetes_service_overview
+        query = query.service_overview
         args = {
           uid = self.input.service_uid.value
+        }
+
+        column "Namespace" {
+          href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'Namespace UID' | @uri}}"
+        }
+
+        column "Namespace UID" {
+          display = "none"
         }
       }
 
       table {
         title = "Labels"
         width = 6
-        query = query.kubernetes_service_labels
+        query = query.service_labels
         args = {
           uid = self.input.service_uid.value
         }
@@ -65,7 +219,7 @@ dashboard "kubernetes_service_detail" {
 
       table {
         title = "Annotations"
-        query = query.kubernetes_service_annotations
+        query = query.service_annotations
         args = {
           uid = self.input.service_uid.value
         }
@@ -73,7 +227,7 @@ dashboard "kubernetes_service_detail" {
 
       table {
         title = "IP Details"
-        query = query.kubernetes_service_ip_details
+        query = query.service_ip_details
         args = {
           uid = self.input.service_uid.value
         }
@@ -86,7 +240,7 @@ dashboard "kubernetes_service_detail" {
 
       flow {
         title = "Service Port Analysis"
-        query = query.kubernetes_service_tree
+        query = query.service_tree
         args = {
           uid = self.input.service_uid.value
         }
@@ -98,7 +252,7 @@ dashboard "kubernetes_service_detail" {
       table {
         title = "Ports"
         width = 6
-        query = query.kubernetes_service_ports
+        query = query.service_ports
         args = {
           uid = self.input.service_uid.value
         }
@@ -108,7 +262,7 @@ dashboard "kubernetes_service_detail" {
       table {
         title = "Pods"
         width = 6
-        query = query.kubernetes_service_pods
+        query = query.service_pods_detail
         args = {
           uid = self.input.service_uid.value
         }
@@ -118,7 +272,7 @@ dashboard "kubernetes_service_detail" {
         }
 
         column "Name" {
-          href = "${dashboard.kubernetes_pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
+          href = "${dashboard.pod_detail.url_path}?input.pod_uid={{.UID | @uri}}"
         }
       }
     }
@@ -127,7 +281,9 @@ dashboard "kubernetes_service_detail" {
 
 }
 
-query "kubernetes_service_input" {
+# Input queries
+
+query "service_input" {
   sql = <<-EOQ
     select
       title as label,
@@ -143,7 +299,9 @@ query "kubernetes_service_input" {
   EOQ
 }
 
-query "kubernetes_service_type" {
+# Card queries
+
+query "service_type" {
   sql = <<-EOQ
     select
       'Type' as label,
@@ -157,38 +315,133 @@ query "kubernetes_service_type" {
   param "uid" {}
 }
 
-query "kubernetes_service_default_namespace" {
+query "service_default_namespace" {
   sql = <<-EOQ
     select
       'Namespace' as label,
       initcap(namespace) as value,
-      case when namespace = 'default' then 'alert' else 'ok' end as type
+      case when namespace = 'default' then 'alert' else 'ok' end as type,
+      n.uid as "UID"
     from
-      kubernetes_service
+      kubernetes_service as s,
+      kubernetes_namespace as n
     where
-      uid = $1;
+      n.name = s.namespace
+      and s.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_service_overview" {
+# With queries
+
+query "pods_for_service" {
   sql = <<-EOQ
     select
-      name as "Name",
-      uid as "UID",
-      creation_timestamp as "Create Time",
-      context_name as "Context Name"
+      p.uid as uid
     from
-      kubernetes_service
+      kubernetes_service as s,
+      kubernetes_pod as p
+     where
+      p.selector_search = s.selector_query
+      and s.uid = $1;
+  EOQ
+}
+
+query "replicasets_for_service" {
+  sql = <<-EOQ
+    select
+      pod_owner ->> 'uid' as uid
+    from
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_service as s
     where
-      uid = $1;
+      s.uid = $1
+      and pod.selector_search = s.selector_query;
+  EOQ
+}
+
+query "statefulsets_for_service" {
+  sql = <<-EOQ
+    select
+      st.uid as uid
+    from
+      kubernetes_stateful_set as st,
+      kubernetes_service as s
+    where
+      st.service_name = s.name
+      and s.uid = $1
+    union
+    select
+      distinct st.uid as uid
+    from
+      kubernetes_stateful_set as st,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_service as s
+    where
+      s.uid = $1
+      and pod_owner ->> 'uid' = st.uid
+      and pod.selector_search = s.selector_query;
+  EOQ
+}
+
+query "deployments_for_service" {
+  sql = <<-EOQ
+    select
+      rs_owner ->> 'uid' as uid
+    from
+      kubernetes_replicaset as rs,
+      jsonb_array_elements(rs.owner_references) as rs_owner,
+      kubernetes_pod as pod,
+      jsonb_array_elements(pod.owner_references) as pod_owner,
+      kubernetes_service as s
+    where
+      s.uid = $1
+      and pod_owner ->> 'uid' = rs.uid
+      and pod.selector_search = s.selector_query;
+  EOQ
+}
+
+query "ingresses_for_service" {
+  sql = <<-EOQ
+    select
+      i.uid
+    from
+      kubernetes_service as s,
+      kubernetes_ingress as i,
+      jsonb_array_elements(rules) as r,
+      jsonb_array_elements(r -> 'http' -> 'paths') as p
+    where
+      s.name = p -> 'backend' -> 'service' ->> 'name'
+      and s.uid = $1;
+  EOQ
+}
+
+# Other queries
+
+query "service_overview" {
+  sql = <<-EOQ
+    select
+      s.name as "Name",
+      s.uid as "UID",
+      s.creation_timestamp as "Create Time",
+      n.uid as "Namespace UID",
+      n.name as "Namespace",
+      s.context_name as "Context Name"
+    from
+      kubernetes_service as s,
+      kubernetes_namespace as n
+    where
+      n.name = s.namespace
+      and s.uid = $1;
   EOQ
 
   param "uid" {}
 }
 
-query "kubernetes_service_labels" {
+query "service_labels" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -211,7 +464,7 @@ query "kubernetes_service_labels" {
   param "uid" {}
 }
 
-query "kubernetes_service_annotations" {
+query "service_annotations" {
   sql = <<-EOQ
     with jsondata as (
    select
@@ -234,7 +487,7 @@ query "kubernetes_service_annotations" {
   param "uid" {}
 }
 
-query "kubernetes_service_ports" {
+query "service_ports" {
   sql = <<-EOQ
     select
       p ->> 'name' as "Name",
@@ -254,7 +507,7 @@ query "kubernetes_service_ports" {
   param "uid" {}
 }
 
-query "kubernetes_service_pods" {
+query "service_pods_detail" {
   sql = <<-EOQ
     select
       name as "Name",
@@ -272,7 +525,7 @@ query "kubernetes_service_pods" {
   param "uid" {}
 }
 
-query "kubernetes_service_ip_details" {
+query "service_ip_details" {
   sql = <<-EOQ
     select
       cluster_ip as "Cluster IP",
@@ -287,7 +540,7 @@ query "kubernetes_service_ip_details" {
   param "uid" {}
 }
 
-query "kubernetes_service_tree" {
+query "service_tree" {
   sql = <<-EOQ
   with pods as (
     select
