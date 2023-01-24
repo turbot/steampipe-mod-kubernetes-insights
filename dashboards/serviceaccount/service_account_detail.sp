@@ -16,7 +16,7 @@ dashboard "service_account_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.service_account_automount_token
       args = {
         uid = self.input.service_account_uid.value
@@ -24,7 +24,7 @@ dashboard "service_account_detail" {
     }
 
     card {
-      width = 2
+      width = 3
       query = query.service_account_default_namespace
       args = {
         uid = self.input.service_account_uid.value
