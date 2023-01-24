@@ -12,12 +12,12 @@ dashboard "deployment_ha_report" {
 
     card {
       query = query.deployment_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.deployment_replica_count
-      width = 2
+      width = 3
     }
 
   }

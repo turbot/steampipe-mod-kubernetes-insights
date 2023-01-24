@@ -16,7 +16,7 @@ dashboard "service_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.service_type
       args = {
         uid = self.input.service_uid.value
@@ -24,7 +24,7 @@ dashboard "service_detail" {
     }
 
     card {
-      width = 2
+      width = 3
       query = query.service_default_namespace
       args = {
         uid = self.input.service_uid.value

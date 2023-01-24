@@ -16,7 +16,7 @@ dashboard "cluster_role_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.cluster_role_rules_count
       args = {
         uid = self.input.cluster_role_uid.value

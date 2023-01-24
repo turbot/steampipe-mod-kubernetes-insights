@@ -11,12 +11,12 @@ dashboard "service_dashboard" {
 
     card {
       query = query.service_count
-      width = 2
+      width = 3
     }
 
     card {
       query = query.service_default_namespace_count
-      width = 2
+      width = 3
     }
 
   }

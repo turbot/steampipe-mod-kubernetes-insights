@@ -589,22 +589,6 @@ query "deployment_replicas_detail" {
       uid = $1
     union all
     select
-      case when updated_replicas <> 0 then 'updated replicas' end as label,
-      case when updated_replicas <> 0 then updated_replicas end as value
-    from
-      kubernetes_deployment
-    where
-      uid = $1
-    union all
-    select
-      case when ready_replicas <> 0 then 'ready replicas' end as label,
-      case when ready_replicas <> 0 then ready_replicas end as value
-    from
-      kubernetes_deployment
-    where
-      uid = $1
-    union all
-    select
       case when unavailable_replicas <> 0 then 'unavailable replicas' end as label,
       case when unavailable_replicas <> 0 then unavailable_replicas end as value
     from

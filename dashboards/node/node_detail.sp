@@ -16,7 +16,7 @@ dashboard "node_detail" {
   container {
 
     card {
-      width = 2
+      width = 3
       query = query.node_pods_count
       args = {
         uid = self.input.node_uid.value
@@ -24,7 +24,7 @@ dashboard "node_detail" {
     }
 
     card {
-      width = 2
+      width = 3
       query = query.node_containers_count
       args = {
         uid = self.input.node_uid.value

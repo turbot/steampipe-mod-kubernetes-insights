@@ -11,7 +11,7 @@ dashboard "namespace_report" {
 
     card {
       query = query.namespace_count
-      width = 2
+      width = 3
     }
 
   }

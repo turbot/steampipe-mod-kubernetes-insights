@@ -16,20 +16,20 @@ dashboard "service_account_detail" {
   container {
 
     card {
-      width = 2
-      query = query.service_account_automount_token
-      args = {
-        uid = self.input.service_account_uid.value
-      }
-    }
-
-    card {
-      width = 2
+      width = 3
       query = query.service_account_default_namespace
       args = {
         uid = self.input.service_account_uid.value
       }
       href = "/kubernetes_insights.dashboard.namespace_detail?input.namespace_uid={{.'UID' | @uri}}"
+    }
+
+    card {
+      width = 3
+      query = query.service_account_automount_token
+      args = {
+        uid = self.input.service_account_uid.value
+      }
     }
 
   }
