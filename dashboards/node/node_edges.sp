@@ -10,6 +10,7 @@ edge "node_to_pod" {
       kubernetes_node as n
     where
       n.name = pod.node_name
+      and n.context_name = pod.context_name
       and n.uid = any($1);
   EOQ
 
@@ -30,6 +31,7 @@ edge "node_to_endpoint" {
       jsonb_array_elements(s -> 'addresses') as a
     where
       n.name = a ->> 'nodeName'
+      and n.context_name = e.context_name
       and n.uid = any($1);
   EOQ
 

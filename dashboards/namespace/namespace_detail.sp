@@ -467,7 +467,9 @@ query "namespace_pod_count" {
       kubernetes_pod as p,
       kubernetes_namespace as n
     where
-      p.namespace = n.name and n.uid = $1;
+      p.namespace = n.name
+      and p.context_name = n.context_name
+      and n.uid = $1;
   EOQ
 
   param "uid" {}
@@ -482,7 +484,9 @@ query "namespace_service_count" {
       kubernetes_service as s,
       kubernetes_namespace as n
     where
-      s.namespace = n.name and n.uid = $1;
+      s.namespace = n.name
+      and s.context_name = n.context_name
+      and n.uid = $1;
   EOQ
 
   param "uid" {}
@@ -497,7 +501,9 @@ query "namespace_daemonset_count" {
       kubernetes_daemonset as d,
       kubernetes_namespace as n
     where
-      d.namespace = n.name and n.uid = $1;
+      d.namespace = n.name
+      and d.context_name = n.context_name
+      and n.uid = $1;
   EOQ
 
   param "uid" {}
@@ -512,7 +518,9 @@ query "namespace_deployment_count" {
       kubernetes_deployment as d,
       kubernetes_namespace as n
     where
-      d.namespace = n.name and n.uid = $1;
+      d.namespace = n.name
+      and d.context_name = n.context_name
+      and n.uid = $1;
   EOQ
 
   param "uid" {}
@@ -527,7 +535,9 @@ query "namespace_replicaset_count" {
       kubernetes_replicaset as r,
       kubernetes_namespace as n
     where
-      r.namespace = n.name and n.uid = $1;
+      r.namespace = n.name
+      and r.context_name = n.context_name
+      and n.uid = $1;
   EOQ
 
   param "uid" {}
@@ -544,6 +554,7 @@ query "services_for_namespace" {
       kubernetes_namespace as n
     where
       s.namespace = n.name
+      and s.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -557,6 +568,7 @@ query "roles_for_namespace" {
       kubernetes_namespace as n
     where
       r.namespace = n.name
+      and r.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -570,6 +582,7 @@ query "role_bindings_for_namespace" {
       kubernetes_namespace as n
     where
       b.namespace = n.name
+      and b.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -594,6 +607,7 @@ query "deployments_for_namespace" {
       kubernetes_namespace as n
     where
       d.namespace = n.name
+      and d.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -607,6 +621,7 @@ query "daemonsets_for_namespace" {
       kubernetes_namespace as n
     where
       d.namespace = n.name
+      and d.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -620,6 +635,7 @@ query "jobs_for_namespace" {
       kubernetes_namespace as n
     where
       j.namespace = n.name
+      and j.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -633,6 +649,7 @@ query "cronjobs_for_namespace" {
       kubernetes_namespace as n
     where
       j.namespace = n.name
+      and j.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -646,6 +663,7 @@ query "statefulsets_for_namespace" {
       kubernetes_namespace as n
     where
       s.namespace = n.name
+      and s.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -659,6 +677,7 @@ query "replicasets_for_namespace" {
       kubernetes_namespace as n
     where
       s.namespace = n.name
+      and s.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -738,7 +757,9 @@ query "namespace_pod_table" {
       kubernetes_pod as p,
       kubernetes_namespace as n
     where
-      p.namespace = n.name and n.uid = $1
+      p.namespace = n.name
+      and p.context_name = n.context_name
+      and n.uid = $1
     order by
       p.name;
   EOQ
@@ -757,7 +778,9 @@ query "namespace_service_table" {
       kubernetes_service as s,
       kubernetes_namespace as n
     where
-      s.namespace = n.name and n.uid = $1
+      s.namespace = n.name
+      and s.context_name = n.context_name
+      and n.uid = $1
     order by
       s.name;
   EOQ
@@ -777,7 +800,9 @@ query "namespace_daemonset_table" {
       kubernetes_daemonset as d,
       kubernetes_namespace as n
     where
-      d.namespace = n.name and n.uid = $1
+      d.namespace = n.name
+      and d.context_name = n.context_name
+      and n.uid = $1
     order by
       d.name;
   EOQ
@@ -796,7 +821,9 @@ query "namespace_deployment_table" {
       kubernetes_deployment as d,
       kubernetes_namespace as n
     where
-      d.namespace = n.name and n.uid = $1
+      d.namespace = n.name
+      and d.context_name = n.context_name
+      and n.uid = $1
     order by
       d.name;
   EOQ
@@ -815,7 +842,9 @@ query "namespace_replicaset_table" {
       kubernetes_replicaset as r,
       kubernetes_namespace as n
     where
-      r.namespace = n.name and n.uid = $1
+      r.namespace = n.name
+      and r.context_name = n.context_name
+      and n.uid = $1
     order by
       r.name;
   EOQ
@@ -832,7 +861,9 @@ query "service_by_type" {
       kubernetes_service as s,
       kubernetes_namespace as n
     where
-      s.namespace = n.name and n.uid = $1
+      s.namespace = n.name
+      and s.context_name = n.context_name
+      and n.uid = $1
     group by
       type
     order by
@@ -851,7 +882,9 @@ query "pod_by_phase" {
       kubernetes_pod as p,
       kubernetes_namespace as n
     where
-      p.namespace = n.name and n.uid = $1
+      p.namespace = n.name
+      and p.context_name = n.context_name
+      and n.uid = $1
     group by
       p.phase
     order by
@@ -870,7 +903,9 @@ query "deployment_ha" {
       kubernetes_deployment as d,
       kubernetes_namespace as n
     where
-      d.namespace = n.name and n.uid = $1
+      d.namespace = n.name
+      and d.context_name = n.context_name
+      and n.uid = $1
     group by
       status
     order by
@@ -889,7 +924,9 @@ query "replicaset_ha" {
       kubernetes_replicaset as r,
        kubernetes_namespace as n
     where
-      r.namespace = n.name and n.uid = $1
+      r.namespace = n.name
+      and r.context_name = n.context_name
+      and n.uid = $1
     group by
       status
     order by
@@ -909,7 +946,9 @@ query "daemonset_node_status" {
       kubernetes_daemonset as d,
       kubernetes_namespace as n
     where
-      d.namespace = n.name and n.uid = $1
+      d.namespace = n.name
+      and d.context_name = n.context_name
+      and n.uid = $1
     order by
       d.name;
   EOQ

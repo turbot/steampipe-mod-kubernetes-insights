@@ -277,6 +277,7 @@ query "job_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = j.namespace
+      and n.context_name = j.context_name
       and j.uid = $1;
   EOQ
 
@@ -352,6 +353,7 @@ query "pods_for_job" {
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
       j.uid = $1
+      and j.context_name = pod.context_name
       and pod_owner ->> 'uid' = j.uid;
   EOQ
 }
@@ -367,6 +369,7 @@ query "nodes_for_job" {
       kubernetes_node as n
     where
       n.name = pod.node_name
+      and j.context_name = n.context_name
       and pod_owner ->> 'uid' = j.uid
       and j.uid = $1;
   EOQ
@@ -383,6 +386,7 @@ query "containers_for_job" {
       jsonb_array_elements(pod.containers) as container
     where
       j.uid = $1
+      and j.context_name = pod.context_name
       and pod_owner ->> 'uid' = j.uid;
   EOQ
 }
@@ -403,6 +407,7 @@ query "job_overview" {
       kubernetes_namespace as n
     where
       n.name = j.namespace
+      and n.context_name = j.context_name
       and j.uid = $1;
   EOQ
 

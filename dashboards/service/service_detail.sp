@@ -327,6 +327,7 @@ query "service_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
+      and n.context_name = s.context_name
       and s.uid = $1;
   EOQ
 
@@ -344,6 +345,7 @@ query "pods_for_service" {
       kubernetes_pod as p
      where
       p.selector_search = s.selector_query
+      and s.context_name = p.context_name
       and s.uid = $1;
   EOQ
 }
@@ -358,6 +360,7 @@ query "replicasets_for_service" {
       kubernetes_service as s
     where
       s.uid = $1
+      and s.context_name = pod.context_name
       and pod.selector_search = s.selector_query;
   EOQ
 }
@@ -371,6 +374,7 @@ query "statefulsets_for_service" {
       kubernetes_service as s
     where
       st.service_name = s.name
+      and s.context_name = st.context_name
       and s.uid = $1
     union
     select
@@ -382,6 +386,7 @@ query "statefulsets_for_service" {
       kubernetes_service as s
     where
       s.uid = $1
+      and s.context_name = st.context_name
       and pod_owner ->> 'uid' = st.uid
       and pod.selector_search = s.selector_query;
   EOQ
@@ -399,6 +404,7 @@ query "deployments_for_service" {
       kubernetes_service as s
     where
       s.uid = $1
+      and s.context_name = rs.context_name
       and pod_owner ->> 'uid' = rs.uid
       and pod.selector_search = s.selector_query;
   EOQ
@@ -415,6 +421,7 @@ query "ingresses_for_service" {
       jsonb_array_elements(r -> 'http' -> 'paths') as p
     where
       s.name = p -> 'backend' -> 'service' ->> 'name'
+      and s.context_name = i.context_name
       and s.uid = $1;
   EOQ
 }
@@ -435,6 +442,7 @@ query "service_overview" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
+      and n.context_name = s.context_name
       and s.uid = $1;
   EOQ
 

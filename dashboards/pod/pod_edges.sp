@@ -29,6 +29,7 @@ edge "pod_to_configmap" {
       on v -> 'configMap' ->> 'name' = c.name
     where
       c.uid is not null
+      and c.context_name = p.context_name
       and p.uid = any($1);
   EOQ
 
@@ -47,6 +48,7 @@ edge "pod_to_service_account" {
       kubernetes_pod as p
     where
       p.service_account_name = s.name
+      and s.context_name = p.context_name
       and p.uid = any($1);
   EOQ
 
@@ -66,7 +68,8 @@ edge "pod_to_persistent_volume_claim" {
       left join kubernetes_persistent_volume_claim as c
       on v -> 'persistentVolumeClaim' ->> 'claimName' = c.name
     where
-      p.uid = any($1);
+      c.context_name = p.context_name
+      and p.uid = any($1);
   EOQ
 
   param "pod_uids" {}
@@ -104,6 +107,7 @@ edge "pod_to_endpoint" {
       jsonb_array_elements(s -> 'addresses') as a
     where
       p.uid = a -> 'targetRef' ->> 'uid'
+      and e.context_name = p.context_name
       and p.uid = any($1);
   EOQ
 
@@ -122,6 +126,7 @@ edge "pod_to_service" {
       kubernetes_pod as p
      where
       p.selector_search = s.selector_query
+      and s.context_name = p.context_name
       and p.uid = any($1);
   EOQ
 

@@ -284,6 +284,7 @@ query "cronjob_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = c.namespace
+      and n.context_name = c.context_name
       and c.uid = $1;
   EOQ
 
@@ -360,6 +361,7 @@ query "pods_for_cronjob" {
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
       j_owner ->> 'uid' = $1
+      and j.context_name = pod.context_name
       and pod_owner ->> 'uid' = j.uid;
   EOQ
 }
@@ -377,6 +379,7 @@ query "nodes_for_cronjob" {
     where
       n.name = pod.node_name
       and pod_owner ->> 'uid' = j.uid
+      and j.context_name = pod.context_name
       and j_owner ->> 'uid' = $1;
   EOQ
 }
@@ -393,6 +396,7 @@ query "containers_for_cronjob" {
       jsonb_array_elements(pod.containers) as container
     where
       j_owner ->> 'uid' = $1
+      and j.context_name = pod.context_name
       and pod_owner ->> 'uid' = j.uid;
   EOQ
 }
@@ -413,6 +417,7 @@ query "cronjob_overview" {
       kubernetes_namespace as n
     where
       n.name = c.namespace
+      and n.context_name = c.context_name
       and c.uid = $1;
   EOQ
 
@@ -519,6 +524,7 @@ query "cronjob_pods_detail" {
     where
       j_owner ->> 'uid' = $1
       and pod_owner ->> 'uid' = j.uid
+      and j.context_name = pod.context_name
     order by
       pod.name;
   EOQ

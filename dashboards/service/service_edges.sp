@@ -12,6 +12,7 @@ edge "service_to_statefulset" {
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
       (st.service_name = s.name or pod_owner ->> 'uid' = st.uid)
+      and s.context_name = st.context_name
       and s.uid = any($1);
   EOQ
 
@@ -33,6 +34,7 @@ edge "service_to_deployment" {
       kubernetes_service as s
     where
       s.uid = any($1)
+      and rs.context_name = s.context_name
       and pod_owner ->> 'uid' = rs.uid
       and pod.selector_search = s.selector_query;
   EOQ
@@ -52,6 +54,7 @@ edge "service_to_pod" {
       kubernetes_pod as p
      where
       p.selector_search = s.selector_query
+      and p.context_name = s.context_name
       and s.uid = any($1);
   EOQ
 

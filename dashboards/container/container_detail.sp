@@ -384,6 +384,7 @@ query "persistent_volumes_for_container" {
     where
       pv.uid is not null
       and v ->> 'name' = vm ->> 'name'
+      and p.context_name = pv.context_name
       and concat(c ->> 'name',p.name) = $1;
   EOQ
 }
@@ -402,6 +403,7 @@ query "persistent_volume_claims_for_container" {
     where
       vc.uid is not null
       and v ->> 'name' = vm ->> 'name'
+      and p.context_name = vc.context_name
       and concat(c ->> 'name',p.name) = $1;
   EOQ
 }
@@ -420,6 +422,7 @@ query "configmaps_for_container" {
     where
       cm.uid is not null
       and v ->> 'name' = vm ->> 'name'
+      and p.context_name = cm.context_name
       and concat(c ->> 'name',p.name) = $1;
   EOQ
 }
@@ -438,6 +441,7 @@ query "secrets_for_container" {
     where
       s.uid is not null
       and v ->> 'name' = vm ->> 'name'
+      and p.context_name = s.context_name
       and concat(c ->> 'name',p.name) = $1;
   EOQ
 }

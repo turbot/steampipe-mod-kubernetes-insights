@@ -102,56 +102,56 @@ dashboard "cluster_dashboard" {
       title = "Namespaces by Cluster"
       query = query.namespace_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Nodes by Cluster"
       query = query.node_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Services by Cluster"
       query = query.service_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Pods by Cluster"
       query = query.pod_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Containers by Cluster"
       query = query.container_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Deployments by Cluster"
       query = query.deployment_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "ReplicaSets by Cluster"
       query = query.replicaset_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "DaemonSets by Cluster"
       query = query.daemonset_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
 
@@ -159,21 +159,21 @@ dashboard "cluster_dashboard" {
       title = "StatefulSets by Cluster"
       query = query.statefulset_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "CronJobs by Cluster"
       query = query.cronjob_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
     chart {
       title = "Jobs by Cluster"
       query = query.job_by_context
       type  = "column"
-      width = 3
+      width = 4
     }
 
 

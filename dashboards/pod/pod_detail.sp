@@ -524,6 +524,7 @@ query "pod_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = p.namespace
+      and n.context_name = p.context_name
       and p.uid = $1;
   EOQ
 
@@ -618,6 +619,7 @@ query "persistent_volumes_for_pod" {
       from kubernetes_pod,
       jsonb_array_elements(containers) as c,
       jsonb_array_elements(c -> 'volumeMounts') as v)
+      and p.context_name = pv.context_name
       and p.uid = $1;
   EOQ
 }
@@ -639,6 +641,7 @@ query "pod_persistent_volume_claims" {
       from kubernetes_pod,
       jsonb_array_elements(containers) as c,
       jsonb_array_elements(c -> 'volumeMounts') as v)
+      and p.context_name = c.context_name
       and p.uid = $1;
   EOQ
 }
@@ -654,6 +657,7 @@ query "configmaps_for_pod" {
       on v -> 'configMap' ->> 'name' = c.name
     where
       c.uid is not null
+      and p.context_name = c.context_name
       and v ->> 'name' in
       (select
         v ->> 'name'
@@ -675,6 +679,7 @@ query "secrets_for_pod" {
       on v -> 'secret' ->> 'secretName' = s.name
     where
       s.uid is not null
+      and p.context_name = s.context_name
       and v ->> 'name' in
       (select
         v ->> 'name'
@@ -695,6 +700,7 @@ query "daemonsets_for_pod" {
       jsonb_array_elements(p.owner_references) as pod_owner
     where
       pod_owner ->> 'uid' = d.uid
+      and p.context_name = d.context_name
       and p.uid = $1;
   EOQ
 }
@@ -709,6 +715,7 @@ query "jobs_for_pod" {
       jsonb_array_elements(p.owner_references) as pod_owner
     where
       pod_owner ->> 'uid' = j.uid
+      and p.context_name = j.context_name
       and p.uid = $1;
   EOQ
 }
@@ -737,6 +744,7 @@ query "deployments_for_pod" {
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
       pod.uid = $1
+      and rs.context_name = pod.context_name
       and pod_owner ->> 'uid' = rs.uid;
   EOQ
 }
@@ -751,6 +759,7 @@ query "statefulsets_for_pod" {
       jsonb_array_elements(p.owner_references) as pod_owner
     where
       pod_owner ->> 'uid' = s.uid
+      and s.context_name = p.context_name
       and p.uid = $1;
   EOQ
 }
@@ -764,6 +773,7 @@ query "service_accounts_for_pod" {
       kubernetes_pod as p
     where
       p.service_account_name = s.name
+      and s.context_name = p.context_name
       and s.namespace in (select namespace from kubernetes_pod where uid = $1)
       and p.uid = $1;
   EOQ
@@ -785,6 +795,7 @@ query "pod_overview" {
       kubernetes_namespace as n
     where
       n.name = p.namespace
+      and n.context_name = p.context_name
       and p.uid = $1;
   EOQ
 
@@ -868,7 +879,9 @@ query "pod_configuration" {
       pod_ip as "Pod IP"
     from
       kubernetes_pod as p
-      left join kubernetes_node as n on p.node_name = n.name
+      left join kubernetes_node as n
+      on p.node_name = n.name
+      and p.context_name = n.context_name
     where
       p.uid = $1;
   EOQ

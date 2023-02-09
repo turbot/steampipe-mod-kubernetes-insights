@@ -208,6 +208,7 @@ query "service_account_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
+      and n.context_name = r.context_name
       and r.uid = $1;
   EOQ
 
@@ -240,6 +241,7 @@ query "pods_for_service_account" {
       kubernetes_pod as p
     where
       p.service_account_name = s.name
+      and s.context_name = p.context_name
       and s.uid = $1;
   EOQ
 }
@@ -247,7 +249,7 @@ query "pods_for_service_account" {
 query "roles_for_service_account" {
   sql = <<-EOQ
     select
-      r.uid as uid
+      distinct r.uid as uid
     from
       kubernetes_service_account as a,
       kubernetes_role as r,
@@ -257,6 +259,7 @@ query "roles_for_service_account" {
       b.role_name = r.name
       and s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
+      and a.context_name = r.context_name
       and a.uid = $1;
   EOQ
 }
@@ -264,7 +267,7 @@ query "roles_for_service_account" {
 query "role_bindings_for_service_account" {
   sql = <<-EOQ
     select
-      b.uid as uid
+      distinct b.uid as uid
     from
       kubernetes_service_account as a,
       kubernetes_role_binding as b,
@@ -272,6 +275,7 @@ query "role_bindings_for_service_account" {
     where
       s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
+      and a.context_name = b.context_name
       and a.uid = $1;
   EOQ
 }
@@ -286,6 +290,7 @@ query "secrets_for_service_account" {
       jsonb_array_elements(secrets) as se
     where
       se ->> 'name' = s.name
+      and a.context_name = s.context_name
       and a.uid = $1;
   EOQ
 }
@@ -295,19 +300,20 @@ query "secrets_for_service_account" {
 query "service_account_overview" {
   sql = <<-EOQ
     select
-      ksa.name as "Name",
-      ksa.uid as "UID",
-      ksa.creation_timestamp as "Create Time",
-      ksa.resource_version as "Resource Version",
+      s.name as "Name",
+      s.uid as "UID",
+      s.creation_timestamp as "Create Time",
+      s.resource_version as "Resource Version",
       n.uid as "Namespace UID",
       n.name as "Namespace",
-      ksa.context_name as "Context Name"
+      s.context_name as "Context Name"
     from
-      kubernetes_service_account as ksa,
+      kubernetes_service_account as s,
       kubernetes_namespace as n
     where
-      n.name = ksa.namespace
-      and ksa.uid = $1;
+      n.name = s.namespace
+      and n.context_name = s.context_name
+      and s.uid = $1;
   EOQ
 
   param "uid" {}
