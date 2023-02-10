@@ -9,6 +9,7 @@ node "service" {
         'UID', uid,
         'Type', type,
         'Cluster IP', cluster_ip,
+        'load_balancer_ip', load_balancer_ip,
         'Creation Timestamp', creation_timestamp,
         'Port', p ->> 'port',
         'Target Port', p ->> 'targetPort',

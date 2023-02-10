@@ -305,7 +305,7 @@ query "service_type" {
   sql = <<-EOQ
     select
       'Type' as label,
-      initcap(type) as value
+      type as value
     from
       kubernetes_service
     where
