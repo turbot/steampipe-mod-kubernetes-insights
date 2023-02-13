@@ -589,6 +589,7 @@ query "service_tree" {
       title,
       pod_uid,
       pod_title,
+      cluster_ip,
       selector_query,
       l as lb,
       p ->> 'protocol' as protocol_number,
@@ -607,6 +608,7 @@ query "service_tree" {
       title,
       pod_uid,
       pod_title,
+      cluster_ip,
       selector_query,
       load_balancer_ingress as lb,
       p ->> 'protocol' as protocol_number,
@@ -622,11 +624,21 @@ query "service_tree" {
     )
 
   -- LB
-
     select
       lb::text as id,
       lb ->> 'ip' as title,
       'lb' as category,
+      null as from_id,
+      null as to_id
+    from
+      services
+
+  -- ClusterIP
+    union all
+    select
+      cluster_ip as id,
+      cluster_ip as title,
+      'cluster_ip' as category,
       null as from_id,
       null as to_id
     from
@@ -675,6 +687,15 @@ query "service_tree" {
       null as to_id
     from
       services
+
+    -- clusterIP -> port
+    union select
+      null as id,
+      null as title,
+      'cluster_ip' as category,
+      cluster_ip as from_id,
+      port as to_id
+    from services
 
     -- lb -> port
     union select
