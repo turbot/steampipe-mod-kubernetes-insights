@@ -590,6 +590,7 @@ query "service_tree" {
       pod_uid,
       pod_title,
       cluster_ip,
+      external_ips,
       selector_query,
       l as lb,
       p ->> 'protocol' as protocol_number,
@@ -609,6 +610,7 @@ query "service_tree" {
       pod_uid,
       pod_title,
       cluster_ip,
+      external_ips,
       selector_query,
       load_balancer_ingress as lb,
       p ->> 'protocol' as protocol_number,
@@ -632,6 +634,18 @@ query "service_tree" {
       null as to_id
     from
       services
+
+  -- EIP
+    union all
+    select
+      eip as id,
+      eip as title,
+      'external_ip' as category,
+      null as from_id,
+      null as to_id
+    from
+      services,
+      jsonb_array_elements_text(external_ips) as eip
 
   -- ClusterIP
     union all
@@ -687,6 +701,16 @@ query "service_tree" {
       null as to_id
     from
       services
+
+    -- externalIP -> port
+    union select
+      null as id,
+      null as title,
+      'external_ip' as category,
+      eip as from_id,
+      port as to_id
+    from services,
+    jsonb_array_elements_text(external_ips) as eip
 
     -- clusterIP -> port
     union select
