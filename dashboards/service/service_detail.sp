@@ -73,6 +73,13 @@ dashboard "service_detail" {
       }
 
       node {
+        base = node.service_load_balancer
+        args = {
+          service_uids = [self.input.service_uid.value]
+        }
+      }
+
+      node {
         base = node.ingress_rule
         args = {
           ingress_uids = with.ingresses_for_service.rows[*].uid
@@ -139,6 +146,13 @@ dashboard "service_detail" {
         base = edge.ingress_rule_to_service
         args = {
           ingress_uids = with.ingresses_for_service.rows[*].uid
+        }
+      }
+
+      edge {
+        base = edge.service_load_balancer_to_service
+        args = {
+          service_uids = [self.input.service_uid.value]
         }
       }
 
@@ -537,12 +551,22 @@ query "service_ip_details" {
   sql = <<-EOQ
     select
       cluster_ip as "Cluster IP",
-      load_balancer_ip as "Load Balancer IP",
+      l ->> 'ip' as "Load Balancer IP",
+      external_ips as "External IPs"
+    from
+      kubernetes_service,
+      jsonb_array_elements(load_balancer_ingress) as l
+    where
+      uid = $1
+    union
+    select
+      cluster_ip as "Cluster IP",
+      load_balancer_ingress::text as "Load Balancer IP",
       external_ips as "External IPs"
     from
       kubernetes_service
     where
-      uid = $1;
+      uid = $1 and load_balancer_ingress is null;
   EOQ
 
   param "uid" {}
@@ -566,6 +590,25 @@ query "service_tree" {
       pod_uid,
       pod_title,
       selector_query,
+      l as lb,
+      p ->> 'protocol' as protocol_number,
+      concat(p ->> 'port','/', p ->> 'protocol') as port,
+      concat(p ->> 'targetPort','/', p ->> 'protocol') as targetPort
+    from
+      pods,
+      kubernetes_service,
+      jsonb_array_elements(ports) as p,
+      jsonb_array_elements(load_balancer_ingress) as l
+    where
+      uid = $1
+    union
+    select
+      uid,
+      title,
+      pod_uid,
+      pod_title,
+      selector_query,
+      load_balancer_ingress as lb,
       p ->> 'protocol' as protocol_number,
       concat(p ->> 'port','/', p ->> 'protocol') as port,
       concat(p ->> 'targetPort','/', p ->> 'protocol') as targetPort
@@ -575,9 +618,22 @@ query "service_tree" {
       jsonb_array_elements(ports) as p
     where
       uid = $1
+      and load_balancer_ingress is null
     )
 
+  -- LB
+
+    select
+      lb::text as id,
+      lb ->> 'ip' as title,
+      'lb' as category,
+      null as from_id,
+      null as to_id
+    from
+      services
+
   -- Ports
+    union all
     select
       port as id,
       port as title,
@@ -620,11 +676,20 @@ query "service_tree" {
     from
       services
 
+    -- lb -> port
+    union select
+      null as id,
+      null as title,
+      'lb' as category,
+      lb::text as from_id,
+      port as to_id
+    from services
+
     -- port -> service
     union select
       null as id,
       null as title,
-      protocol_number as category,
+      'port' as category,
       port as from_id,
       title as to_id
     from services
@@ -633,7 +698,7 @@ query "service_tree" {
     union select
       null as id,
       null as title,
-      protocol_number as category,
+      'service' as category,
       title as from_id,
       concat(targetPort,' (Target Port)') as to_id
     from services
@@ -642,7 +707,7 @@ query "service_tree" {
     union select
       null as id,
       null as title,
-      protocol_number as category,
+      'targetPort' as category,
       concat(targetPort,' (Target Port)') as from_id,
       pod_title as to_id
     from services

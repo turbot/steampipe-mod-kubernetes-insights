@@ -10,3 +10,9 @@ category "service" {
   href  = "/kubernetes_insights.dashboard.service_detail?input.service_uid={{.properties.'UID' | @uri}}"
   icon  = "lan"
 }
+
+category "service_load_balancer" {
+  title = "Load Balancer"
+  color = local.service_color
+  icon  = "mediation"
+}

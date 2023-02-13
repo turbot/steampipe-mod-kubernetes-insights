@@ -61,3 +61,19 @@ edge "service_to_pod" {
   param "service_uids" {}
 }
 
+edge "service_load_balancer_to_service" {
+  title = "service"
+
+  sql = <<-EOQ
+     select
+      l::text as from_id,
+      uid as to_id
+    from
+      kubernetes_service,
+      jsonb_array_elements(load_balancer_ingress) as l
+    where
+      uid = any($1);
+  EOQ
+
+  param "service_uids" {}
+}
