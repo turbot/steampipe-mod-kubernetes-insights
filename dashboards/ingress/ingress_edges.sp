@@ -30,6 +30,7 @@ edge "ingress_rule_to_service" {
       jsonb_array_elements(r -> 'http' -> 'paths') as p
     where
       s.name = p -> 'backend' -> 'service' ->> 'name'
+      and s.context_name = i.context_name
       and i.uid = any($1);
   EOQ
 

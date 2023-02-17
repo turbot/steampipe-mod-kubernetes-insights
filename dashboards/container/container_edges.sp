@@ -11,6 +11,7 @@ edge "container_to_node" {
       jsonb_array_elements(pod.containers) as container
     where
       n.name = pod.node_name
+      and n.context_name = pod.context_name
       and container ->> 'name' || pod.name = any($1);
   EOQ
 
@@ -54,6 +55,7 @@ edge "container_volume_to_configmap" {
       on v -> 'configMap' ->> 'name' = cm.name
     where
       cm.uid is not null
+      and p.context_name = cm.context_name
       and v ->> 'name' = vm ->> 'name'
       and p.uid = any($1);
   EOQ
@@ -80,6 +82,7 @@ edge "container_volume_to_secret" {
       on v -> 'secret' ->> 'secretName' = s.name
     where
       s.uid is not null
+      and p.context_name = s.context_name
       and v ->> 'name' = vm ->> 'name'
       and p.uid = any($1);
   EOQ
@@ -106,6 +109,7 @@ edge "container_volume_to_persistent_volume_claim" {
       on v -> 'persistentVolumeClaim' ->> 'claimName' = vc.name
     where
       vc.uid is not null
+      and p.context_name = vc.context_name
       and v ->> 'name' = vm ->> 'name'
       and p.uid = any($1);
   EOQ

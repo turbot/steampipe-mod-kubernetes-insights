@@ -268,6 +268,7 @@ query "daemonset_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = d.namespace
+      and n.context_name = d.context_name
       and d.uid = $1;
   EOQ
 
@@ -356,6 +357,7 @@ query "nodes_for_daemonset" {
       kubernetes_node as n
     where
       n.name = pod.node_name
+      and pod.context_name = n.context_name
       and pod_owner ->> 'uid' = $1;
   EOQ
 }
@@ -377,6 +379,7 @@ query "daemonset_overview" {
       kubernetes_namespace as n
     where
       n.name = d.namespace
+      and n.context_name = d.context_name
       and d.uid = $1;
   EOQ
 

@@ -9,6 +9,7 @@ edge "persistent_volume_claim_to_persistent_volume" {
       kubernetes_persistent_volume as pv
       join kubernetes_persistent_volume_claim as c
       on pv.name = c.volume_name
+      and pv.context_name = c.context_name
     where
       c.uid = any($1);
   EOQ

@@ -219,6 +219,7 @@ query "role_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
+      and n.context_name = r.context_name
       and r.uid = $1;
   EOQ
 
@@ -253,6 +254,7 @@ query "service_accounts_for_role" {
       jsonb_array_elements(subjects) as s
     where
       b.role_name = r.name
+      and a.context_name = r.context_name
       and s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
       and r.uid = $1;
@@ -268,6 +270,7 @@ query "role_bindings_for_role" {
       kubernetes_role as r
     where
       r.name = b.role_name
+      and b.context_name = r.context_name
       and r.uid = $1;
   EOQ
 }
@@ -300,6 +303,7 @@ query "role_overview" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
+      and n.context_name = r.context_name
       and r.uid = $1;
   EOQ
 

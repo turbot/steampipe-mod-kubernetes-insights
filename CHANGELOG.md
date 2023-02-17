@@ -1,3 +1,14 @@
+## v0.3 [2023-02-17]
+
+_Enhancements_
+
+- Updated the `Analysis` chart width in `Kubernetes Cluster Dashboard` dashboard to enhance readability. ([#42](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/42))
+
+_Bug fixes_
+
+- Fixed the sankey diagram in `Kubernetes Service Detail` dashboard to correctly display the service port analysis. ([#42](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/42))
+- Fixed the resource relationship graphs and other dashboard queries to make sure that resources sharing the same name across different clusters do not relay incorrect relationship information. ([#42](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/42))
+
 ## v0.2 [2023-01-24]
 
 _Dependencies_

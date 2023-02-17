@@ -287,6 +287,7 @@ query "replicaset_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
+      and n.context_name = r.context_name
       and r.uid = $1;
   EOQ
 
@@ -375,6 +376,7 @@ query "nodes_for_replicaset" {
       kubernetes_node as n
     where
       n.name = pod.node_name
+      and pod.context_name = n.context_name
       and pod_owner ->> 'uid' = $1;
   EOQ
 }
@@ -401,6 +403,7 @@ query "services_for_replicaset" {
       kubernetes_service as s
     where
       pod_owner ->> 'uid' = $1
+      and s.context_name = pod.context_name
       and pod.selector_search = s.selector_query;
   EOQ
 }
@@ -421,6 +424,7 @@ query "replicaset_overview" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
+      and n.context_name = r.context_name
       and r.uid = $1;
   EOQ
 

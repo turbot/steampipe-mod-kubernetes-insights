@@ -329,6 +329,7 @@ query "deployment_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = d.namespace
+      and n.context_name = d.context_name
       and d.uid = $1;
   EOQ
 
@@ -409,6 +410,7 @@ query "containers_for_deployment" {
       jsonb_array_elements(pod.containers) as container
     where
       rs_owner ->> 'uid' = $1
+      and rs.context_name = pod.context_name
       and pod_owner ->> 'uid' = rs.uid;
   EOQ
 }
@@ -424,6 +426,7 @@ query "pods_for_deployment" {
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
       rs_owner ->> 'uid' = $1
+      and rs.context_name = pod.context_name
       and pod_owner ->> 'uid' = rs.uid;
   EOQ
 }
@@ -441,6 +444,7 @@ query "services_for_deployment" {
     where
       rs_owner ->> 'uid' = $1
       and pod_owner ->> 'uid' = rs.uid
+      and rs.context_name = s.context_name
       and pod.selector_search = s.selector_query;
   EOQ
 }
@@ -457,6 +461,7 @@ query "nodes_for_deployment" {
       kubernetes_node as n
     where
       n.name = pod.node_name
+      and rs.context_name = n.context_name
       and rs_owner ->> 'uid' = $1
       and pod_owner ->> 'uid' = rs.uid;
   EOQ
@@ -490,6 +495,7 @@ query "deployment_overview" {
       kubernetes_namespace as n
     where
       n.name = d.namespace
+      and n.context_name = d.context_name
       and d.uid = $1;
   EOQ
 
@@ -634,6 +640,7 @@ query "deployment_pods_detail" {
     where
       rs_owner ->> 'uid' = $1
       and pod_owner ->> 'uid' = rs.uid
+      and rs.context_name = pod.context_name
     order by
       pod.name;
   EOQ

@@ -10,6 +10,7 @@ edge "role_binding_to_role" {
       kubernetes_role as r
     where
       r.name = b.role_name
+      and b.context_name = r.context_name
       and r.uid = any($1);
   EOQ
 

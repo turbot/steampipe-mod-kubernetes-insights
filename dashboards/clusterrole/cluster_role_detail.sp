@@ -218,6 +218,7 @@ query "service_accounts_for_cluster_role" {
       b.role_name = r.name
       and s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
+      and a.context_name = r.context_name
       and r.uid = $1;
   EOQ
 }
@@ -231,6 +232,7 @@ query "cluster_role_bindings_for_cluster_role" {
       kubernetes_cluster_role as r
     where
       r.name = b.role_name
+      and b.context_name = r.context_name
       and r.uid = $1;
   EOQ
 }

@@ -10,6 +10,7 @@ edge "job_to_node" {
       cross join jsonb_array_elements(p.owner_references) as pod_owner
       left join kubernetes_node as n
       on n.name = p.node_name
+      and n.context_name = p.context_name
     where
       p.node_name <> ''
       and pod_owner ->> 'uid' = any($1);
