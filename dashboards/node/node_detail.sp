@@ -264,7 +264,9 @@ query "node_pods_count" {
       'Pods' as label
     from
       kubernetes_pod as p
-      left join kubernetes_node as n on p.node_name = n.name
+      left join kubernetes_node as n
+      on p.node_name = n.name
+      and p.context_name = n.context_name
     where
       n.uid = $1;
   EOQ
@@ -282,7 +284,9 @@ query "node_containers_count" {
       kubernetes_pod as p,
       jsonb_array_elements(p.containers) as c
     where
-      p.node_name = n.name and n.uid = $1;
+      p.node_name = n.name
+      and p.context_name = n.context_name
+      and n.uid = $1;
   EOQ
 
   param "uid" {}
@@ -299,6 +303,7 @@ query "pods_for_node" {
       kubernetes_node as n
     where
       n.name = p.node_name
+      and p.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -314,6 +319,7 @@ query "endpoints_for_node" {
       jsonb_array_elements(s -> 'addresses') as a
     where
       n.name = a ->> 'nodeName'
+      and e.context_name = n.context_name
       and n.uid = $1;
   EOQ
 }
@@ -448,7 +454,9 @@ query "node_pod_details" {
       p.creation_timestamp as "Create Time"
     from
       kubernetes_pod as p
-      left join kubernetes_node as n on p.node_name = n.name
+      left join kubernetes_node as n
+      on p.node_name = n.name
+      and p.context_name = n.context_name
     where
       n.uid = $1
     order by

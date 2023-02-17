@@ -10,6 +10,7 @@ edge "namespace_to_daemonset" {
       kubernetes_daemonset as d
     where
       n.name = d.namespace
+      and n.context_name = d.context_name
       and n.uid = any($1);
   EOQ
 
@@ -28,6 +29,7 @@ edge "namespace_to_role_binding" {
       kubernetes_role_binding as b
     where
       n.name = b.namespace
+      and n.context_name = b.context_name
       and n.uid = any($1);
   EOQ
 
@@ -46,6 +48,7 @@ edge "namespace_to_deployment" {
       kubernetes_deployment as d
     where
       n.name = d.namespace
+      and n.context_name = d.context_name
       and n.uid = any($1);
   EOQ
 
@@ -64,6 +67,7 @@ edge "namespace_to_cronjob" {
       kubernetes_cronjob as c
     where
       n.name = c.namespace
+      and n.context_name = c.context_name
       and n.uid = any($1);
   EOQ
 
@@ -81,6 +85,7 @@ edge "namespace_to_job" {
       kubernetes_namespace as n
       left join kubernetes_job as j
       on n.name = j.namespace
+      and n.context_name = j.context_name
     where
       n.uid = any($1);
   EOQ
@@ -99,6 +104,7 @@ edge "namespace_to_replicaset" {
       kubernetes_namespace as n
       left join kubernetes_replicaset as r
       on n.name = r.namespace
+      and n.context_name = r.context_name
     where
       n.uid = any($1);
   EOQ
@@ -118,6 +124,7 @@ edge "namespace_to_role" {
       kubernetes_role as r
     where
       n.name = r.namespace
+      and n.context_name = r.context_name
       and n.uid = any($1);
   EOQ
 
@@ -135,6 +142,7 @@ edge "namespace_to_service" {
       kubernetes_service as s
       left join kubernetes_namespace as n
       on s.namespace = n.name
+      and n.context_name = s.context_name
       and n.uid = any($1);
   EOQ
 
@@ -153,6 +161,7 @@ edge "namespace_to_statefulset" {
       kubernetes_stateful_set as s
     where
       n.name = s.namespace
+      and n.context_name = s.context_name
       and n.uid = any($1);
   EOQ
 

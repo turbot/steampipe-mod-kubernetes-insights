@@ -12,6 +12,7 @@ edge "service_account_to_role_binding" {
     where
       s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
+      and a.context_name = b.context_name
       and a.uid = any($1);
   EOQ
 
@@ -31,6 +32,7 @@ edge "service_account_to_secret" {
       jsonb_array_elements(secrets) as se
     where
       se ->> 'name' = s.name
+      and a.context_name = s.context_name
       and a.uid = any($1);
   EOQ
 
@@ -51,6 +53,7 @@ edge "service_account_to_cluster_role_binding" {
     where
       s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
+      and a.context_name = b.context_name
       and a.uid = any($1);
   EOQ
 

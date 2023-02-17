@@ -14,6 +14,7 @@ graph "role_resource_structure" {
           jsonb_array_elements(subjects) as s
         where
           b.role_name = r.name
+          and b.context_name = r.context_name
           and s ->> 'kind' = 'User'
           and r.uid = any($1);
       EOQ
@@ -34,6 +35,7 @@ graph "role_resource_structure" {
           jsonb_array_elements(subjects) as s
         where
           b.role_name = r.name
+          and b.context_name = r.context_name
           and s ->> 'kind' = 'Group'
           and r.uid = any($1);
       EOQ
@@ -54,6 +56,7 @@ graph "role_resource_structure" {
           jsonb_array_elements(subjects) as s
         where
           b.role_name = r.name
+          and b.context_name = r.context_name
           and s ->> 'kind' = 'User'
           and r.uid = any($1);
       EOQ
@@ -74,6 +77,7 @@ graph "role_resource_structure" {
           jsonb_array_elements(subjects) as s
         where
           b.role_name = r.name
+          and b.context_name = r.context_name
           and s ->> 'kind' = 'Group'
           and r.uid = any($1);
       EOQ

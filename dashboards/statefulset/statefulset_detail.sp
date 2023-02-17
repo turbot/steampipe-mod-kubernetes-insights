@@ -319,6 +319,7 @@ query "statefulset_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
+      and n.context_name = s.context_name
       and s.uid = $1;
   EOQ
 
@@ -407,6 +408,7 @@ query "nodes_for_statefulset" {
       kubernetes_node as n
     where
       n.name = pod.node_name
+      and pod.context_name = n.context_name
       and pod_owner ->> 'uid' = $1;
   EOQ
 }
@@ -420,6 +422,7 @@ query "services_for_statefulset" {
       kubernetes_service as s
     where
       st.service_name = s.name
+      and s.context_name = st.context_name
       and st.uid = $1;
   EOQ
 }
@@ -440,6 +443,7 @@ query "statefulset_overview" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
+      and n.context_name = s.context_name
       and s.uid = $1;
   EOQ
 
