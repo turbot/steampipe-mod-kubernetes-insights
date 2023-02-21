@@ -7,18 +7,30 @@ dashboard "rbac_detail" {
     type = "Detail"
   })
 
+  input "cluster_context" {
+    title = "Select a Cluster:"
+    query = query.rbac_cluster_input
+    width = 4
+  }
+
   input "verb" {
     title = "Select verb(s):"
     type  = "multiselect"
     query = query.kubernetes_cluster_verbs
-    width = 6
+    width = 4
+    args = {
+      cluster_context = self.input.cluster_context.value
+    }
   }
 
   input "resource" {
     title = "Select resource(s):"
     type  = "multiselect"
     query = query.kubernetes_cluster_resources
-    width = 6
+    width = 4
+    args = {
+      cluster_context = self.input.cluster_context.value
+    }
   }
 
   with "service_accounts_for_rbac" {
@@ -47,7 +59,7 @@ dashboard "rbac_detail" {
 
   container {
     graph {
-      title     = "Relationships"
+      title     = "Who Can Perform"
       type      = "graph"
       direction = "TD"
       base      = graph.rbac_resource_structure
@@ -152,9 +164,89 @@ dashboard "rbac_detail" {
       }
     }
   }
+
+  container {
+
+    table {
+      title = "Rules Analysis"
+      query = query.rbac_rule_analysis
+      args = {
+        verb     = self.input.verb.value
+        resource = self.input.resource.value
+      }
+
+    }
+
+  }
+}
+
+query "rbac_cluster_input" {
+  sql = <<-EOQ
+    select
+     distinct context_name as label,
+     context_name as value
+    from
+      kubernetes_namespace
+    order by
+      context_name;
+  EOQ
 }
 
 # With queries
+query "rbac_rule_analysis" {
+  sql = <<-EOQ
+    select
+      s ->> 'name' as "Principal",
+      s ->> 'kind' as "Principal Kind",
+      b.name as "Role Binding",
+      role.name as "Role",
+      v as "Verbs",
+      re as "Resources",
+      resource_name as "Resource Names"
+    from
+      kubernetes_cluster_role_binding as b,
+      kubernetes_cluster_role as role,
+      kubernetes_service_account as a,
+      jsonb_array_elements(subjects) as s,
+      jsonb_array_elements(rules) as r,
+      jsonb_array_elements_text(r -> 'resources') as re,
+      jsonb_array_elements_text(r -> 'verbs') as v,
+      jsonb_array_elements_text(coalesce(r -> 'resourceNames', '["*"]'::jsonb)) as resource_name
+    where
+      role.name = b.role_name
+      and (s ->> 'kind' <> 'ServiceAccount' or s ->> 'name' in (select name from kubernetes_service_account))
+      and b.context_name = role.context_name
+      and v in (select unnest (string_to_array($1, ',')::text[]))
+      and re in (select unnest (string_to_array($2, ',')::text[]))
+    union
+    select
+      s ->> 'name' as "Principal",
+      s ->> 'kind' as "Principal Kind",
+      b.name as "Role Binding",
+      role.name as "Role",
+      v as "Verbs",
+      re as "Resources",
+      resource_name as "Resource Names"
+    from
+      kubernetes_role_binding as b,
+      kubernetes_role as role,
+      kubernetes_service_account as a,
+      jsonb_array_elements(subjects) as s,
+      jsonb_array_elements(rules) as r,
+      jsonb_array_elements_text(r -> 'resources') as re,
+      jsonb_array_elements_text(r -> 'verbs') as v,
+      jsonb_array_elements_text(coalesce(r -> 'resourceNames', '["*"]'::jsonb)) as resource_name
+    where
+      role.name = b.role_name
+      and (s ->> 'kind' <> 'ServiceAccount' or s ->> 'name' in (select name from kubernetes_service_account))
+      and b.context_name = role.context_name
+      and v in (select unnest (string_to_array($1, ',')::text[]))
+      and re in (select unnest (string_to_array($2, ',')::text[]))
+  EOQ
+
+  param "verb" {}
+  param "resource" {}
+}
 
 query "roles_for_rbac" {
   sql = <<-EOQ
@@ -207,6 +299,8 @@ query "kubernetes_cluster_verbs" {
       kubernetes_role,
       jsonb_array_elements(rules) as r,
       jsonb_array_elements_text(r->'verbs') as verb
+    where
+      context_name in (select unnest (string_to_array($1, ',')::text[]))
     union
     select
       distinct verb as label,
@@ -216,9 +310,13 @@ query "kubernetes_cluster_verbs" {
       kubernetes_cluster_role,
       jsonb_array_elements(rules) as r,
       jsonb_array_elements_text(r->'verbs') as verb
+    where
+      context_name in (select unnest (string_to_array($1, ',')::text[]))
     order by
       verb;
   EOQ
+
+  param "cluster_context" {}
 }
 
 query "kubernetes_cluster_resources" {
@@ -231,6 +329,8 @@ query "kubernetes_cluster_resources" {
       kubernetes_role,
       jsonb_array_elements(rules) as r,
       jsonb_array_elements_text(r->'resources') as resource
+    where
+      context_name in (select unnest (string_to_array($1, ',')::text[]))
     union
     select
       distinct resource as label,
@@ -240,9 +340,13 @@ query "kubernetes_cluster_resources" {
       kubernetes_cluster_role,
       jsonb_array_elements(rules) as r,
       jsonb_array_elements_text(r->'resources') as resource
+    where
+      context_name in (select unnest (string_to_array($1, ',')::text[]))
     order by
       resource;
   EOQ
+
+  param "cluster_context" {}
 }
 
 query "service_accounts_for_rbac" {

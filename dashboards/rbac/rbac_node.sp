@@ -4,7 +4,7 @@ node "rbac_rule_verb_and_resource" {
   sql = <<-EOQ
     with verb_resource as (
     select
-      concat('verb:',verb,':resource:',resource) as id,
+      concat('verb:',verb,':resource:',resource,coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as id,
       concat(verb,':',resource) as title,
       verb,
       resource,
@@ -20,7 +20,7 @@ node "rbac_rule_verb_and_resource" {
       uid = any($1)
     union
     select
-      concat('verb:',verb,':resource:',resource) as id,
+      concat('verb:',verb,':resource:',resource,coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as id,
       concat(verb,':',resource) as title,
       verb,
       resource,

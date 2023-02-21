@@ -3,7 +3,7 @@ edge "rbac_rule_to_verb_and_resource" {
 
   sql = <<-EOQ
     select
-      concat('verb:',verb,':resource:',resource) as to_id,
+      concat('verb:',verb,':resource:',resource,coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as to_id,
       uid as from_id
     from
       kubernetes_role,
@@ -14,7 +14,7 @@ edge "rbac_rule_to_verb_and_resource" {
        uid = any($1)
     union
     select
-      concat('verb:',verb,':resource:',resource) as to_id,
+      concat('verb:',verb,':resource:',resource,coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as to_id,
       uid as from_id
     from
       kubernetes_cluster_role,
@@ -34,7 +34,7 @@ edge "rbac_rule_verb_and_resource_to_resource_name" {
   sql = <<-EOQ
     select
       concat('resource_name:',resource_name) as to_id,
-      concat('verb:',verb,':resource:',resource) as from_id
+      concat('verb:',verb,':resource:',resource,coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as from_id
     from
       kubernetes_cluster_role,
       jsonb_array_elements(rules) as rule,
@@ -47,7 +47,7 @@ edge "rbac_rule_verb_and_resource_to_resource_name" {
     union
     select
       concat('resource_name:',resource_name) as to_id,
-      concat('verb:',verb,':resource:',resource) as from_id
+      concat('verb:',verb,':resource:',resource,coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as from_id
     from
       kubernetes_role,
       jsonb_array_elements(rules) as rule,
