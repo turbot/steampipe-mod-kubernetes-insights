@@ -42,8 +42,8 @@ node "rbac_rule_verb_and_resource" {
     from
       verb_resource
     where
-      verb in (select unnest (string_to_array($2, ',')::text[]))
-      and resource in (select unnest (string_to_array($3, ',')::text[]));
+      (verb in (select unnest (string_to_array($2, ',')::text[])) or verb = '*')
+      and (resource in (select unnest (string_to_array($3, ',')::text[])) or resource = '*');
   EOQ
 
   param "rbac_role_uids" {}
@@ -66,7 +66,8 @@ node "rbac_rule_resource_name" {
       jsonb_array_elements_text(coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as resource_name
     where
       uid = any($1)
-      and resource in (select unnest (string_to_array($2, ',')::text[]))
+      and (verb in (select unnest (string_to_array($2, ',')::text[])) or verb = '*')
+      and (resource in (select unnest (string_to_array($3, ',')::text[])) or resource = '*')
     union
     select
       concat('resource_name:',resource_name) as id,
@@ -79,9 +80,11 @@ node "rbac_rule_resource_name" {
       jsonb_array_elements_text(coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as resource_name
     where
       uid = any($1)
-      and resource in (select unnest (string_to_array($2, ',')::text[]))
+      and (verb in (select unnest (string_to_array($2, ',')::text[])) or verb = '*')
+      and (resource in (select unnest (string_to_array($3, ',')::text[])) or resource = '*')
   EOQ
 
   param "rbac_role_uids" {}
+  param "rbac_verbs" {}
   param "rbac_resources" {}
 }

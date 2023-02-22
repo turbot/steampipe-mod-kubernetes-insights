@@ -116,6 +116,7 @@ dashboard "rbac_detail" {
         base = node.rbac_rule_resource_name
         args = {
           rbac_role_uids = with.roles_for_rbac.rows[*].uid
+          rbac_verbs     = self.input.verb.value
           rbac_resources = self.input.resource.value
         }
       }
@@ -124,6 +125,8 @@ dashboard "rbac_detail" {
         base = edge.rbac_rule_to_verb_and_resource
         args = {
           rbac_role_uids = with.roles_for_rbac.rows[*].uid
+          rbac_verbs     = self.input.verb.value
+          rbac_resources = self.input.resource.value
         }
       }
 
@@ -131,6 +134,7 @@ dashboard "rbac_detail" {
         base = edge.rbac_rule_verb_and_resource_to_resource_name
         args = {
           rbac_role_uids = with.roles_for_rbac.rows[*].uid
+          rbac_verbs     = self.input.verb.value
           rbac_resources = self.input.resource.value
         }
       }
@@ -216,8 +220,8 @@ query "rbac_rule_analysis" {
       role.name = b.role_name
       and (s ->> 'kind' <> 'ServiceAccount' or s ->> 'name' in (select name from kubernetes_service_account))
       and b.context_name = role.context_name
-      and v in (select unnest (string_to_array($1, ',')::text[]))
-      and re in (select unnest (string_to_array($2, ',')::text[]))
+      and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
+      and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
     union
     select
       s ->> 'name' as "Principal",
@@ -240,8 +244,8 @@ query "rbac_rule_analysis" {
       role.name = b.role_name
       and (s ->> 'kind' <> 'ServiceAccount' or s ->> 'name' in (select name from kubernetes_service_account))
       and b.context_name = role.context_name
-      and v in (select unnest (string_to_array($1, ',')::text[]))
-      and re in (select unnest (string_to_array($2, ',')::text[]))
+      and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
+      and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
   EOQ
 
   param "verb" {}
@@ -264,8 +268,8 @@ query "roles_for_rbac" {
       role.name = b.role_name
       and (s ->> 'kind' <> 'ServiceAccount' or s ->> 'name' in (select name from kubernetes_service_account))
       and b.context_name = role.context_name
-      and v in (select unnest (string_to_array($1, ',')::text[]))
-      and re in (select unnest (string_to_array($2, ',')::text[]))
+      and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
+      and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
     union
     select
       distinct role.uid as uid
@@ -281,8 +285,8 @@ query "roles_for_rbac" {
       role.name = b.role_name
       and (s ->> 'kind' <> 'ServiceAccount' or s ->> 'name' in (select name from kubernetes_service_account))
       and b.context_name = role.context_name
-      and v in (select unnest (string_to_array($1, ',')::text[]))
-      and re in (select unnest (string_to_array($2, ',')::text[]))
+      and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
+      and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
   EOQ
 
   param "verb" {}
@@ -363,8 +367,8 @@ query "service_accounts_for_rbac" {
     where
       role.name = b.role_name
       and b.context_name = role.context_name
-      and v in (select unnest (string_to_array($1, ',')::text[]))
-      and re in (select unnest (string_to_array($2, ',')::text[]))
+      and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
+      and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
     union
     select
       distinct role.uid as uid
@@ -377,8 +381,8 @@ query "service_accounts_for_rbac" {
     where
       role.name = b.role_name
       and b.context_name = role.context_name
-      and v in (select unnest (string_to_array($1, ',')::text[]))
-      and re in (select unnest (string_to_array($2, ',')::text[]))
+      and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
+      and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
     )
     select
       a.uid as uid
@@ -427,8 +431,8 @@ query "role_bindings_for_rbac" {
     where
       role.name = b.role_name
       and b.context_name = role.context_name
-      and v in (select unnest (string_to_array($1, ',')::text[]))
-      and re in (select unnest (string_to_array($2, ',')::text[]))
+      and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
+      and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
     union
     select
       distinct role.uid as uid
@@ -441,8 +445,8 @@ query "role_bindings_for_rbac" {
     where
       role.name = b.role_name
       and b.context_name = role.context_name
-      and v in (select unnest (string_to_array($1, ',')::text[]))
-      and re in (select unnest (string_to_array($2, ',')::text[]))
+      and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
+      and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
     )
     select
       b.uid as uid
