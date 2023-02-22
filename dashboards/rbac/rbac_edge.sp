@@ -45,7 +45,7 @@ edge "rbac_rule_to_verb_and_resource" {
 }
 
 edge "rbac_rule_verb_and_resource_to_resource_name" {
-  title = "resource"
+  title = "resource names"
 
   sql = <<-EOQ
     select
