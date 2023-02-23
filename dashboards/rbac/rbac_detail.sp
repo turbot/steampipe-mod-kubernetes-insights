@@ -1,6 +1,6 @@
 dashboard "rbac_detail" {
 
-  title         = "Kubernetes RBAC Detail"
+  title         = "Kubernetes RBAC - Who can perform?"
   documentation = file("./dashboards/rbac/docs/rbac_detail.md")
 
   tags = merge(local.rbac_common_tags, {
@@ -9,7 +9,7 @@ dashboard "rbac_detail" {
 
   input "cluster_context" {
     title = "Select a Cluster:"
-    query = query.rbac_cluster_input
+    query = query.cluster_input
     width = 4
   }
 
@@ -62,120 +62,28 @@ dashboard "rbac_detail" {
 
   container {
     graph {
-      title     = "Who Can Perform"
+      title     = "Who Can Perform?"
       type      = "graph"
       direction = "TD"
       base      = graph.rbac_resource_structure
       args = {
-        rbac_role_uids = with.roles_for_rbac.rows[*].uid
+        rbac_role_uids            = with.roles_for_rbac.rows[*].uid
+        cluster_role_uids         = with.roles_for_rbac.rows[*].uid
+        role_uids                 = with.roles_for_rbac.rows[*].uid
+        service_account_uids      = with.service_accounts_for_rbac.rows[*].uid
+        role_binding_uids         = with.role_bindings_for_rbac.rows[*].uid
+        cluster_role_binding_uids = with.role_bindings_for_rbac.rows[*].uid
+        rbac_verbs                = self.input.verb.value
+        rbac_resources            = self.input.resource.value
       }
 
-      node {
-        base = node.cluster_role
-        args = {
-          cluster_role_uids = with.roles_for_rbac.rows[*].uid
-        }
-      }
-
-      node {
-        base = node.role
-        args = {
-          role_uids = with.roles_for_rbac.rows[*].uid
-        }
-      }
-
-
-      node {
-        base = node.service_account
-        args = {
-          service_account_uids = with.service_accounts_for_rbac.rows[*].uid
-        }
-      }
-
-      node {
-        base = node.role_binding
-        args = {
-          role_binding_uids = with.role_bindings_for_rbac.rows[*].uid
-        }
-      }
-
-      node {
-        base = node.cluster_role_binding
-        args = {
-          cluster_role_binding_uids = with.role_bindings_for_rbac.rows[*].uid
-        }
-      }
-
-      node {
-        base = node.rbac_rule_verb_and_resource
-        args = {
-          rbac_role_uids = with.roles_for_rbac.rows[*].uid
-          rbac_verbs     = self.input.verb.value
-          rbac_resources = self.input.resource.value
-        }
-      }
-
-      node {
-        base = node.rbac_rule_resource_name
-        args = {
-          rbac_role_uids = with.roles_for_rbac.rows[*].uid
-          rbac_verbs     = self.input.verb.value
-          rbac_resources = self.input.resource.value
-        }
-      }
-
-      edge {
-        base = edge.rbac_rule_to_verb_and_resource
-        args = {
-          rbac_role_uids = with.roles_for_rbac.rows[*].uid
-          rbac_verbs     = self.input.verb.value
-          rbac_resources = self.input.resource.value
-        }
-      }
-
-      edge {
-        base = edge.rbac_rule_verb_and_resource_to_resource_name
-        args = {
-          rbac_role_uids = with.roles_for_rbac.rows[*].uid
-          rbac_verbs     = self.input.verb.value
-          rbac_resources = self.input.resource.value
-        }
-      }
-
-      edge {
-        base = edge.service_account_to_cluster_role_binding
-        args = {
-          service_account_uids = with.service_accounts_for_rbac.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.cluster_role_binding_to_cluster_role
-        args = {
-          cluster_role_uids = with.roles_for_rbac.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.service_account_to_role_binding
-        args = {
-          service_account_uids = with.service_accounts_for_rbac.rows[*].uid
-        }
-      }
-
-      edge {
-        base = edge.role_binding_to_role
-        args = {
-          role_uids = with.roles_for_rbac.rows[*].uid
-        }
-      }
     }
   }
 
   container {
 
     table {
-      title = "Rules Analysis"
+      title = "RBAC Analysis"
       query = query.rbac_rule_analysis
       args = {
         verb            = self.input.verb.value
@@ -186,18 +94,6 @@ dashboard "rbac_detail" {
     }
 
   }
-}
-
-query "rbac_cluster_input" {
-  sql = <<-EOQ
-    select
-     distinct context_name as label,
-     context_name as value
-    from
-      kubernetes_namespace
-    order by
-      context_name;
-  EOQ
 }
 
 # With queries
