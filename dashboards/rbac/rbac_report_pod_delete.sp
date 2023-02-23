@@ -14,13 +14,6 @@ dashboard "rbac_pod_delete_report" {
     width = 4
   }
 
-  text {
-    width = 4
-    value = <<-EOM
-    ***Show who can delete pods***.
-  EOM
-  }
-
   with "service_accounts_for_rbac_pod" {
     query = query.service_accounts_for_rbac
     args = {

@@ -14,13 +14,6 @@ dashboard "rbac_secret_read_report" {
     width = 4
   }
 
-  text {
-    width = 4
-    value = <<-EOM
-    ***Show who can read secrets***.
-  EOM
-  }
-
   with "service_accounts_for_rbac_secret" {
     query = query.service_accounts_for_rbac
     args = {
