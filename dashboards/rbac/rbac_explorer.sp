@@ -62,7 +62,7 @@ dashboard "rbac_explorer" {
 
   container {
     graph {
-      title     = "Who Can Perform?"
+      title     = "Kubernetes RBAC Explorer"
       type      = "graph"
       direction = "TD"
       base      = graph.rbac_resource_structure
