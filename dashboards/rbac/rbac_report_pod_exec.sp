@@ -17,7 +17,7 @@ dashboard "rbac_pod_exec_report" {
   with "service_accounts_for_rbac_pod_exec" {
     query = query.service_accounts_for_rbac
     args = {
-      verb            = "*,get,list"
+      verb            = "*,create"
       resource        = "pods/exec,*"
       cluster_context = self.input.cluster_context.value
     }
@@ -26,7 +26,7 @@ dashboard "rbac_pod_exec_report" {
   with "role_bindings_for_rbac_pod_exec" {
     query = query.role_bindings_for_rbac
     args = {
-      verb            = "*,get,list"
+      verb            = "*,create"
       resource        = "pods/exec,*"
       cluster_context = self.input.cluster_context.value
     }
@@ -35,7 +35,7 @@ dashboard "rbac_pod_exec_report" {
   with "roles_for_rbac_pod_exec" {
     query = query.roles_for_rbac
     args = {
-      verb            = "*,get,list"
+      verb            = "*,create"
       resource        = "pods/exec,*"
       cluster_context = self.input.cluster_context.value
     }
@@ -54,7 +54,7 @@ dashboard "rbac_pod_exec_report" {
         service_account_uids      = with.service_accounts_for_rbac_pod_exec.rows[*].uid
         role_binding_uids         = with.role_bindings_for_rbac_pod_exec.rows[*].uid
         cluster_role_binding_uids = with.role_bindings_for_rbac_pod_exec.rows[*].uid
-        rbac_verbs                = "*,get,list"
+        rbac_verbs                = "*,create"
         rbac_resources            = "pods/exec,*"
       }
     }
@@ -66,7 +66,7 @@ dashboard "rbac_pod_exec_report" {
       title = "Secrets RBAC Analysis"
       query = query.rbac_rule_analysis
       args = {
-        verb            = "*,get,list"
+        verb            = "*,create"
         resource        = "pods/exec,*"
         cluster_context = self.input.cluster_context.value
       }
