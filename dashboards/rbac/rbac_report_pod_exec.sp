@@ -43,7 +43,7 @@ dashboard "rbac_pod_exec_report" {
 
   container {
     graph {
-      title     = "Who has high privileges on Pods?"
+      title     = "Who can exec into pods?"
       type      = "graph"
       direction = "TD"
       base      = graph.rbac_resource_structure
