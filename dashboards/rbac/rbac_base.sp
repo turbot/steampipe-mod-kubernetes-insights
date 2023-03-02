@@ -79,7 +79,10 @@ graph "rbac_resource_structure" {
     sql = <<-EOQ
         select
           s ->> 'name' as id,
-          s ->> 'name' as title
+          s ->> 'name' as title,
+          jsonb_build_object(
+          'Context Name', r.context_name
+          ) as properties
         from
           kubernetes_cluster_role as r,
           kubernetes_cluster_role_binding as b,
@@ -92,7 +95,10 @@ graph "rbac_resource_structure" {
         union
         select
           s ->> 'name' as id,
-          s ->> 'name' as title
+          s ->> 'name' as title,
+          jsonb_build_object(
+          'Context Name', r.context_name
+          ) as properties
         from
           kubernetes_role as r,
           kubernetes_role_binding as b,
@@ -113,7 +119,10 @@ graph "rbac_resource_structure" {
     sql = <<-EOQ
         select
           s ->> 'name' as id,
-          s ->> 'name' as title
+          s ->> 'name' as title,
+          jsonb_build_object(
+          'Context Name', r.context_name
+          ) as properties
         from
           kubernetes_cluster_role as r,
           kubernetes_cluster_role_binding as b,
@@ -126,7 +135,10 @@ graph "rbac_resource_structure" {
         union
         select
           s ->> 'name' as id,
-          s ->> 'name' as title
+          s ->> 'name' as title,
+          jsonb_build_object(
+          'Context Name', r.context_name
+          ) as properties
         from
           kubernetes_role as r,
           kubernetes_role_binding as b,
