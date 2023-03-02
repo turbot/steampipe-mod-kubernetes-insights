@@ -1,10 +1,10 @@
-dashboard "rbac_detail" {
+dashboard "rbac_explorer" {
 
-  title         = "Kubernetes RBAC - Who can perform?"
-  documentation = file("./dashboards/rbac/docs/rbac_detail.md")
+  title         = "Kubernetes RBAC Explorer"
+  documentation = file("./dashboards/rbac/docs/rbac_explorer.md")
 
   tags = merge(local.rbac_common_tags, {
-    type = "Detail"
+    type = "Report"
   })
 
   input "cluster_context" {

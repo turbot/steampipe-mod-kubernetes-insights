@@ -1,11 +1,11 @@
-dashboard "rbac_nodes_proxy_create_get_report" {
+dashboard "rbac_nodes_proxy_escalate_report" {
 
-  title         = "Kubernetes RBAC - Who can create/get nodes/proxy?"
-  documentation = file("./dashboards/rbac/docs/rbac_report_nodes_proxy_create_get.md")
+  title         = "Kubernetes RBAC - Who can escalate privileges via node/proxy?"
+  documentation = file("./dashboards/rbac/docs/rbac_report_nodes_proxy_escalate.md")
 
   tags = merge(local.rbac_common_tags, {
     type     = "Report"
-    category = "Nodes/proxy Create/Get"
+    category = "Nodes/proxy Escalate"
   })
 
   input "cluster_context" {
@@ -14,7 +14,7 @@ dashboard "rbac_nodes_proxy_create_get_report" {
     width = 4
   }
 
-  with "service_accounts_for_rbac_secret" {
+  with "service_accounts_for_rbac_nodes_proxy" {
     query = query.service_accounts_for_rbac
     args = {
       verb            = "create,get"
@@ -23,7 +23,7 @@ dashboard "rbac_nodes_proxy_create_get_report" {
     }
   }
 
-  with "role_bindings_for_rbac_secret" {
+  with "role_bindings_for_rbac_nodes_proxy" {
     query = query.role_bindings_for_rbac
     args = {
       verb            = "create,get"
@@ -32,7 +32,7 @@ dashboard "rbac_nodes_proxy_create_get_report" {
     }
   }
 
-  with "roles_for_rbac_secret" {
+  with "roles_for_rbac_nodes_proxy" {
     query = query.roles_for_rbac
     args = {
       verb            = "create,get"
@@ -43,17 +43,17 @@ dashboard "rbac_nodes_proxy_create_get_report" {
 
   container {
     graph {
-      title     = "Who can read secrets?"
+      title     = "Who can escalate privileges via node/proxy?"
       type      = "graph"
       direction = "TD"
       base      = graph.rbac_resource_structure
       args = {
-        rbac_role_uids            = with.roles_for_rbac_secret.rows[*].uid
-        cluster_role_uids         = with.roles_for_rbac_secret.rows[*].uid
-        role_uids                 = with.roles_for_rbac_secret.rows[*].uid
-        service_account_uids      = with.service_accounts_for_rbac_secret.rows[*].uid
-        role_binding_uids         = with.role_bindings_for_rbac_secret.rows[*].uid
-        cluster_role_binding_uids = with.role_bindings_for_rbac_secret.rows[*].uid
+        rbac_role_uids            = with.roles_for_rbac_nodes_proxy.rows[*].uid
+        cluster_role_uids         = with.roles_for_rbac_nodes_proxy.rows[*].uid
+        role_uids                 = with.roles_for_rbac_nodes_proxy.rows[*].uid
+        service_account_uids      = with.service_accounts_for_rbac_nodes_proxy.rows[*].uid
+        role_binding_uids         = with.role_bindings_for_rbac_nodes_proxy.rows[*].uid
+        cluster_role_binding_uids = with.role_bindings_for_rbac_nodes_proxy.rows[*].uid
         rbac_verbs                = "create,get"
         rbac_resources            = "nodes/proxy"
       }
@@ -63,7 +63,7 @@ dashboard "rbac_nodes_proxy_create_get_report" {
   container {
 
     table {
-      title = "Secrets RBAC Analysis"
+      title = "Nodes/proxy RBAC Analysis"
       query = query.rbac_rule_analysis
       args = {
         verb            = "create,get"
