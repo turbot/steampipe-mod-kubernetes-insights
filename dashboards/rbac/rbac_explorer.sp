@@ -148,6 +148,8 @@ query "rbac_rule_analysis" {
       and (v in (select unnest (string_to_array($1, ',')::text[])) or v = '*')
       and (re in (select unnest (string_to_array($2, ',')::text[])) or re = '*')
       and b.context_name in (select unnest (string_to_array($3, ',')::text[]))
+    order by
+      1;
   EOQ
 
   param "verb" {}
@@ -391,7 +393,6 @@ query "role_bindings_for_rbac" {
   param "cluster_context" {}
 }
 
-# Other queries
 
 
 

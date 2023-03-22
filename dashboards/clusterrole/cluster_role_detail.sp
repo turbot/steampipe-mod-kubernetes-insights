@@ -8,7 +8,7 @@ dashboard "cluster_role_detail" {
   })
 
   input "cluster_role_uid" {
-    title = "Select a Cluster Role:"
+    title = "Select a ClusterRole:"
     query = query.cluster_role_input
     width = 4
   }
