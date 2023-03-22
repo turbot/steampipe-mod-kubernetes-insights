@@ -1,7 +1,7 @@
 dashboard "rbac_nodes_proxy_escalate_report" {
 
   title         = "Kubernetes RBAC - Who can escalate privileges via node/proxy?"
-  documentation = file("./dashboards/rbac/docs/rbac_report_nodes_proxy_escalate.md")
+  documentation = file("./dashboards/rbac/docs/rbac_nodes_proxy_escalate_report.md")
 
   tags = merge(local.rbac_common_tags, {
     type     = "Report"

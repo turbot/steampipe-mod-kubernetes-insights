@@ -1,7 +1,7 @@
 dashboard "rbac_event_delete_report" {
 
   title         = "Kubernetes RBAC - Who can delete events?"
-  documentation = file("./dashboards/rbac/docs/rbac_report_event_delete.md")
+  documentation = file("./dashboards/rbac/docs/rbac_event_delete_report.md")
 
   tags = merge(local.rbac_common_tags, {
     type     = "Report"

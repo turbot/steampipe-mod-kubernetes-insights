@@ -1,7 +1,7 @@
 dashboard "rbac_pod_exec_report" {
 
   title         = "Kubernetes RBAC - Who can exec into pods?"
-  documentation = file("./dashboards/rbac/docs/rbac_report_pod_exec.md")
+  documentation = file("./dashboards/rbac/docs/rbac_pod_exec_report.md")
 
   tags = merge(local.rbac_common_tags, {
     type     = "Report"

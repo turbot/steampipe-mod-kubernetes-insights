@@ -1,7 +1,7 @@
 dashboard "rbac_secret_read_report" {
 
   title         = "Kubernetes RBAC - Who can read secrets?"
-  documentation = file("./dashboards/rbac/docs/rbac_report_secret_read.md")
+  documentation = file("./dashboards/rbac/docs/rbac_secret_read_report.md")
 
   tags = merge(local.rbac_common_tags, {
     type     = "Report"

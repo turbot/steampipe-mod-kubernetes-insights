@@ -1,7 +1,7 @@
 dashboard "rbac_pod_delete_report" {
 
   title         = "Kubernetes RBAC - Who can delete pods?"
-  documentation = file("./dashboards/rbac/docs/rbac_report_pod_delete.md")
+  documentation = file("./dashboards/rbac/docs/rbac_pod_delete_report.md")
 
   tags = merge(local.rbac_common_tags, {
     type     = "Report"
