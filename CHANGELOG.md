@@ -1,3 +1,15 @@
+## v0.4 [2023-03-23]
+
+_What's new?_
+
+- New dashboards added:
+  - [Kubernetes RBAC - Who can delete events?](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.rbac_event_delete_report)
+  - [Kubernetes RBAC - Who can delete pods?](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.rbac_pod_delete_report)
+  - [Kubernetes RBAC - Who can escalate privileges via node/proxy?](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.rbac_nodes_proxy_escalate_report)
+  - [Kubernetes RBAC - Who can exec into pods?](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.rbac_pod_exec_report)
+  - [Kubernetes RBAC - Who can read secrets?](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.rbac_secret_read_report)
+  - [Kubernetes RBAC Explorer](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.rbac_explorer)
+
 ## v0.3 [2023-02-17]
 
 _Enhancements_
