@@ -25,7 +25,7 @@ Dashboards can help answer questions like:
 - What are the relationships between closely connected resources like clusters, nodes, pods, deployments and jobs?
 - Who can perform operations like list, get, read etc. on my resources?
 
-Dashboards are available for 10+ resources, including Clusters, DaemonSets, Deployments, Nodes, Pods, Services, and more! It is also available for RBAC security control, where you can check the assigned permissions to different subjects.
+Dashboards are available for 10+ resources, including Clusters, DaemonSets, Deployments, Nodes, Pods, Services, and more. Dashboards are also available for RBAC security controls, where you can check the assigned permissions to different subjects.
 
 ## References
 

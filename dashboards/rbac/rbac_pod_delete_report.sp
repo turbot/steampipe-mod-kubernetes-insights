@@ -9,7 +9,7 @@ dashboard "rbac_pod_delete_report" {
   })
 
   input "cluster_context" {
-    title = "Select a Cluster:"
+    title = "Select a cluster:"
     query = query.cluster_input
     width = 4
   }

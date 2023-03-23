@@ -8,7 +8,7 @@ dashboard "rbac_explorer" {
   })
 
   input "cluster_context" {
-    title = "Select a Cluster:"
+    title = "Select a cluster:"
     query = query.cluster_input
     width = 4
   }
