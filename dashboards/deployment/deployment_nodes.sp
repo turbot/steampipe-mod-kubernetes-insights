@@ -3,10 +3,10 @@ node "deployment" {
 
   sql = <<-EOQ
     select
-      uid as id,
+      coalesce(uid, concat(path, ':', start_line)) as id,
       title as title,
       jsonb_build_object(
-        'UID', uid,
+        'UID', coalesce(uid, concat(path, ':', start_line)),
         'Replicas', replicas,
         'Paused', paused,
         'Namespace', namespace,
@@ -15,7 +15,7 @@ node "deployment" {
     from
       kubernetes_deployment
     where
-      uid = any($1);
+      coalesce(uid, concat(path, ':', start_line)) = any($1);
   EOQ
 
   param "deployment_uids" {}

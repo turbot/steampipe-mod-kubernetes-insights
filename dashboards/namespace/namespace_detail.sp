@@ -445,7 +445,7 @@ query "namespace_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      coalesce(uid, concat(path, ':', start_line)) as value,
       json_build_object(
         'context_name', context_name
       ) as tags
@@ -481,12 +481,13 @@ query "namespace_service_count" {
       'Services' as label,
       count(s) as value
     from
-      kubernetes_service as s,
-      kubernetes_namespace as n
+      kubernetes_service as s
+      left join kubernetes_namespace as n on (
+        s.namespace = n.name
+        and (s.context_name = n.context_name or (s.context_name is null and n.context_name is null))
+      )
     where
-      s.namespace = n.name
-      and s.context_name = n.context_name
-      and n.uid = $1;
+      coalesce(n.uid, concat(n.path, ':', n.start_line)) = $1;
   EOQ
 
   param "uid" {}

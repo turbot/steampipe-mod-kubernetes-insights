@@ -46,7 +46,7 @@ query "deployment_replicas_table" {
       ready_replicas as "Ready Replicas",
       unavailable_replicas as "Unavailable Replicas",
       context_name as "Context Name",
-      uid as "UID"
+      coalesce(uid, concat(path, ':', start_line)) as "UID"
     from
       kubernetes_deployment
     order by

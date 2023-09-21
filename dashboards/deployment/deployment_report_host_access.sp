@@ -54,7 +54,7 @@ query "deployment_host_table" {
       case when template -> 'spec' ->> 'hostPID' = 'true' then 'Enabled' else 'Disabled' end as "Host PID",
       case when template -> 'spec' ->> 'hostIPC' = 'true' then 'Enabled' else 'Disabled' end as "Host IPC",
       context_name as "Context Name",
-      uid as "UID"
+      coalesce(uid, concat(path, ':', start_line)) as "UID"
     from
       kubernetes_deployment
     order by

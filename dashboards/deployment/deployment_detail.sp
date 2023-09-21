@@ -303,7 +303,7 @@ query "deployment_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      coalesce(uid, concat(path, ':', start_line)) as value,
       json_build_object(
         'namespace', namespace,
         'context_name', context_name
@@ -323,14 +323,14 @@ query "deployment_default_namespace" {
       'Namespace' as label,
       initcap(namespace) as value,
       case when namespace = 'default' then 'alert' else 'ok' end as type,
-      n.uid as "UID"
+      coalesce(n.uid, concat(n.path, ':', n.start_line)) as "UID"
     from
       kubernetes_deployment as d,
       kubernetes_namespace as n
     where
       n.name = d.namespace
       and n.context_name = d.context_name
-      and d.uid = $1;
+      and coalesce(d.uid, concat(d.path, ':', d.start_line)) = $1;
   EOQ
 
   param "uid" {}
@@ -345,7 +345,7 @@ query "deployment_replica" {
     from
       kubernetes_deployment
     where
-     uid = $1;
+     coalesce(uid, concat(path, ':', start_line)) = $1;
   EOQ
 
   param "uid" {}
@@ -360,7 +360,7 @@ query "deployment_container_host_network" {
     from
       kubernetes_deployment
     where
-      uid = $1;
+      coalesce(uid, concat(path, ':', start_line)) = $1;
   EOQ
 
   param "uid" {}
@@ -375,7 +375,7 @@ query "deployment_container_host_pid" {
     from
       kubernetes_deployment
     where
-      uid = $1;
+      coalesce(uid, concat(path, ':', start_line)) = $1;
   EOQ
 
   param "uid" {}
@@ -390,7 +390,7 @@ query "deployment_container_host_ipc" {
     from
       kubernetes_deployment
     where
-      uid = $1;
+      coalesce(uid, concat(path, ':', start_line)) = $1;
   EOQ
 
   param "uid" {}
@@ -418,7 +418,7 @@ query "containers_for_deployment" {
 query "pods_for_deployment" {
   sql = <<-EOQ
     select
-      pod.uid as uid
+      coalesce(pod.uid, concat(pod.path, ':', pod.start_line)) as uid
     from
       kubernetes_replicaset as rs,
       jsonb_array_elements(rs.owner_references) as rs_owner,
@@ -434,7 +434,7 @@ query "pods_for_deployment" {
 query "services_for_deployment" {
   sql = <<-EOQ
     select
-      s.uid as uid
+      coalesce(s.uid, concat(s.path, ':', s.start_line)) as uid
     from
       kubernetes_replicaset as rs,
       jsonb_array_elements(rs.owner_references) as rs_owner,
@@ -452,7 +452,7 @@ query "services_for_deployment" {
 query "nodes_for_deployment" {
   sql = <<-EOQ
     select
-      n.uid as uid
+      coalesce(n.uid, concat(n.path, ':', n.start_line)) as uid
     from
       kubernetes_replicaset as rs,
       jsonb_array_elements(rs.owner_references) as rs_owner,
@@ -470,7 +470,7 @@ query "nodes_for_deployment" {
 query "replicasets_for_deployment" {
   sql = <<-EOQ
     select
-      uid
+      coalesce(uid, concat(path, ':', start_line)) as uid
     from
       kubernetes_replicaset as r,
       jsonb_array_elements(r.owner_references) as owner
@@ -485,18 +485,21 @@ query "deployment_overview" {
   sql = <<-EOQ
     select
       d.name as "Name",
-      d.uid as "UID",
+      coalesce(d.uid, concat(d.path, ':', d.start_line)) as "UID",
       d.creation_timestamp as "Create Time",
-      n.uid as "Namespace UID",
+      coalesce(n.uid, concat(n.path, ':', n.start_line)) as "Namespace UID",
       n.name as "Namespace",
       d.context_name as "Context Name"
     from
-      kubernetes_deployment as d,
-      kubernetes_namespace as n
+      kubernetes_deployment as d
+      left join kubernetes_namespace as n on (
+        d.namespace = n.name
+        -- for manifest context_name is null and in sql null=null returns null
+        -- so, check if manifest, check if both deployment and namespace has context_name as null 
+        and (d.context_name = n.context_name or (n.context_name is null and d.context_name is null))
+      )
     where
-      n.name = d.namespace
-      and n.context_name = d.context_name
-      and d.uid = $1;
+      coalesce(d.uid, concat(d.path, ':', d.start_line)) = $1;
   EOQ
 
   param "uid" {}
@@ -510,7 +513,7 @@ query "deployment_labels" {
    from
      kubernetes_deployment
    where
-     uid = $1
+     coalesce(uid, concat(path, ':', start_line)) = $1
    )
    select
      key as "Key",
@@ -533,7 +536,7 @@ query "deployment_annotations" {
    from
      kubernetes_deployment
    where
-     uid = $1
+     coalesce(uid, concat(path, ':', start_line)) = $1
    )
    select
      key as "Key",
@@ -561,7 +564,7 @@ query "deployment_conditions" {
       kubernetes_deployment,
       jsonb_array_elements(conditions) as c
     where
-      uid = $1
+      coalesce(uid, concat(path, ':', start_line)) = $1
     order by
       c ->> 'lastTransitionTime' desc;
   EOQ
@@ -578,7 +581,7 @@ query "deployment_strategy" {
     from
       kubernetes_deployment
     where
-      uid = $1;
+      coalesce(uid, concat(path, ':', start_line)) = $1;
   EOQ
 
   param "uid" {}
@@ -592,7 +595,7 @@ query "deployment_replicas_detail" {
     from
       kubernetes_deployment
     where
-      uid = $1
+      coalesce(uid, concat(path, ':', start_line)) = $1
     union all
     select
       case when unavailable_replicas <> 0 then 'unavailable replicas' end as label,
@@ -600,7 +603,7 @@ query "deployment_replicas_detail" {
     from
       kubernetes_deployment
     where
-      uid = $1;
+      coalesce(uid, concat(path, ':', start_line)) = $1;
   EOQ
 
   param "uid" {}
@@ -610,7 +613,7 @@ query "deployment_replicasets_detail" {
   sql = <<-EOQ
     select
       name as "Name",
-      uid as "UID",
+      coalesce(uid, concat(path, ':', start_line)) as "UID",
       min_ready_seconds as "Min Ready Seconds",
       creation_timestamp as "Create Time"
     from
@@ -629,7 +632,7 @@ query "deployment_pods_detail" {
   sql = <<-EOQ
     select
       pod.name as "Name",
-      pod.uid as "UID",
+      coalesce(pod.uid, concat(pod.path, ':', pod.start_line)) as "UID",
       pod.restart_policy as "Restart Policy",
       pod.node_name as "Node Name"
     from
@@ -654,20 +657,20 @@ query "deployment_tree" {
     -- This deployment
     select
       null as from_id,
-      uid as id,
+      coalesce(uid, concat(path, ':', start_line)) as id,
       name as title,
       0 as depth,
       'deployment' as category
     from
       kubernetes_deployment
     where
-      uid = $1
+      coalesce(uid, concat(path, ':', start_line)) = $1
 
     -- replicasets owned by the deployment
     union all
     select
       $1 as from_id,
-      uid as id,
+      coalesce(uid, concat(path, ':', start_line)) as id,
       name as title,
       1 as depth,
       'replicaset' as category
@@ -681,7 +684,7 @@ query "deployment_tree" {
     union all
     select
       pod_owner ->> 'uid'  as from_id,
-      pod.uid as id,
+      coalesce(pod.uid, concat(pod.path, ':', pod.start_line)) as id,
       pod.name as title,
       2 as depth,
       'pod' as category
@@ -698,8 +701,8 @@ query "deployment_tree" {
     -- containers in Pods owned by the replicasets
     union all
     select
-      pod.uid  as from_id,
-      concat(pod.uid, '_', container ->> 'name') as id,
+      coalesce(pod.uid, concat(pod.path, ':', pod.start_line)) as from_id,
+      concat(coalesce(pod.uid, concat(pod.path, ':', pod.start_line)), '_', container ->> 'name') as id,
       container ->> 'name' as title,
       3 as depth,
       'container' as category
