@@ -14,9 +14,8 @@ mod "kubernetes_insights" {
   }
 
   require {
-    steampipe = "0.18.0"
     plugin "kubernetes" {
-      version = "0.15.0"
+      min_version = "0.15.0"
     }
   }
 }
