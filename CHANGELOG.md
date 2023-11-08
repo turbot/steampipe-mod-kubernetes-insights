@@ -4,6 +4,10 @@ _Breaking changes_
 
 - Updated the plugin dependency section of the mod to use `min_version` instead of `version`. ([#52](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/52))
 
+_Bug fixes_
+
+- Fixed dashboard localhost URLs in README and index doc. ([#48](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/48))
+
 ## v0.4 [2023-03-23]
 
 _What's new?_
