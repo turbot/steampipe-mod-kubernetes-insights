@@ -1,3 +1,13 @@
+## v0.5 [2023-11-03]
+
+_Breaking changes_
+
+- Updated the plugin dependency section of the mod to use `min_version` instead of `version`. ([#52](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/52))
+
+_Bug fixes_
+
+- Fixed dashboard localhost URLs in README and index doc. ([#48](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/48))
+
 ## v0.4 [2023-03-23]
 
 _What's new?_
@@ -32,8 +42,8 @@ _What's new?_
 
 - Added resource relationship graphs across all the detail dashboards to highlight the relationship the resource shares with other resources. ([#36](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/36))
 - New dashboards added: ([#36](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/36))
-  - [Kubernetes Cluster Role Detail](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.cluster_role_detail) 
-  - [Kubernetes Role Detail](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.role_detail) 
+  - [Kubernetes Cluster Role Detail](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.cluster_role_detail)
+  - [Kubernetes Role Detail](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.role_detail)
   - [Kubernetes StatefulSet Detail](https://hub.steampipe.io/mods/turbot/kubernetes_insights/dashboards/dashboard.statefulset_detail)
 
 ## v0.1 [2022-05-16]
