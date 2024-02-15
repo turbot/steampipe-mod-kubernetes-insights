@@ -1,3 +1,9 @@
+## v0.6 [2024-02-15]
+
+_Bug fixes_
+
+- Removed duplicate node `service_account`. ([#56](https://github.com/turbot/steampipe-mod-kubernetes-insights/pull/56))
+
 ## v0.5 [2023-11-03]
 
 _Breaking changes_
