@@ -73,7 +73,7 @@ graph "rbac_resource_structure" {
     args = [param.role_binding_uids]
   }
 
-  node "user" {
+  node "user_rbac" {
     category = category.user
 
     sql = <<-EOQ
@@ -113,7 +113,7 @@ graph "rbac_resource_structure" {
     args = [param.rbac_role_uids]
   }
 
-  node "group" {
+  node "group_rbac" {
     category = category.group
 
     sql = <<-EOQ
