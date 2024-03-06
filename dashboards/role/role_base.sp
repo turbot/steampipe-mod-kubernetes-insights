@@ -1,7 +1,7 @@
 graph "role_resource_structure" {
   param "role_uids" {}
 
-  node "user" {
+  node "user_role" {
     category = category.user
 
     sql = <<-EOQ
@@ -25,7 +25,7 @@ graph "role_resource_structure" {
     args = [param.role_uids]
   }
 
-  node "group" {
+  node "group_role" {
     category = category.group
 
     sql = <<-EOQ
