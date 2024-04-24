@@ -12,8 +12,8 @@ node "role" {
       ) as properties
     from
       kubernetes_role
-    where
-      uid = any($1);
+      join
+      unnest($1::text[]) as u on context_name = split_part(u, '/', 2) and uid = split_part(u, '/', 1);
   EOQ
 
   param "role_uids" {}
@@ -30,7 +30,7 @@ node "role_rule_resource_name" {
       jsonb_array_elements($1 :: jsonb) as rule,
       jsonb_array_elements_text(rule -> 'verbs') as verb,
       jsonb_array_elements_text(rule -> 'resources') as resource,
-      jsonb_array_elements_text(coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as resource_name
+      jsonb_array_elements_text(coalesce(rule -> 'resourceNames', '["*"]'::jsonb)) as resource_name;
   EOQ
 
   param "rules" {}
@@ -49,7 +49,7 @@ node "role_rule_verb_and_resource" {
     from
       jsonb_array_elements($1 :: jsonb) as rule,
       jsonb_array_elements_text(rule -> 'verbs') as verb,
-      jsonb_array_elements_text(rule -> 'resources') as resource
+      jsonb_array_elements_text(rule -> 'resources') as resource;
   EOQ
 
   param "rules" {}

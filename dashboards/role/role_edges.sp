@@ -4,7 +4,7 @@ edge "role_rule_to_verb_and_resource" {
   sql = <<-EOQ
     select
       concat('verb:',verb,':resource:',resource) as to_id,
-      $2 as from_id
+      split_part($2, '/', 1) as from_id
     from
       jsonb_array_elements($1 :: jsonb) as rule,
       jsonb_array_elements_text(rule -> 'verbs') as verb,

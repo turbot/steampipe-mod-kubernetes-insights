@@ -175,7 +175,7 @@ query "cluster_role_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      uid || '/' || context_name as value,
       json_build_object(
         'context_name', context_name
       ) as tags
@@ -197,7 +197,8 @@ query "cluster_role_rules_count" {
       kubernetes_cluster_role,
       jsonb_array_elements(rules) as r
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -219,7 +220,7 @@ query "service_accounts_for_cluster_role" {
       and s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
       and a.context_name = r.context_name
-      and r.uid = $1;
+      and r.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -233,7 +234,7 @@ query "cluster_role_bindings_for_cluster_role" {
     where
       r.name = b.role_name
       and b.context_name = r.context_name
-      and r.uid = $1;
+      and r.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -244,7 +245,8 @@ query "cluster_role_rules_for_cluster_role" {
     from
       kubernetes_cluster_role
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -261,7 +263,8 @@ query "cluster_role_overview" {
     from
       kubernetes_cluster_role as r
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -275,7 +278,8 @@ query "cluster_role_labels" {
    from
      kubernetes_cluster_role
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -298,7 +302,8 @@ query "cluster_role_annotations" {
    from
      kubernetes_cluster_role
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -324,7 +329,8 @@ query "cluster_role_rules_detail" {
       kubernetes_cluster_role,
       jsonb_array_elements(rules) as r
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}

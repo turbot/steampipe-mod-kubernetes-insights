@@ -194,7 +194,7 @@ query "role_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      uid || '/' || context_name as value,
       json_build_object(
         'context_name', context_name
       ) as tags
@@ -219,8 +219,8 @@ query "role_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
-      and n.context_name = r.context_name
-      and r.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and r.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -235,7 +235,8 @@ query "role_rules_count" {
       kubernetes_role,
       jsonb_array_elements(rules) as r
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -254,10 +255,10 @@ query "service_accounts_for_role" {
       jsonb_array_elements(subjects) as s
     where
       b.role_name = r.name
-      and a.context_name = r.context_name
+      and a.context_name = split_part($1, '/', 2)
       and s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
-      and r.uid = $1;
+      and r.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -270,8 +271,8 @@ query "role_bindings_for_role" {
       kubernetes_role as r
     where
       r.name = b.role_name
-      and b.context_name = r.context_name
-      and r.uid = $1;
+      and b.context_name = split_part($1, '/', 2)
+      and r.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -282,7 +283,8 @@ query "role_rules_for_cluster_role" {
     from
       kubernetes_role
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -303,8 +305,8 @@ query "role_overview" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
-      and n.context_name = r.context_name
-      and r.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and r.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -318,7 +320,8 @@ query "role_labels" {
    from
      kubernetes_role
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+    and context_name = split_part($1, '/', 2);
    )
    select
      key as "Key",
@@ -341,7 +344,8 @@ query "role_annotations" {
    from
      kubernetes_role
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2);
    )
    select
      key as "Key",
@@ -367,7 +371,8 @@ query "role_rules_detail" {
       kubernetes_role,
       jsonb_array_elements(rules) as r
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
