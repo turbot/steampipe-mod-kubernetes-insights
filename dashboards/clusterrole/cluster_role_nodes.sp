@@ -12,7 +12,7 @@ node "cluster_role" {
       ) as properties
     from
       kubernetes_cluster_role
-      join
+      join 
       unnest($1::text[]) as u on context_name = split_part(u, '/', 2) and uid = split_part(u, '/', 1);
   EOQ
 

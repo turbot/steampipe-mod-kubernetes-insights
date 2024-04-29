@@ -183,7 +183,7 @@ query "service_account_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      uid || '/' || context_name as value,
       json_build_object(
         'context_name', context_name
       ) as tags
@@ -208,8 +208,8 @@ query "service_account_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
-      and n.context_name = r.context_name
-      and r.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and r.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -224,7 +224,8 @@ query "service_account_automount_token" {
     from
       kubernetes_service_account
     where
-     uid = $1;
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -241,8 +242,8 @@ query "pods_for_service_account" {
       kubernetes_pod as p
     where
       p.service_account_name = s.name
-      and s.context_name = p.context_name
-      and s.uid = $1;
+      and p.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -259,8 +260,8 @@ query "roles_for_service_account" {
       b.role_name = r.name
       and s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
-      and a.context_name = r.context_name
-      and a.uid = $1;
+      and r.context_name = split_part($1, '/', 2)
+      and a.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -275,8 +276,8 @@ query "role_bindings_for_service_account" {
     where
       s ->> 'kind' = 'ServiceAccount'
       and s ->> 'name' = a.name
-      and a.context_name = b.context_name
-      and a.uid = $1;
+      and b.context_name = split_part($1, '/', 2)
+      and a.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -290,8 +291,8 @@ query "secrets_for_service_account" {
       jsonb_array_elements(secrets) as se
     where
       se ->> 'name' = s.name
-      and a.context_name = s.context_name
-      and a.uid = $1;
+      and s.context_name = split_part($1, '/', 2)
+      and a.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -312,8 +313,8 @@ query "service_account_overview" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
-      and n.context_name = s.context_name
-      and s.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -327,7 +328,8 @@ query "service_account_labels" {
    from
      kubernetes_service_account
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -350,7 +352,8 @@ query "service_account_annotations" {
    from
      kubernetes_service_account
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -376,7 +379,8 @@ query "service_account_rules_detail" {
       kubernetes_service_account,
       jsonb_array_elements(rules) as r
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}

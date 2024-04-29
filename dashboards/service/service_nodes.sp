@@ -16,9 +16,9 @@ node "service" {
       ) as properties
     from
       kubernetes_service,
-      jsonb_array_elements(ports) as p
-    where
-      uid = any($1);
+    cross join lateral jsonb_array_elements(ports) as p
+    join
+      unnest($1::text[]) as u on context_name = split_part(u, '/', 2) and uid = split_part(u, '/', 1);
   EOQ
 
   param "service_uids" {}
@@ -33,9 +33,9 @@ node "service_load_balancer" {
       l ->> 'ip' as title
     from
       kubernetes_service,
-      jsonb_array_elements(load_balancer_ingress) as l
-    where
-      uid = any($1)
+      cross join lateral jsonb_array_elements(load_balancer_ingress) as l
+    join
+      unnest($1::text[]) as u on context_name = split_part(u, '/', 2) and uid = split_part(u, '/', 1)
       and name not in
       (
       select

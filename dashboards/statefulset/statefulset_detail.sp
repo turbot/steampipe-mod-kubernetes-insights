@@ -265,7 +265,7 @@ query "statefulset_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      uid || '/' || context_name as value,
       json_build_object(
         'namespace', namespace,
         'context_name', context_name
@@ -287,7 +287,8 @@ query "statefulset_service_name" {
     from
       kubernetes_stateful_set
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -301,7 +302,8 @@ query "statefulset_replicas" {
     from
       kubernetes_stateful_set
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -319,8 +321,8 @@ query "statefulset_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
-      and n.context_name = s.context_name
-      and s.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -335,7 +337,8 @@ query "statefulset_container_host_network" {
     from
       kubernetes_stateful_set
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -350,7 +353,8 @@ query "statefulset_container_host_pid" {
     from
       kubernetes_stateful_set
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -365,7 +369,8 @@ query "statefulset_container_host_ipc" {
     from
       kubernetes_stateful_set
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -382,7 +387,8 @@ query "statefulset_containers" {
       jsonb_array_elements(pod.owner_references) as pod_owner,
       jsonb_array_elements(pod.containers) as container
     where
-      pod_owner ->> 'uid' = $1;
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -394,7 +400,8 @@ query "pods_for_statefulset" {
       kubernetes_pod as pod,
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      pod_owner ->> 'uid' = $1;
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -408,8 +415,9 @@ query "nodes_for_statefulset" {
       kubernetes_node as n
     where
       n.name = pod.node_name
-      and pod.context_name = n.context_name
-      and pod_owner ->> 'uid' = $1;
+      and pod.context_name = split_part($1, '/', 2)
+      and n.context_name = split_part($1, '/', 2)
+      and pod_owner ->> 'uid' = split_part($1, '/', 1);
   EOQ
 }
 
@@ -422,8 +430,8 @@ query "services_for_statefulset" {
       kubernetes_service as s
     where
       st.service_name = s.name
-      and s.context_name = st.context_name
-      and st.uid = $1;
+      and s.context_name = split_part($1, '/', 2)
+      and st.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -443,8 +451,8 @@ query "statefulset_overview" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
-      and n.context_name = s.context_name
-      and s.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -458,7 +466,8 @@ query "statefulset_labels" {
    from
      kubernetes_stateful_set
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -481,7 +490,8 @@ query "statefulset_annotations" {
    from
      kubernetes_stateful_set
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -504,7 +514,8 @@ query "statefulset_strategy" {
     from
       kubernetes_stateful_set
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -522,7 +533,8 @@ query "statefulset_conditions" {
       kubernetes_stateful_set,
       jsonb_array_elements(conditions) as c
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       c ->> 'lastTransitionTime' desc;
   EOQ
@@ -538,7 +550,8 @@ query "statefulset_replicas_detail" {
     from
       kubernetes_stateful_set
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     union all
     select
       case when updated_replicas <> 0 then 'updated replicas' end as label,
@@ -546,7 +559,8 @@ query "statefulset_replicas_detail" {
     from
       kubernetes_stateful_set
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     union all
     select
       case when ready_replicas <> 0 then 'ready replicas' end as label,
@@ -554,7 +568,8 @@ query "statefulset_replicas_detail" {
     from
       kubernetes_stateful_set
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     union all
     select
       case when available_replicas <> 0 then 'available replicas' end as label,
@@ -562,7 +577,8 @@ query "statefulset_replicas_detail" {
     from
       kubernetes_stateful_set
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -579,7 +595,8 @@ query "statefulset_pods_detail" {
       kubernetes_pod as pod,
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      pod_owner ->> 'uid' = $1
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       pod.name;
   EOQ
@@ -600,7 +617,8 @@ query "statefulset_tree" {
     from
       kubernetes_stateful_set
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
 
     -- Pods owned by the statefulset
     union all
@@ -614,7 +632,8 @@ query "statefulset_tree" {
       kubernetes_pod as pod,
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      pod_owner ->> 'uid' = $1
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
 
 
     -- containers in Pods owned by the statefulset
@@ -630,7 +649,8 @@ query "statefulset_tree" {
       jsonb_array_elements(pod.owner_references) as pod_owner,
       jsonb_array_elements(pod.containers) as container
     where
-      pod_owner ->> 'uid' = $1
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
 

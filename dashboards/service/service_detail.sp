@@ -301,7 +301,7 @@ query "service_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      uid || '/' || context_name as value,
       json_build_object(
         'namespace', namespace,
         'context_name', context_name
@@ -323,7 +323,8 @@ query "service_type" {
     from
       kubernetes_service
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -341,8 +342,8 @@ query "service_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
-      and n.context_name = s.context_name
-      and s.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -359,8 +360,8 @@ query "pods_for_service" {
       kubernetes_pod as p
      where
       p.selector_search = s.selector_query
-      and s.context_name = p.context_name
-      and s.uid = $1;
+      and p.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -373,8 +374,8 @@ query "replicasets_for_service" {
       jsonb_array_elements(pod.owner_references) as pod_owner,
       kubernetes_service as s
     where
-      s.uid = $1
-      and s.context_name = pod.context_name
+      s.uid = split_part($1, '/', 1)
+      and pod.context_name = split_part($1, '/', 2)
       and pod.selector_search = s.selector_query;
   EOQ
 }
@@ -388,8 +389,8 @@ query "statefulsets_for_service" {
       kubernetes_service as s
     where
       st.service_name = s.name
-      and s.context_name = st.context_name
-      and s.uid = $1
+      and st.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1)
     union
     select
       distinct st.uid as uid
@@ -399,8 +400,8 @@ query "statefulsets_for_service" {
       jsonb_array_elements(pod.owner_references) as pod_owner,
       kubernetes_service as s
     where
-      s.uid = $1
-      and s.context_name = st.context_name
+      s.uid = split_part($1, '/', 1)
+      and st.context_name = split_part($1, '/', 2)
       and pod_owner ->> 'uid' = st.uid
       and pod.selector_search = s.selector_query;
   EOQ
@@ -417,8 +418,8 @@ query "deployments_for_service" {
       jsonb_array_elements(pod.owner_references) as pod_owner,
       kubernetes_service as s
     where
-      s.uid = $1
-      and s.context_name = rs.context_name
+      s.uid = split_part($1, '/', 1)
+      and rs.context_name = split_part($1, '/', 2)
       and pod_owner ->> 'uid' = rs.uid
       and pod.selector_search = s.selector_query;
   EOQ
@@ -435,8 +436,8 @@ query "ingresses_for_service" {
       jsonb_array_elements(r -> 'http' -> 'paths') as p
     where
       s.name = p -> 'backend' -> 'service' ->> 'name'
-      and s.context_name = i.context_name
-      and s.uid = $1;
+      and i.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -456,8 +457,8 @@ query "service_overview" {
       kubernetes_namespace as n
     where
       n.name = s.namespace
-      and n.context_name = s.context_name
-      and s.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and s.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -471,7 +472,8 @@ query "service_labels" {
    from
      kubernetes_service
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -494,7 +496,8 @@ query "service_annotations" {
    from
      kubernetes_service
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -521,7 +524,8 @@ query "service_ports" {
       kubernetes_service,
       jsonb_array_elements(ports) as p
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       p ->> 'name';
   EOQ
@@ -539,7 +543,8 @@ query "service_pods_detail" {
     from
       kubernetes_pod
     where
-      selector_search in (select selector_query from kubernetes_service where uid = $1)
+      selector_search in (select selector_query from kubernetes_service where uid = split_part($1, '/', 1))
+      and context_name = split_part($1, '/', 2)
     order by
       name;
   EOQ
@@ -557,7 +562,8 @@ query "service_ip_details" {
       kubernetes_service,
       jsonb_array_elements(load_balancer_ingress) as l
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     union
     select
       cluster_ip as "Cluster IP",
@@ -566,7 +572,9 @@ query "service_ip_details" {
     from
       kubernetes_service
     where
-      uid = $1 and load_balancer_ingress is null;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
+      and load_balancer_ingress is null;
   EOQ
 
   param "uid" {}
@@ -581,7 +589,8 @@ query "service_tree" {
     from
       kubernetes_pod
     where
-      selector_search in (select selector_query from kubernetes_service where uid = $1)
+      selector_search in (select selector_query from kubernetes_service where uid = split_part($1, '/', 1))
+      and context_name = split_part($1, '/', 2)
   ),
   services as (
     select
@@ -602,7 +611,8 @@ query "service_tree" {
       jsonb_array_elements(ports) as p,
       jsonb_array_elements(load_balancer_ingress) as l
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     union
     select
       uid,
@@ -621,7 +631,8 @@ query "service_tree" {
       kubernetes_service,
       jsonb_array_elements(ports) as p
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
       and load_balancer_ingress is null
     )
 
