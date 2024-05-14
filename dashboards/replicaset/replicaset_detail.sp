@@ -261,7 +261,7 @@ query "replicaset_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      uid || '/' || context_name as value,
       json_build_object(
         'namespace', namespace,
         'context_name', context_name
@@ -287,8 +287,8 @@ query "replicaset_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
-      and n.context_name = r.context_name
-      and r.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and r.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -303,7 +303,8 @@ query "replicaset_container_host_network" {
     from
       kubernetes_replicaset
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -318,7 +319,8 @@ query "replicaset_container_host_pid" {
     from
       kubernetes_replicaset
     where
-      uid = $1;
+      uid = $1
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -333,7 +335,8 @@ query "replicaset_container_host_ipc" {
     from
       kubernetes_replicaset
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -350,7 +353,8 @@ query "containers_for_replicaset" {
       jsonb_array_elements(pod.owner_references) as pod_owner,
       jsonb_array_elements(pod.containers) as container
     where
-      pod_owner ->> 'uid' = $1;
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -362,7 +366,8 @@ query "pods_for_replicaset" {
       kubernetes_pod as pod,
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      pod_owner ->> 'uid' = $1;
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -376,8 +381,9 @@ query "nodes_for_replicaset" {
       kubernetes_node as n
     where
       n.name = pod.node_name
-      and pod.context_name = n.context_name
-      and pod_owner ->> 'uid' = $1;
+      and pod.context_name = split_part($1, '/', 2)
+      and n.context_name = split_part($1, '/', 2)
+      and pod_owner ->> 'uid' = split_part($1, '/', 1);
   EOQ
 }
 
@@ -389,7 +395,8 @@ query "deployments_for_replicaset" {
       kubernetes_replicaset as r,
       jsonb_array_elements(r.owner_references) as owner
     where
-      r.uid = $1;
+      r.uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -402,8 +409,9 @@ query "services_for_replicaset" {
       jsonb_array_elements(pod.owner_references) as pod_owner,
       kubernetes_service as s
     where
-      pod_owner ->> 'uid' = $1
-      and s.context_name = pod.context_name
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and s.context_name = split_part($1, '/', 2)
+      and pod.context_name = split_part($1, '/', 2)
       and pod.selector_search = s.selector_query;
   EOQ
 }
@@ -424,8 +432,8 @@ query "replicaset_overview" {
       kubernetes_namespace as n
     where
       n.name = r.namespace
-      and n.context_name = r.context_name
-      and r.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and r.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -439,7 +447,8 @@ query "replicaset_labels" {
    from
      kubernetes_replicaset
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -462,7 +471,8 @@ query "replicaset_annotations" {
    from
      kubernetes_replicaset
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -490,7 +500,8 @@ query "replicaset_conditions" {
       kubernetes_replicaset,
       jsonb_array_elements(conditions) as c
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       c ->> 'lastTransitionTime' desc;
   EOQ
@@ -506,7 +517,8 @@ query "replicaset_replicas_detail" {
     from
       kubernetes_replicaset
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     union all
     select
       case when fully_labeled_replicas <> 0 then 'fully labeled replicas' end as label,
@@ -514,7 +526,8 @@ query "replicaset_replicas_detail" {
     from
       kubernetes_replicaset
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     union all
     select
       case when ready_replicas <> 0 then 'ready replicas' end as label,
@@ -522,7 +535,8 @@ query "replicaset_replicas_detail" {
     from
       kubernetes_replicaset
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     union all
     select
       case when available_replicas <> 0 then 'available replicas' end as label,
@@ -530,7 +544,8 @@ query "replicaset_replicas_detail" {
     from
       kubernetes_replicaset
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -547,7 +562,8 @@ query "replicaset_pods_detail" {
       kubernetes_pod as pod,
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      pod_owner ->> 'uid' = $1
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       pod.name;
   EOQ
@@ -568,7 +584,8 @@ query "replicaset_tree" {
     from
       kubernetes_replicaset
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
 
     -- Pods owned by the replicaset
     union all
@@ -582,7 +599,8 @@ query "replicaset_tree" {
       kubernetes_pod as pod,
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      pod_owner ->> 'uid' = $1
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
 
 
     -- containers in Pods owned by the replicaset
@@ -598,10 +616,10 @@ query "replicaset_tree" {
       jsonb_array_elements(pod.owner_references) as pod_owner,
       jsonb_array_elements(pod.containers) as container
     where
-      pod_owner ->> 'uid' = $1
+      pod_owner ->> 'uid' = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
 
   param "uid" {}
-
 }

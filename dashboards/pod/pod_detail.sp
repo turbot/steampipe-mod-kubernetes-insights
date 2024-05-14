@@ -470,7 +470,7 @@ query "pod_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      uid || '/' || context_name as value,
       json_build_object(
         'namespace', namespace,
         'context_name', context_name
@@ -491,7 +491,8 @@ query "pod_status" {
     from
       kubernetes_pod
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -506,7 +507,8 @@ query "pod_container" {
       kubernetes_pod,
       jsonb_array_elements(containers) as c
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -524,8 +526,8 @@ query "pod_default_namespace" {
       kubernetes_namespace as n
     where
       n.name = p.namespace
-      and n.context_name = p.context_name
-      and p.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and p.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -540,7 +542,8 @@ query "pod_container_host_network" {
     from
       kubernetes_pod
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -555,7 +558,8 @@ query "pod_container_host_pid" {
     from
       kubernetes_pod
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -570,7 +574,8 @@ query "pod_container_host_ipc" {
     from
       kubernetes_pod
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -586,7 +591,8 @@ query "containers_for_pod" {
       kubernetes_pod as p,
       jsonb_array_elements(p.containers) as container
     where
-      p.uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -598,7 +604,8 @@ query "init_containers_for_pod" {
       kubernetes_pod as p,
       jsonb_array_elements(p.init_containers) as container
     where
-      p.uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -619,8 +626,8 @@ query "persistent_volumes_for_pod" {
       from kubernetes_pod,
       jsonb_array_elements(containers) as c,
       jsonb_array_elements(c -> 'volumeMounts') as v)
-      and p.context_name = pv.context_name
-      and p.uid = $1;
+      and pv.context_name = split_part($1, '/', 2)
+      and p.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -641,8 +648,8 @@ query "pod_persistent_volume_claims" {
       from kubernetes_pod,
       jsonb_array_elements(containers) as c,
       jsonb_array_elements(c -> 'volumeMounts') as v)
-      and p.context_name = c.context_name
-      and p.uid = $1;
+      and c.context_name = split_part($1, '/', 2)
+      and p.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -657,14 +664,14 @@ query "configmaps_for_pod" {
       on v -> 'configMap' ->> 'name' = c.name
     where
       c.uid is not null
-      and p.context_name = c.context_name
+      and c.context_name = split_part($1, '/', 2)
       and v ->> 'name' in
       (select
         v ->> 'name'
       from kubernetes_pod,
       jsonb_array_elements(containers) as c,
       jsonb_array_elements(c -> 'volumeMounts') as v)
-      and p.uid = $1;
+      and p.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -679,14 +686,14 @@ query "secrets_for_pod" {
       on v -> 'secret' ->> 'secretName' = s.name
     where
       s.uid is not null
-      and p.context_name = s.context_name
+      and s.context_name = split_part($1, '/', 2)
       and v ->> 'name' in
       (select
         v ->> 'name'
       from kubernetes_pod,
       jsonb_array_elements(containers) as c,
       jsonb_array_elements(c -> 'volumeMounts') as v)
-      and p.uid = $1;
+      and p.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -700,8 +707,8 @@ query "daemonsets_for_pod" {
       jsonb_array_elements(p.owner_references) as pod_owner
     where
       pod_owner ->> 'uid' = d.uid
-      and p.context_name = d.context_name
-      and p.uid = $1;
+      and d.context_name = split_part($1, '/', 2)
+      and p.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -715,8 +722,8 @@ query "jobs_for_pod" {
       jsonb_array_elements(p.owner_references) as pod_owner
     where
       pod_owner ->> 'uid' = j.uid
-      and p.context_name = j.context_name
-      and p.uid = $1;
+      and j.context_name = split_part($1, '/', 2)
+      and p.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -729,7 +736,8 @@ query "replicasets_for_pod" {
       jsonb_array_elements(p.owner_references) as pod_owner
     where
       pod_owner ->> 'kind' = 'ReplicaSet'
-      and p.uid = $1;
+      and p.uid = split_part($1, '/', 1)
+      and p.context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -743,8 +751,8 @@ query "deployments_for_pod" {
       kubernetes_pod as pod,
       jsonb_array_elements(pod.owner_references) as pod_owner
     where
-      pod.uid = $1
-      and rs.context_name = pod.context_name
+      pod.uid = split_part($1, '/', 1)
+      and rs.context_name = split_part($1, '/', 2)
       and pod_owner ->> 'uid' = rs.uid;
   EOQ
 }
@@ -759,8 +767,8 @@ query "statefulsets_for_pod" {
       jsonb_array_elements(p.owner_references) as pod_owner
     where
       pod_owner ->> 'uid' = s.uid
-      and s.context_name = p.context_name
-      and p.uid = $1;
+      and s.context_name = split_part($1, '/', 2)
+      and p.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -773,9 +781,9 @@ query "service_accounts_for_pod" {
       kubernetes_pod as p
     where
       p.service_account_name = s.name
-      and s.context_name = p.context_name
-      and s.namespace in (select namespace from kubernetes_pod where uid = $1)
-      and p.uid = $1;
+      and s.context_name = split_part($1, '/', 2)
+      and s.namespace in (select namespace from kubernetes_pod where uid = split_part($1, '/', 1))
+      and p.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -795,8 +803,8 @@ query "pod_overview" {
       kubernetes_namespace as n
     where
       n.name = p.namespace
-      and n.context_name = p.context_name
-      and p.uid = $1;
+      and n.context_name = split_part($1, '/', 2)
+      and p.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -810,7 +818,8 @@ query "pod_labels" {
    from
      kubernetes_pod
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -833,7 +842,8 @@ query "pod_annotations" {
    from
      kubernetes_pod
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -859,7 +869,8 @@ query "pod_conditions" {
       kubernetes_pod,
       jsonb_array_elements(conditions) as c
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       c ->> 'lastTransitionTime' desc;
   EOQ
@@ -881,9 +892,9 @@ query "pod_configuration" {
       kubernetes_pod as p
       left join kubernetes_node as n
       on p.node_name = n.name
-      and p.context_name = n.context_name
+      and n.context_name = split_part($1, '/', 2)
     where
-      p.uid = $1;
+      p.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -901,7 +912,8 @@ query "pod_init_containers_detail" {
       kubernetes_pod,
       jsonb_array_elements(init_containers) as c
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       c ->> 'name';
   EOQ
@@ -919,7 +931,8 @@ query "pod_volumes" {
       kubernetes_pod,
       jsonb_array_elements(volumes) as v
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       v ->> 'name';
   EOQ
@@ -938,7 +951,8 @@ query "pod_container_basic_detail" {
       kubernetes_pod,
       jsonb_array_elements(containers) as c
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       c ->> 'name';
   EOQ
@@ -956,7 +970,8 @@ query "pod_container_cpu_detail" {
       kubernetes_pod,
       jsonb_array_elements(containers) as c
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       c ->> 'name';
   EOQ
@@ -974,7 +989,8 @@ query "pod_container_memory_detail" {
       kubernetes_pod,
       jsonb_array_elements(containers) as c
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
       c ->> 'name';
   EOQ

@@ -15,8 +15,9 @@ node "pod" {
       ) as properties
     from
       kubernetes_pod
-    where
-      uid = any($1);
+      join
+      unnest($1::text[]) as u on context_name = split_part(u, '/', 2)
+      and uid = split_part(u, '/', 1);
   EOQ
 
   param "pod_uids" {}

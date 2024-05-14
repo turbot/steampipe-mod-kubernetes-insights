@@ -306,7 +306,7 @@ query "service_input" {
         'namespace', namespace,
         'context_name', context_name
       ) as tags
-    from
+    from 
       kubernetes_service
     order by
       title;

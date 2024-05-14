@@ -14,8 +14,9 @@ node "replicaset" {
       ) as properties
     from
       kubernetes_replicaset
-    where
-      uid = any($1);
+      join
+      unnest($1::text[]) as u on context_name = split_part(u, '/', 2)
+      and uid = split_part(u, '/', 1);
   EOQ
 
   param "replicaset_uids" {}

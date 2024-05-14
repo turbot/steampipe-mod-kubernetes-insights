@@ -6,14 +6,12 @@ edge "service_to_statefulset" {
       s.uid as from_id,
       st.uid as to_id
     from
-      kubernetes_stateful_set as st,
-      kubernetes_service as s,
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner
+      kubernetes_service as s
+      join unnest($1::text[]) as u on s.uid = split_part(u, '/', 1)
+      join kubernetes_stateful_set as st on st.context_name = split_part(u, '/', 2) and (st.service_name = s.name or st.uid = any(select value ->> 'uid' from jsonb_array_elements(pod.owner_references)))
+      join kubernetes_pod as pod on pod.selector_search = s.selector_query
     where
-      (st.service_name = s.name or pod_owner ->> 'uid' = st.uid)
-      and s.context_name = st.context_name
-      and s.uid = any($1);
+      pod.context_name = split_part(u, '/', 2);
   EOQ
 
   param "service_uids" {}
@@ -27,16 +25,14 @@ edge "service_to_deployment" {
       s.uid as from_id,
       rs_owner ->> 'uid' as to_id
     from
-      kubernetes_replicaset as rs,
-      jsonb_array_elements(rs.owner_references) as rs_owner,
-      kubernetes_pod as pod,
-      jsonb_array_elements(pod.owner_references) as pod_owner,
       kubernetes_service as s
+      join unnest($1::text[]) as u on s.uid = split_part(u, '/', 1)
+      join kubernetes_replicaset as rs on rs.context_name = split_part(u, '/', 2)
+      join jsonb_array_elements(rs.owner_references) as rs_owner on true
+      join kubernetes_pod as pod on pod.selector_search = s.selector_query
+      join jsonb_array_elements(pod.owner_references) as pod_owner on pod_owner ->> 'uid' = rs.uid
     where
-      s.uid = any($1)
-      and rs.context_name = s.context_name
-      and pod_owner ->> 'uid' = rs.uid
-      and pod.selector_search = s.selector_query;
+      pod.context_name = split_part(u, '/', 2);
   EOQ
 
   param "service_uids" {}
@@ -50,12 +46,12 @@ edge "service_to_pod" {
       s.uid as from_id,
       p.uid as to_id
     from
-      kubernetes_service as s,
-      kubernetes_pod as p
-     where
-      p.selector_search = s.selector_query
-      and p.context_name = s.context_name
-      and s.uid = any($1);
+      kubernetes_service as s
+      join
+      kubernetes_pod as p on p.selector_search = s.selector_query
+      join
+      unnest($1::text[]) as u on p.context_name = split_part(u, '/', 2)
+      and s.uid = split_part(u, '/', 1);
   EOQ
 
   param "service_uids" {}
@@ -70,9 +66,11 @@ edge "service_load_balancer_to_service" {
       uid as to_id
     from
       kubernetes_service,
-      jsonb_array_elements(load_balancer_ingress) as l
-    where
-      uid = any($1);
+      join
+      jsonb_array_elements(load_balancer_ingress) as l on true
+      join
+      unnest($1::text[]) as u on context_name = split_part(u, '/', 2)
+      and uid = split_part(u, '/', 1);
   EOQ
 
   param "service_uids" {}

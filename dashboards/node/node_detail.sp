@@ -244,7 +244,7 @@ query "node_input" {
   sql = <<-EOQ
     select
       title as label,
-      uid as value,
+      uid || '/' || context_name as value,
       json_build_object(
         'context_name', context_name
       ) as tags
@@ -266,9 +266,9 @@ query "node_pods_count" {
       kubernetes_pod as p
       left join kubernetes_node as n
       on p.node_name = n.name
-      and p.context_name = n.context_name
+      and p.context_name = split_part($1, '/', 2)
     where
-      n.uid = $1;
+      n.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -285,8 +285,8 @@ query "node_containers_count" {
       jsonb_array_elements(p.containers) as c
     where
       p.node_name = n.name
-      and p.context_name = n.context_name
-      and n.uid = $1;
+      and p.context_name = split_part($1, '/', 2)
+      and n.uid = split_part($1, '/', 1);
   EOQ
 
   param "uid" {}
@@ -303,8 +303,8 @@ query "pods_for_node" {
       kubernetes_node as n
     where
       n.name = p.node_name
-      and p.context_name = n.context_name
-      and n.uid = $1;
+      and p.context_name = split_part($1, '/', 2)
+      and n.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -319,8 +319,8 @@ query "endpoints_for_node" {
       jsonb_array_elements(s -> 'addresses') as a
     where
       n.name = a ->> 'nodeName'
-      and e.context_name = n.context_name
-      and n.uid = $1;
+      and e.context_name = split_part($1, '/', 2)
+      and n.uid = split_part($1, '/', 1);
   EOQ
 }
 
@@ -333,7 +333,8 @@ query "volumes_for_node" {
       jsonb_array_elements(volumes_attached) as v
     where
       v ->> 'name' is not null
-      and uid = $1;
+      and uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -344,7 +345,8 @@ query "clusters_for_node" {
     from
       kubernetes_node
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 }
 
@@ -361,7 +363,8 @@ query "node_overview" {
     from
       kubernetes_node
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -375,7 +378,8 @@ query "node_labels" {
    from
      kubernetes_node
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -398,7 +402,8 @@ query "node_annotations" {
    from
      kubernetes_node
    where
-     uid = $1
+     uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2)
    )
    select
      key as "Key",
@@ -423,7 +428,8 @@ query "node_capacity" {
     from
       kubernetes_node
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -439,7 +445,8 @@ query "node_allocatable" {
     from
       kubernetes_node
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+     and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -456,9 +463,9 @@ query "node_pod_details" {
       kubernetes_pod as p
       left join kubernetes_node as n
       on p.node_name = n.name
-      and p.context_name = n.context_name
+      and p.context_name = split_part($1, '/', 2)
     where
-      n.uid = $1
+      n.uid = split_part($1, '/', 1)
     order by
       p.name;
   EOQ
@@ -475,7 +482,8 @@ query "node_addresses" {
       kubernetes_node,
       jsonb_array_elements(addresses) as a
     where
-      uid = $1;
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2);
   EOQ
 
   param "uid" {}
@@ -494,7 +502,8 @@ query "node_conditions" {
       kubernetes_node,
       jsonb_array_elements(conditions) as c
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
     order by
        c ->> 'lastTransitionTime' desc;
   EOQ
@@ -514,7 +523,8 @@ query "node_hierarchy" {
     from
       kubernetes_node
     where
-      uid = $1
+      uid = split_part($1, '/', 1)
+      and context_name = split_part($1, '/', 2)
 
     -- Pods associated by the nodes
     union all
@@ -528,7 +538,8 @@ query "node_hierarchy" {
       kubernetes_node as n
       left join kubernetes_pod as p on p.node_name = n.name
     where
-      n.uid = $1
+      n.uid = split_part($1, '/', 1)
+      and n.context_name = split_part($1, '/', 2)
 
     -- containers in Pods owned by the nodes
     union all
@@ -543,7 +554,8 @@ query "node_hierarchy" {
       kubernetes_pod as p,
       jsonb_array_elements(p.containers) as container
     where
-      n.uid = $1
+      n.uid = split_part($1, '/', 1)
+      and n.context_name = split_part($1, '/', 2)
       and n.name = p.node_name
   EOQ
 

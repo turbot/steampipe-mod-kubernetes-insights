@@ -6,10 +6,11 @@ edge "pod_to_container" {
       p.uid as from_id,
       container ->> 'name' || p.name as to_id
     from
-      kubernetes_pod as p,
-      jsonb_array_elements(p.containers) as container
-    where
-      uid = any($1);
+      kubernetes_pod as p
+      join jsonb_array_elements(p.containers) as container as true
+      join
+      unnest($1::text[]) as u on context_name = split_part(u, '/', 2)
+      and uid = split_part(u, '/', 1);
   EOQ
 
   param "pod_uids" {}
@@ -23,14 +24,12 @@ edge "pod_to_configmap" {
       p.uid as from_id,
       c.uid as to_id
     from
-      kubernetes_pod as p,
-      jsonb_array_elements(volumes) as v
-      left join kubernetes_config_map as c
-      on v -> 'configMap' ->> 'name' = c.name
+      kubernetes_pod as p
+      join unnest($1::text[]) as u on p.uid = split_part(u, '/', 1)
+      join jsonb_array_elements(p.volumes) as v on true
+      left join kubernetes_config_map as c on v -> 'configMap' ->> 'name' = c.name and c.context_name = split_part(u, '/', 2)
     where
-      c.uid is not null
-      and c.context_name = p.context_name
-      and p.uid = any($1);
+      c.uid is not null;
   EOQ
 
   param "pod_uids" {}
@@ -44,12 +43,11 @@ edge "pod_to_service_account" {
       p.uid as from_id,
       s.uid as to_id
     from
-      kubernetes_service_account as s,
-      kubernetes_pod as p
-    where
-      p.service_account_name = s.name
-      and s.context_name = p.context_name
-      and p.uid = any($1);
+      kubernetes_service_account as s
+      join kubernetes_pod as p on p.service_account_name = s.name
+      join
+      unnest($1::text[]) as u on s.context_name = split_part(u, '/', 2)
+      and p.uid = split_part(u, '/', 1);
   EOQ
 
   param "pod_uids" {}
@@ -63,13 +61,12 @@ edge "pod_to_persistent_volume_claim" {
       p.uid as from_id,
       c.uid as to_id
     from
-      kubernetes_pod as p,
-      jsonb_array_elements(volumes) as v
-      left join kubernetes_persistent_volume_claim as c
-      on v -> 'persistentVolumeClaim' ->> 'claimName' = c.name
+      kubernetes_pod as p
+      join unnest($1::text[]) as u on p.uid = split_part(u, '/', 1)
+      join jsonb_array_elements(p.volumes) as v on true
+      left join kubernetes_persistent_volume_claim as c on v -> 'persistentVolumeClaim' ->> 'claimName' = c.name and c.context_name = split_part(u, '/', 2)
     where
-      c.context_name = p.context_name
-      and p.uid = any($1);
+      c.uid is not null;
   EOQ
 
   param "pod_uids" {}
@@ -85,9 +82,10 @@ edge "pod_to_init_container" {
       container ->> 'name' || p.name as to_id
     from
       kubernetes_pod as p,
-      jsonb_array_elements(p.init_containers) as container
-    where
-      uid = any($1);
+      join jsonb_array_elements(p.init_containers) as container as true
+      join
+      unnest($1::text[]) as u on context_name = split_part(u, '/', 2)
+      and uid = split_part(u, '/', 1);
   EOQ
 
   param "pod_uids" {}
@@ -101,14 +99,11 @@ edge "pod_to_endpoint" {
       p.uid as from_id,
       e.uid as to_id
     from
-      kubernetes_pod as p,
-      kubernetes_endpoint as e,
-      jsonb_array_elements(subsets) as s,
-      jsonb_array_elements(s -> 'addresses') as a
-    where
-      p.uid = a -> 'targetRef' ->> 'uid'
-      and e.context_name = p.context_name
-      and p.uid = any($1);
+      kubernetes_pod as p
+      join unnest($1::text[]) as u on p.uid = split_part(u, '/', 1)
+      join kubernetes_endpoint as e on e.context_name = split_part(u, '/', 2)
+      join jsonb_array_elements(e.subsets) as s on true
+      join jsonb_array_elements(s -> 'addresses') as a on p.uid = a -> 'targetRef' ->> 'uid';
   EOQ
 
   param "pod_uids" {}
@@ -122,12 +117,11 @@ edge "pod_to_service" {
       p.uid as from_id,
       s.uid as to_id
     from
-      kubernetes_service as s,
-      kubernetes_pod as p
-     where
-      p.selector_search = s.selector_query
-      and s.context_name = p.context_name
-      and p.uid = any($1);
+      kubernetes_service as s
+      join kubernetes_pod as p on p.selector_search = s.selector_query
+      join
+      unnest($1::text[]) as u on s.context_name = split_part(u, '/', 2)
+      and p.uid = split_part(u, '/', 1);
   EOQ
 
   param "pod_uids" {}

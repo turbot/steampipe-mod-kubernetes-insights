@@ -6,7 +6,7 @@ edge "service_account_to_role_binding" {
       a.uid as from_id,
       b.uid as to_id
     from
-      kubernetes_role_binding as b
+      kubernetes_role_binding as b 
     join
       jsonb_array_elements(subjects) as s on s ->> 'kind' = 'ServiceAccount'
     join
