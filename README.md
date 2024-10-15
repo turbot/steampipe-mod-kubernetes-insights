@@ -1,10 +1,5 @@
 # Kubernetes Insights Mod for Powerpipe
 
-> [!IMPORTANT]
-> [Powerpipe](https://powerpipe.io) is now the preferred way to run this mod! [Migrating from Steampipe →](https://powerpipe.io/blog/migrating-from-steampipe)
->
-> All v0.x versions of this mod will work in both Steampipe and Powerpipe, but v1.0.0 onwards will be in Powerpipe format only.
-
 A Kubernetes dashboarding tool that can be used to view dashboards and reports across all of your Kubernetes clusters.
 
 ![image](https://raw.githubusercontent.com/turbot/steampipe-mod-kubernetes-insights/main/docs/images/kubernetes_container_dashboard.png)
