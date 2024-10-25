@@ -182,7 +182,7 @@ dashboard "service_account_detail" {
 query "service_account_input" {
   sql = <<-EOQ
     select
-      title as label,
+      concat(title , ' ', namespace) as label,
       uid as value,
       json_build_object(
         'context_name', context_name
