@@ -182,10 +182,11 @@ dashboard "service_account_detail" {
 query "service_account_input" {
   sql = <<-EOQ
     select
-      concat(title , ' ', namespace) as label,
+      title as label, 
       uid as value,
       json_build_object(
-        'context_name', context_name
+        'context_name', context_name,
+        'namespace', namespace
       ) as tags
     from
       kubernetes_service_account
